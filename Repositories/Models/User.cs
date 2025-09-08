@@ -17,6 +17,9 @@ public partial class User
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? Token { get; set; }
+    public bool IsVerified { get; set; } = false;
+
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();

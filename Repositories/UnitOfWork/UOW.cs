@@ -1,4 +1,5 @@
-﻿using Repositories.Models;
+﻿using Repositories.Interface;
+using Repositories.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,13 @@ namespace Repositories.UnitOfWork
     {
         private readonly SealDbContext _context;
 
-        public int SaveChanges()
+        public IRoleRepository Roles { get; }
+
+        public UOW(SealDbContext context, IRoleRepository roleRepository)
         {
-            return _context.SaveChanges();
-        }
+            _context = context;
+            Roles = roleRepository;
+        }   
 
         public async Task<int> SaveChangesAsync()
         {
