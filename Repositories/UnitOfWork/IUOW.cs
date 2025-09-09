@@ -10,6 +10,7 @@ namespace Repositories.UnitOfWork
     public interface IUOW : IDisposable
     {
         IRoleRepository Roles { get; }
+        IAuthRepository Users { get; }
         Task<int> SaveChangesAsync();
     }
 }

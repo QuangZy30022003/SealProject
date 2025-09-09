@@ -16,6 +16,7 @@ namespace Repositories
         {
             service.AddScoped<IRoleRepository, RoleRepository>();
             service.AddScoped<IUOW, UOW>();
+            service.AddScoped<IAuthRepository, AuthRepository>();
             return service;
         }
     }

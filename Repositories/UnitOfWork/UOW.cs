@@ -13,11 +13,12 @@ namespace Repositories.UnitOfWork
         private readonly SealDbContext _context;
 
         public IRoleRepository Roles { get; }
-
-        public UOW(SealDbContext context, IRoleRepository roleRepository)
+        public IAuthRepository Users { get; }
+        public UOW(SealDbContext context, IRoleRepository roleRepository, IAuthRepository authRepository)
         {
             _context = context;
             Roles = roleRepository;
+            Users = authRepository;
         }   
 
         public async Task<int> SaveChangesAsync()

@@ -14,6 +14,8 @@ namespace Service
         public static IServiceCollection AddService(this IServiceCollection service)
         {
            service.AddScoped<IRoleService, RoleService>();
+            service.AddScoped<IAuthService, AuthService>();
+            service.AddScoped<IEmailService, EmailService>();
             return service;
         }
     }
