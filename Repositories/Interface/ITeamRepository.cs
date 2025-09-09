@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace Repositories.Interface
 {
-    public interface IAuthRepository: IRepository<User>
+    public interface ITeamRepository: IRepository<Team>
     {
-        Task<User?> GetByEmailAsync(string email);
-        Task<User?> GetByTokenAsync(string token);
+        Task<bool> ExistsByNameAsync(string teamName, int? chapterId);
     }
 }

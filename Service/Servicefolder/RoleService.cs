@@ -30,7 +30,7 @@ namespace Service.Servicefolder
             }
             var newRole = new Role { RoleName = roleName };
             await _uow.Roles.AddAsync(newRole);
-            await _uow.SaveChangesAsync();
+            await _uow.SaveAsync();
             return newRole;
         }
         public async Task<IEnumerable<Role>> GetAllRolesAsync()
