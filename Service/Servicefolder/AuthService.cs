@@ -21,7 +21,7 @@ namespace Service.Servicefolder
 
         public async Task<(User user, bool isVerified)> LoginWithGoogleAsync(string email, string fullName)
         {
-            var user = await _uow.Users.GetByEmailAsync(email);
+            var user = await _uow.AuthRepository.GetByEmailAsync(email);
 
             if (user == null)
             {
@@ -37,9 +37,9 @@ namespace Service.Servicefolder
                 };
 
                 await _uow.Users.AddAsync(user);
-                await _uow.SaveChangesAsync();
+                await _uow.SaveAsync();
 
-                var verificationLink = $"https://localhost:5001/api/auth/verify?token={user.Token}";
+                var verificationLink = $"https://localhost:7268/api/auth/verify?token={user.Token}";
                 var subject = "Verify your email";
                 var body = $"<p>Hello {user.FullName},</p>" +
                            $"<p>Please verify your account by clicking the link below:</p>" +

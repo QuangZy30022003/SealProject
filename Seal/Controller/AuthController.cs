@@ -28,7 +28,7 @@ namespace Seal.Controller
             if (string.IsNullOrEmpty(token))
                 return BadRequest("Invalid token.");
 
-            var user = await _uow.Users.GetByTokenAsync(token); // bạn cần thêm method này trong UserRepo
+            var user = await _uow.AuthRepository.GetByTokenAsync(token); // bạn cần thêm method này trong UserRepo
             if (user == null)
                 return NotFound("User not found or token invalid.");
 
@@ -38,7 +38,7 @@ namespace Seal.Controller
             // cập nhật trạng thái
             user.IsVerified = true;
             user.Token = null; // clear token sau khi xác thực
-            await _uow.SaveChangesAsync();
+            await _uow.SaveAsync();
 
             return Ok("Email verified successfully. You can now log in.");
         }
