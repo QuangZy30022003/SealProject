@@ -44,30 +44,48 @@ namespace Seal.Controller
         }
 
         [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        public async Task<IActionResult> GoogleLogin([FromBody] string email)
         {
-            var (user, isVerified) = await _authService.LoginWithGoogleAsync(request.Email, request.FullName);
-
-            if (!isVerified)
-            {
-                return Ok(new
-                {
-                    Message = "Please verify your email. A verification link has been sent.",
-                    UserId = user.UserId,
-                    Email = user.Email
-                });
-            }
-
-            var token = _jwtHelper.GenerateToken(user);
+            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
 
             return Ok(new
             {
-                user.UserId,
-                user.FullName,
-                user.Email,
-                Token = token
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                IsVerified = isVerified
             });
         }
 
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+            if (userIdClaim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var result = await _authService.LogoutAsync(userId);
+
+            if (!result)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new { message = "Logout successful" });
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            try
+            {
+                var (accessToken, newRefreshToken) = await _authService.RefreshTokenAsync(refreshToken);
+                return Ok(new { AccessToken = accessToken, RefreshToken = newRefreshToken });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
     }
 }

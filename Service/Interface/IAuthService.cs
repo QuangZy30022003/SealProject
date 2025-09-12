@@ -9,6 +9,8 @@ namespace Service.Interface
 {
     public interface IAuthService
     {
-        Task<(User user, bool isVerified)> LoginWithGoogleAsync(string email, string fullName);
+        Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsync(string email);
+          Task<bool> LogoutAsync(int userId);
+        Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string refreshToken);
     }
 }
