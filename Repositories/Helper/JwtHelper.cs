@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Repositories.Models;
+using System.Security.Cryptography;
 
 namespace Common.Helper
 {
@@ -30,9 +31,9 @@ namespace Common.Helper
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim("userId", user.UserId.ToString()),
-                new Claim("roleId", user.RoleId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    new Claim("UserId", user.UserId.ToString()), 
+    new Claim("RoleId", user.RoleId?.ToString() ?? "0"),
+    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var token = new JwtSecurityToken(
@@ -45,5 +46,11 @@ namespace Common.Helper
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public string GenerateRefreshToken()
+        {
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        }
+
     }
 }

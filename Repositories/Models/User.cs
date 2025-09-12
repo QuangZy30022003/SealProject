@@ -20,6 +20,9 @@ public partial class User
     public string? Token { get; set; }
     public bool IsVerified { get; set; } = false;
 
+    public string? RefreshToken { get; set; }
+
+    public DateTime? RefreshTokenExpiryTime { get; set; }
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
