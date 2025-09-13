@@ -1,4 +1,5 @@
 ﻿using Repositories.Interface;
+using Repositories.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,6 @@ namespace Repositories.UnitOfWork
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
         IChapterRepository ChaptersRepository { get; }
-
         ISeasonRepository SeasonRepository { get; }
         Task<int> SaveAsync();
     }

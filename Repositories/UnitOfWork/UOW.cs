@@ -1,4 +1,4 @@
-﻿using Repositories.Interface;
+using Repositories.Interface;
 using Repositories.Models;
 using Repositories.Repos;
 using System;
@@ -12,6 +12,7 @@ namespace Repositories.UnitOfWork
     public class UOW : IUOW
     {
         private readonly SealDbContext _context;
+
         public IRepository<User> Users { get; }
         public IRepository<Team> Teams { get; }
         public IRepository<Chapter> Chapters { get; }
@@ -57,6 +58,7 @@ namespace Repositories.UnitOfWork
             ChaptersRepository = new ChapterRepository(_context);
             SeasonRepository = new SeasonRepository(_context);
         }
+
         public async Task<int> SaveAsync()
         {
             return await _context.SaveChangesAsync();
