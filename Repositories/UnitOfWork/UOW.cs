@@ -1,4 +1,4 @@
-﻿using Repositories.Interface;
+using Repositories.Interface;
 using Repositories.Models;
 using Repositories.Repos;
 using System;
@@ -32,6 +32,7 @@ namespace Repositories.UnitOfWork
         public IAuthRepository AuthRepository { get; }
         public ITeamRepository TeamsRepository { get; }
         public IChapterRepository ChaptersRepository { get; }
+        public ISeasonRepository SeasonRepository { get; }
         public UOW(SealDbContext context)
         {
             _context = context;
@@ -55,13 +56,13 @@ namespace Repositories.UnitOfWork
             AuthRepository = new AuthRepository(_context);
             TeamsRepository = new TeamRepository(_context);
             ChaptersRepository = new ChapterRepository(_context);
+            SeasonRepository = new SeasonRepository(_context);
         }
 
         public async Task<int> SaveAsync()
         {
             return await _context.SaveChangesAsync();
         }
-
         public void Dispose()
         {
             _context.Dispose();

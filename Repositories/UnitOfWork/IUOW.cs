@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Repositories.Models;
 namespace Repositories.UnitOfWork
 {
     public interface IUOW : IDisposable
@@ -29,6 +29,7 @@ namespace Repositories.UnitOfWork
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
         IChapterRepository ChaptersRepository { get; }
+        ISeasonRepository SeasonRepository { get; }
         Task<int> SaveAsync();
     }
 }

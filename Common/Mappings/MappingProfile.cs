@@ -1,4 +1,4 @@
-﻿using Common.DTOs.ChapterDto;
+using Common.DTOs.ChapterDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Repositories.Models;
 using AutoMapper;
 using Common.DTOs.TeamDto;
+using Common.DTOs.SeasonDto;
+
 
 
 namespace Common.Mappings
@@ -24,6 +26,12 @@ namespace Common.Mappings
             CreateMap<CreateTeamDto, Team>()
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
             CreateMap<Team, TeamDto>();
+            CreateMap<Season, SeasonResponse>();
+            CreateMap<SeasonRequest, Season>()
+      .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SeasonCode));
+            CreateMap<SeasonUpdateDto, Season>();
+                
+
         }
     }
 }
