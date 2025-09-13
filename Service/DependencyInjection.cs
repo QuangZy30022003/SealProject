@@ -16,6 +16,9 @@ namespace Service
            service.AddScoped<IRoleService, RoleService>();
             service.AddScoped<IAuthService, AuthService>();
             service.AddScoped<IEmailService, EmailService>();
+            service.AddScoped<ITeamService, TeamService>();
+            service.AddScoped<IChapterService, ChapterService>();
+            service.AddScoped<ISeasonService, SeasonService>();
             return service;
         }
     }

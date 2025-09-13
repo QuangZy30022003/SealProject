@@ -47,6 +47,12 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<TeamMember> TeamMembers { get; set; }
 
+    public virtual DbSet<Season> Seasons { get; set; }
+
+    public virtual DbSet<Challenge> Challenges { get; set; }
+
+    public virtual DbSet<TeamChallenge> TeamChallenges { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
 //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -366,6 +372,55 @@ public partial class SealDbContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .HasConstraintName("FK__Users__RoleID__3B75D760");
+        });
+
+        modelBuilder.Entity<Season>(entity =>
+        {
+            entity.ToTable("Season"); 
+
+            entity.HasKey(e => e.SeasonId).HasName("PK_Season");
+            entity.Property(e => e.SeasonId).HasColumnName("SeasonID");
+            entity.Property(e => e.Code).HasMaxLength(20);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.StartDate);
+            entity.Property(e => e.EndDate);
+        });
+
+
+        modelBuilder.Entity<Challenge>(entity =>
+        {
+            entity.HasKey(e => e.ChallengeId).HasName("PK_Challenges");
+            entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.FilePath).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.SeasonId).HasColumnName("SeasonID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Season).WithMany(p => p.Challenges)
+                  .HasForeignKey(d => d.SeasonId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.User).WithMany(p => p.Challenges)
+                  .HasForeignKey(d => d.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // TeamChallenge
+        modelBuilder.Entity<TeamChallenge>(entity =>
+        {
+            entity.HasKey(e => new { e.TeamId, e.ChallengeId }).HasName("PK_TeamChallenges");
+
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
+            entity.Property(e => e.RegisteredAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.TeamChallenges)
+                  .HasForeignKey(d => d.TeamId);
+
+            entity.HasOne(d => d.Challenge).WithMany(p => p.TeamChallenges)
+                  .HasForeignKey(d => d.ChallengeId);
         });
 
         OnModelCreatingPartial(modelBuilder);

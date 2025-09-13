@@ -4,13 +4,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Repositories.Models;
 namespace Repositories.UnitOfWork
 {
     public interface IUOW : IDisposable
     {
-        IRoleRepository Roles { get; }
-        IAuthRepository Users { get; }
-        Task<int> SaveChangesAsync();
+        IRepository<User> Users { get; }
+        IRepository<Team> Teams { get; }
+        IRepository<Chapter> Chapters { get; }
+        IRepository<Submission> Submissions { get; }
+        IRepository<MentorAssignment> MentorAssignments { get; }
+        IRepository<Prize> Prizes { get; }
+        IRepository<PrizeAllocation> PrizeAllocations { get; }
+        IRepository<Role> Roles { get; }
+        IRepository<AuditLog> AuditLogs { get; }
+        IRepository<Notification> Notifications { get; }
+        IRepository<Score> Scores { get; }
+        IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
+        IRepository<Hackathon> Hackathons { get; }
+        IRepository<HackathonPhase> HackathonPhases { get; }
+        IRepository<Criterion> Criteria { get; }
+        IRepository<TeamMember> TeamMembers { get; }
+        IAuthRepository AuthRepository { get; }
+        ITeamRepository TeamsRepository { get; }
+        IChapterRepository ChaptersRepository { get; }
+
+        ISeasonRepository SeasonRepository { get; }
+        Task<int> SaveAsync();
     }
 }

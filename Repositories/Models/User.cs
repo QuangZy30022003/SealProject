@@ -42,4 +42,7 @@ public partial class User
     public virtual ICollection<TeamMember> TeamMembers { get; set; } = new List<TeamMember>();
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
+
+    public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
+
 }

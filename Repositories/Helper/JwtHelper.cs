@@ -31,7 +31,7 @@ namespace Common.Helper
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-    new Claim("UserId", user.UserId.ToString()), 
+    new Claim("UserId", user.UserId.ToString()),
     new Claim("RoleId", user.RoleId?.ToString() ?? "0"),
     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
