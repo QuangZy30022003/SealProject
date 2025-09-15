@@ -26,10 +26,12 @@ namespace Repositories.UnitOfWork
         IRepository<HackathonPhase> HackathonPhases { get; }
         IRepository<Criterion> Criteria { get; }
         IRepository<TeamMember> TeamMembers { get; }
+        IRepository<TeamInvitation> TeamInvitations { get; }
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
         IChapterRepository ChaptersRepository { get; }
         ISeasonRepository SeasonRepository { get; }
+        ITeamInvitationRepository TeamInvitationRepository { get; }
         Task<int> SaveAsync();
     }
 }

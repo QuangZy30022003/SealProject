@@ -19,6 +19,7 @@ namespace Service
             service.AddScoped<ITeamService, TeamService>();
             service.AddScoped<IChapterService, ChapterService>();
             service.AddScoped<ISeasonService, SeasonService>();
+            service.AddScoped<ITeamInvitationService, TeamInvitationService>();
             return service;
         }
     }
