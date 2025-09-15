@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Common.Mappings;
 using Microsoft.Extensions.DependencyInjection;
+using Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+        NameClaimType = "UserId"
     };
 })
 .AddGoogle(options =>
@@ -41,6 +43,8 @@ builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddAuthorization();
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContextService, UserContextService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

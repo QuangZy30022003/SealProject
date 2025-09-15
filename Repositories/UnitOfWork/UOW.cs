@@ -29,10 +29,12 @@ namespace Repositories.UnitOfWork
         public IRepository<HackathonPhase> HackathonPhases { get; }
         public IRepository<Criterion> Criteria { get; }
         public IRepository<TeamMember> TeamMembers { get; }
+        public IRepository<TeamInvitation> TeamInvitations { get; }
         public IAuthRepository AuthRepository { get; }
         public ITeamRepository TeamsRepository { get; }
         public IChapterRepository ChaptersRepository { get; }
         public ISeasonRepository SeasonRepository { get; }
+        public ITeamInvitationRepository TeamInvitationRepository { get; }
         public UOW(SealDbContext context)
         {
             _context = context;
@@ -53,10 +55,12 @@ namespace Repositories.UnitOfWork
             HackathonPhases = new GenericRepository<HackathonPhase>(_context);
             Criteria = new GenericRepository<Criterion>(_context);
             TeamMembers = new GenericRepository<TeamMember>(_context);
+            TeamInvitations = new GenericRepository<TeamInvitation>(_context);
             AuthRepository = new AuthRepository(_context);
             TeamsRepository = new TeamRepository(_context);
             ChaptersRepository = new ChapterRepository(_context);
             SeasonRepository = new SeasonRepository(_context);
+            TeamInvitationRepository = new TeamInvitationRepository(_context);
         }
 
         public async Task<int> SaveAsync()
