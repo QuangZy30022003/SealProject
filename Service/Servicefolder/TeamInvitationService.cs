@@ -74,8 +74,17 @@ namespace Service.Servicefolder
             if (user == null || user.Email.ToLower() != invitation.InvitedEmail.ToLower())
                 throw new UnauthorizedAccessException("This invitation is not for your account");
 
-            var memberExists = await _uow.TeamMembers.GetAllAsync();
-            if (!memberExists.Any(m => m.TeamId == invitation.TeamId && m.UserId == userId))
+            // Get all members of the team
+            var allMembers = await _uow.TeamMembers.GetAllAsync(m => m.TeamId == invitation.TeamId);
+            var currentMemberCount = allMembers.Count();
+
+            // Giới hạn số lượng max là 5
+            if (currentMemberCount >= 5)
+                throw new Exception("The team already has the maximum number of members (5).");
+
+            // Nếu chưa tồn tại thì thêm vào team
+            var alreadyInTeam = allMembers.Any(m => m.UserId == userId);
+            if (!alreadyInTeam)
             {
                 await _uow.TeamMembers.AddAsync(new TeamMember
                 {

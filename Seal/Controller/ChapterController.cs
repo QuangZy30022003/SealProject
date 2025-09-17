@@ -39,5 +39,26 @@ namespace Seal.Controller
             var result = await _chapterService.GetByIdAsync(id);
             return result is null ? NotFound() : Ok(result);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _chapterService.GetAllAsync();
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateChapterDto dto)
+        {
+            var result = await _chapterService.UpdateAsync(id, dto);
+            return result == null ? NotFound() : Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await _chapterService.DeleteAsync(id);
+            return success ? Ok() : NotFound();
+        }
     }
 }

@@ -20,11 +20,12 @@ namespace Common.Mappings
             // Chapter
             CreateMap<CreateChapterDto, Chapter>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
-
+            CreateMap<UpdateChapterDto, Chapter>();
             CreateMap<Chapter, ChapterDto>();
 
             CreateMap<CreateTeamDto, Team>()
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            CreateMap<UpdateTeamDto, Team>();
             CreateMap<Team, TeamDto>();
             CreateMap<Season, SeasonResponse>();
             CreateMap<SeasonRequest, Season>()

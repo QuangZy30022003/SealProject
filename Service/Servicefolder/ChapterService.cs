@@ -42,5 +42,33 @@ namespace Service.Servicefolder
             var entity = await _uow.Chapters.GetByIdAsync(id);
             return entity == null ? null : _mapper.Map<ChapterDto>(entity);
         }
+
+        public async Task<IEnumerable<ChapterDto>> GetAllAsync()
+        {
+            var entities = await _uow.Chapters.GetAllAsync();
+            return _mapper.Map<IEnumerable<ChapterDto>>(entities);
+        }
+
+        public async Task<ChapterDto?> UpdateAsync(int id, UpdateChapterDto dto)
+        {
+            var chapter = await _uow.Chapters.GetByIdAsync(id);
+            if (chapter == null) return null;
+
+            chapter.ChapterName = dto.ChapterName;
+            _uow.Chapters.Update(chapter);
+            await _uow.SaveAsync();
+
+            return _mapper.Map<ChapterDto>(chapter);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var chapter = await _uow.Chapters.GetByIdAsync(id);
+            if (chapter == null) return false;
+
+            _uow.Chapters.Remove(chapter);
+            await _uow.SaveAsync();
+            return true;
+        }
     }
 }
