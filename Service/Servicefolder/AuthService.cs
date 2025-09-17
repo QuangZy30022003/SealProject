@@ -108,5 +108,27 @@ namespace Service.Servicefolder
 
             return (newAccessToken, newRefreshToken);
         }
+
+        public async Task<string> VerifyEmailAsync(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                throw new ArgumentException("Invalid token.");
+
+            var user = await _uow.AuthRepository.GetByTokenAsync(token);
+            if (user == null)
+                throw new KeyNotFoundException("User not found or token invalid.");
+
+            if (user.IsVerified)
+                return "Your account is already verified.";
+
+            user.IsVerified = true;
+            user.Token = null;
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return "Email verified successfully. You can now log in.";
+        }
+
     }
 }
