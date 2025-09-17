@@ -25,23 +25,25 @@ namespace Seal.Controller
         [HttpGet("verify")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
-            if (string.IsNullOrEmpty(token))
-                return BadRequest("Invalid token.");
-
-            var user = await _uow.AuthRepository.GetByTokenAsync(token); // bạn cần thêm method này trong UserRepo
-            if (user == null)
-                return NotFound("User not found or token invalid.");
-
-            if (user.IsVerified)
-                return Ok("Your account is already verified.");
-
-            // cập nhật trạng thái
-            user.IsVerified = true;
-            user.Token = null; // clear token sau khi xác thực
-            await _uow.SaveAsync();
-
-            return Ok("Email verified successfully. You can now log in.");
+            try
+            {
+                var result = await _authService.VerifyEmailAsync(token);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] string email)
