@@ -12,5 +12,8 @@ namespace Service.Interface
     {
         Task<TeamDto> CreateTeamAsync(CreateTeamDto dto);
         Task<TeamDto?> GetByIdAsync(int id);
+        Task<IEnumerable<TeamDto>> GetAllAsync();
+        Task<TeamDto?> UpdateAsync(int id, UpdateTeamDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

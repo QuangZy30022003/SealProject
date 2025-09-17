@@ -12,5 +12,8 @@ namespace Service.Interface
     {
         Task<ChapterDto> CreateChapterAsync(CreateChapterDto dto);
         Task<ChapterDto?> GetByIdAsync(int id);
+        Task<IEnumerable<ChapterDto>> GetAllAsync();
+        Task<ChapterDto?> UpdateAsync(int id, UpdateChapterDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }
