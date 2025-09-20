@@ -33,6 +33,27 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
         NameClaimType = "UserId"
     };
+    // Cho phép dùng token không có prefix Bearer
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                // Nếu header KHÔNG bắt đầu bằng "Bearer " thì coi toàn bộ là token
+                if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                }
+                else
+                {
+                    context.Token = authHeader; // token thuần
+                }
+            }
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddGoogle(options =>
 {
@@ -60,7 +81,8 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
@@ -73,9 +95,9 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header
+                //Scheme = "oauth2",
+                //Name = "Bearer",
+                //In = ParameterLocation.Header
             },
             new List<string>()
         }

@@ -35,6 +35,7 @@ namespace Repositories.UnitOfWork
         public IChapterRepository ChaptersRepository { get; }
         public ISeasonRepository SeasonRepository { get; }
         public ITeamInvitationRepository TeamInvitationRepository { get; }
+        public IChallengeRepository ChallengeRepository { get; }
         public UOW(SealDbContext context)
         {
             _context = context;
@@ -61,6 +62,7 @@ namespace Repositories.UnitOfWork
             ChaptersRepository = new ChapterRepository(_context);
             SeasonRepository = new SeasonRepository(_context);
             TeamInvitationRepository = new TeamInvitationRepository(_context);
+            ChallengeRepository = new ChallengeRepository(_context);
         }
 
         public async Task<int> SaveAsync()
