@@ -20,6 +20,7 @@ namespace Service
             service.AddScoped<IChapterService, ChapterService>();
             service.AddScoped<ISeasonService, SeasonService>();
             service.AddScoped<ITeamInvitationService, TeamInvitationService>();
+            service.AddScoped<IChallengeService, ChallengeService>();
             return service;
         }
     }

@@ -32,6 +32,8 @@ namespace Repositories.UnitOfWork
         IChapterRepository ChaptersRepository { get; }
         ISeasonRepository SeasonRepository { get; }
         ITeamInvitationRepository TeamInvitationRepository { get; }
+
+        IChallengeRepository ChallengeRepository { get; }
         Task<int> SaveAsync();
     }
 }

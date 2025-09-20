@@ -12,7 +12,7 @@ namespace Repositories.Models
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
         public string? FilePath { get; set; } // PDF/DOC path
-        public bool IsApproved { get; set; } = false;
+        public string Status { get; set; } = "Pending";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Season
