@@ -47,7 +47,7 @@ namespace Service.Servicefolder
                 await _uow.Users.AddAsync(user);
                 await _uow.SaveAsync();
 
-                var verificationLink = $"https://localhost:7268/api/auth/verify?token={user.Token}";
+                var verificationLink = $"https://sealfall25.somee.com/api/auth/verify?token={user.Token}";
                 var subject = "Verify your email";
                 var body = $"<p>Hello {user.FullName},</p>" +
                            $"<p>Please verify your account by clicking the link below:</p>" +

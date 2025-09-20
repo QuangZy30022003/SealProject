@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Common.DTOs.TeamInvitationDto;
+using Common.Enums;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -30,7 +32,12 @@ namespace Service.Servicefolder
             if (team.LeaderId != inviterUserId)
                 throw new UnauthorizedAccessException("Only team leader can invite");
 
-            var alreadyInvited = await _uow.TeamInvitationRepository.IsEmailInvitedAsync(teamId, email);
+            // Dùng ExistsAsync thay cho IsEmailInvitedAsync
+            var alreadyInvited = await _uow.TeamInvitations.ExistsAsync(i =>
+                i.TeamId == teamId &&
+                i.InvitedEmail.ToLower() == email.ToLower() &&
+                i.Status == InvitationStatus.Pending);
+
             if (alreadyInvited)
                 throw new Exception("This email has already been invited");
 
@@ -39,14 +46,14 @@ namespace Service.Servicefolder
                 TeamId = teamId,
                 InvitedEmail = email,
                 InvitedByUserId = inviterUserId,
+                Status = InvitationStatus.Pending,
                 ExpiresAt = DateTime.UtcNow.AddDays(7)
             };
 
             await _uow.TeamInvitations.AddAsync(invitation);
             await _uow.SaveAsync();
 
-            // Gửi email / in link (demo)
-            var inviteLink = $"https://localhost:7268/api/TeamInvitation/accept-link?code={invitation.InvitationCode}";
+            var inviteLink = $"https://sealfall25.somee.com/api/TeamInvitation/accept-link?code={invitation.InvitationCode}";
             var subject = $"Lời mời tham gia nhóm: {team.TeamName}";
             var body = $@"
         <p>Xin chào,</p>
@@ -64,41 +71,167 @@ namespace Service.Servicefolder
             return inviteLink;
         }
 
-        public async Task<string> AcceptInvitationAsync(Guid invitationCode, int userId)
+        public async Task<AcceptInvitationResult> AcceptInvitationAsync(Guid code, int userId)
         {
-            var invitation = await _uow.TeamInvitationRepository.GetByCodeAsync(invitationCode);
-            if (invitation == null || invitation.IsAccepted || invitation.ExpiresAt < DateTime.UtcNow)
+            var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(i => i.InvitationCode == code);
+            if (invitation == null || invitation.Status != "Pending" || invitation.ExpiresAt < DateTime.UtcNow)
                 throw new Exception("Invitation is invalid or expired.");
 
             var user = await _uow.Users.GetByIdAsync(userId);
-            if (user == null || user.Email.ToLower() != invitation.InvitedEmail.ToLower())
+            if (user == null)
+                throw new UnauthorizedAccessException("User not found");
+
+            if (!string.Equals(user.Email, invitation.InvitedEmail, StringComparison.OrdinalIgnoreCase))
                 throw new UnauthorizedAccessException("This invitation is not for your account");
 
-            // Get all members of the team
-            var allMembers = await _uow.TeamMembers.GetAllAsync(m => m.TeamId == invitation.TeamId);
-            var currentMemberCount = allMembers.Count();
-
-            // Giới hạn số lượng max là 5
-            if (currentMemberCount >= 5)
-                throw new Exception("The team already has the maximum number of members (5).");
-
-            // Nếu chưa tồn tại thì thêm vào team
-            var alreadyInTeam = allMembers.Any(m => m.UserId == userId);
-            if (!alreadyInTeam)
-            {
-                await _uow.TeamMembers.AddAsync(new TeamMember
-                {
-                    TeamId = invitation.TeamId,
-                    UserId = userId,
-                    RoleInTeam = "Member"
-                });
-            }
-
-            invitation.IsAccepted = true;
+            // Đánh dấu accepted
+            invitation.Status = "Accepted";
             _uow.TeamInvitations.Update(invitation);
             await _uow.SaveAsync();
 
-            return "You have joined the team.";
+            // Lấy các lời mời đã accept
+            var acceptedInvitations = await _uow.TeamInvitations.GetAllAsync(i => i.TeamId == invitation.TeamId && i.Status == "Accepted");
+
+            var team = await _uow.Teams.GetByIdAsync(invitation.TeamId);
+            if (team == null) throw new Exception("Team not found");
+
+            int memberCount = acceptedInvitations.Count() + 1; // +1 leader
+            bool teamCreated = false;
+
+            if (memberCount >= 3)
+            {
+                // Thêm leader
+                if (team.LeaderId.HasValue &&
+                    !await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == team.LeaderId.Value))
+                {
+                    await _uow.TeamMembers.AddAsync(new TeamMember
+                    {
+                        TeamId = team.TeamId,
+                        UserId = team.LeaderId.Value,
+                        RoleInTeam = "Leader"
+                    });
+                }
+
+                // Thêm các member
+                foreach (var inv in acceptedInvitations)
+                {
+                    var invitedUser = await _uow.Users.FirstOrDefaultAsync(u => u.Email == inv.InvitedEmail);
+                    if (invitedUser == null) continue;
+
+                    if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == invitedUser.UserId))
+                    {
+                        await _uow.TeamMembers.AddAsync(new TeamMember
+                        {
+                            TeamId = team.TeamId,
+                            UserId = invitedUser.UserId,
+                            RoleInTeam = "Member"
+                        });
+                    }
+                }
+
+                await _uow.SaveAsync();
+                teamCreated = true;
+            }
+
+            return new AcceptInvitationResult
+            {
+                Message = teamCreated
+            ? "Invitation accepted successfully, team members created."
+            : "Invitation accepted successfully, waiting for more members.",
+                TeamCreated = teamCreated
+            };
         }
+
+
+
+
+
+        public async Task<string> RejectInvitationAsync(Guid invitationCode, int userId)
+        {
+            var invitation = await _uow.TeamInvitationRepository.GetByCodeAsync(invitationCode);
+            if (invitation == null)
+                throw new Exception("Invitation not found.");
+
+            if (invitation.Status != InvitationStatus.Pending || invitation.ExpiresAt < DateTime.UtcNow)
+                throw new Exception("Invitation is invalid or expired.");
+
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null || !string.Equals(user.Email, invitation.InvitedEmail, StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("This invitation is not for your account");
+
+            invitation.Status = InvitationStatus.Rejected;
+            _uow.TeamInvitations.Update(invitation);
+            await _uow.SaveAsync();
+
+            return "You have rejected the invitation.";
+        }
+
+        public async Task<InvitationStatusDto> GetInvitationStatusAsync(Guid invitationCode)
+        {
+            var invitation = await _uow.TeamInvitationRepository.GetByCodeAsync(invitationCode);
+            if (invitation == null)
+                throw new Exception("Invitation not found");
+
+            
+            var dto = _mapper.Map<InvitationStatusDto>(invitation);
+
+            return dto;
+        }
+
+        public async Task<string> ConfirmTeamAsync(int teamId)
+        {
+            var team = await _uow.Teams.GetByIdAsync(teamId);
+            if (team == null) throw new Exception("Team not found");
+
+            // get leader
+            var leader = await _uow.Users.GetByIdAsync(team.LeaderId);
+
+            // get list invitation accepted
+            var acceptedInvitations = await _uow.TeamInvitationRepository
+                .GetAllAsync(i => i.TeamId == teamId && i.Status == InvitationStatus.Accepted);
+
+            var memberCount = acceptedInvitations.Count() + 1; 
+
+            if (memberCount < 3)
+                throw new Exception("Not enough members to form a team. Minimum is 3.");
+
+            if (memberCount > 5)
+                throw new Exception("Too many accepted members. Maximum is 5.");
+
+            // add leader
+            if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == teamId && m.UserId == leader.UserId))
+            {
+                await _uow.TeamMembers.AddAsync(new TeamMember
+                {
+                    TeamId = teamId,
+                    UserId = leader.UserId,
+                    RoleInTeam = "Leader"
+                });
+            }
+
+            // add accepted members
+            foreach (var inv in acceptedInvitations)
+            {
+                var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == inv.InvitedEmail);
+                if (user == null) continue;
+
+                if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == teamId && m.UserId == user.UserId))
+                {
+                    await _uow.TeamMembers.AddAsync(new TeamMember
+                    {
+                        TeamId = teamId,
+                        UserId = user.UserId,
+                        RoleInTeam = "Member"
+                    });
+                }
+            }
+
+
+            await _uow.SaveAsync();
+
+            return "Team has been officially created with " + memberCount + " members.";
+        }
+
+
     }
 }

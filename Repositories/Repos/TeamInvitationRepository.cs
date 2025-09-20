@@ -22,11 +22,5 @@ namespace Repositories.Repos
             return await _context.TeamInvitations
                 .FirstOrDefaultAsync(x => x.InvitationCode == code);
         }
-
-        public async Task<bool> IsEmailInvitedAsync(int teamId, string email)
-        {
-            return await _context.TeamInvitations
-                .AnyAsync(x => x.TeamId == teamId && x.InvitedEmail == email && !x.IsAccepted);
-        }
     }
 }
