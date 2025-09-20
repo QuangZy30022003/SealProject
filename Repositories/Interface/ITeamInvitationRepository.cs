@@ -10,6 +10,5 @@ namespace Repositories.Interface
     public interface ITeamInvitationRepository: IRepository<TeamInvitation>
     {
         Task<TeamInvitation?> GetByCodeAsync(Guid code);
-        Task<bool> IsEmailInvitedAsync(int teamId, string email);
     }
 }

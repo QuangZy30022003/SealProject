@@ -9,6 +9,7 @@ using AutoMapper;
 using Common.DTOs.TeamDto;
 using Common.DTOs.SeasonDto;
 using Common.DTOs.ChallengeDto;
+using Common.DTOs.TeamInvitationDto;
 
 
 
@@ -46,6 +47,15 @@ namespace Common.Mappings
 
             CreateMap<ChallengeUpdateDto, Challenge>();
 
+
+            //  TeamInvitation 
+            CreateMap<TeamInvitation, InvitationStatusDto>()
+                .ForMember(dest => dest.Status,
+                    opt => opt.MapFrom(src => src.Status.ToString())) 
+                .ForMember(dest => dest.TeamName,
+                    opt => opt.MapFrom(src => src.Team.TeamName))
+                .ForMember(dest => dest.IsExpired,
+                    opt => opt.MapFrom(src => src.ExpiresAt < DateTime.UtcNow));
         }
     }
 }

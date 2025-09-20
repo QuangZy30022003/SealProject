@@ -16,7 +16,7 @@ namespace Repositories.Models
 
         public Guid InvitationCode { get; set; } = Guid.NewGuid();
 
-        public bool IsAccepted { get; set; } = false;
+        public string Status { get; set; } = "Pending";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime ExpiresAt { get; set; }
 
