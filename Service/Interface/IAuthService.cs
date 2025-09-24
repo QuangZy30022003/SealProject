@@ -14,6 +14,7 @@ namespace Service.Interface
         Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string refreshToken);
 
         Task<string> VerifyEmailAsync(string token);
+        Task<User?> GetUserByIdAsync(int userId);
     }
 }
 

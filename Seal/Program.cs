@@ -61,6 +61,19 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 builder.Services.AddScoped<JwtHelper>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173", "https://seal-fpt.vercel.app") // domain FE
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+        });
+});
+
 builder.Services.AddAuthorization();
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -119,7 +132,7 @@ app.UseSwaggerUI(c =>
 //    app.UseSwagger();
 //    app.UseSwaggerUI();
 //}
-
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

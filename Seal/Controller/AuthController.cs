@@ -1,10 +1,13 @@
-﻿using Common.Helper;
+﻿using Common;
+using Common.Helper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Dto.AuthDto;
 using Repositories.UnitOfWork;
 using Service.Interface;
 using Service.Servicefolder;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Seal.Controller
 {
@@ -15,11 +18,13 @@ namespace Seal.Controller
         private readonly IUOW _uow;
         private readonly JwtHelper _jwtHelper;
         private readonly IAuthService _authService;
-        public AuthController(IUOW uow, JwtHelper jwtHelper, IAuthService authService)
+        private readonly IUserContextService _userContext;
+        public AuthController(IUOW uow, JwtHelper jwtHelper, IAuthService authService, IUserContextService userContextService)
         {
             _uow = uow;
             _jwtHelper = jwtHelper;
             _authService = authService;
+
         }
 
         [HttpGet("verify")]
@@ -88,6 +93,24 @@ namespace Seal.Controller
             {
                 return Unauthorized(new { message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+            if (userIdClaim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var user = await _authService.GetUserByIdAsync(userId);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(user);
         }
     }
 }
