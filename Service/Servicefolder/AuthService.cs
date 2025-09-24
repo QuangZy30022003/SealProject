@@ -130,5 +130,10 @@ namespace Service.Servicefolder
             return "Email verified successfully. You can now log in.";
         }
 
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            return await _uow.AuthRepository.GetByIdAsync(userId);
+        }
+
     }
 }
