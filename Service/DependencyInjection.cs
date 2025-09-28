@@ -21,6 +21,8 @@ namespace Service
             service.AddScoped<ISeasonService, SeasonService>();
             service.AddScoped<ITeamInvitationService, TeamInvitationService>();
             service.AddScoped<IChallengeService, ChallengeService>();
+            service.AddScoped<IHackathonService, HackathonService>();
+            service.AddScoped<IHackathonPhaseService, HackathonPhaseService>();
             return service;
         }
     }

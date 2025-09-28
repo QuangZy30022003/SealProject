@@ -18,6 +18,7 @@ public partial class Hackathon
     public DateOnly? EndDate { get; set; }
 
     public int? CreatedBy { get; set; }
+    public virtual Season? SeasonNavigation { get; set; }
 
     public virtual User? CreatedByNavigation { get; set; }
 

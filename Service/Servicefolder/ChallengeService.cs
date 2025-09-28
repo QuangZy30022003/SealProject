@@ -171,5 +171,39 @@ namespace Service.Servicefolder
 
             return null; // null nghĩa là thành công
         }
+
+        //public async Task<List<ChallengeDto>> RandomAssignAsync(int hackathonId, int numberOfPhases)
+        //{
+        //    // 1. Lấy challenge đã duyệt theo hackathon
+        //    var challenges = await _uow.ChallengeRepository.GetApprovedChallengesByHackathonAsync(hackathonId);
+
+        //    if (challenges.Count < numberOfPhases)
+        //        throw new Exception("Không đủ đề đã duyệt để phân bổ cho các vòng thi");
+
+        //    // 2. Random chọn đề
+        //    var random = new Random();
+        //    var selectedChallenges = challenges
+        //        .OrderBy(c => random.Next())
+        //        .Take(numberOfPhases)
+        //        .ToList();
+
+        //    // 3. Lấy phase theo hackathon
+        //    var phases = await _uow.HackathonPhaseRepository.GetPhasesByHackathonAsync(hackathonId);
+
+        //    if (phases.Count < numberOfPhases)
+        //        throw new Exception("Số phase trong hackathon không đủ");
+
+        //    // 4. Gán challenge vào phase
+        //    for (int i = 0; i < numberOfPhases; i++)
+        //    {
+        //        phases[i].ChallengeId = selectedChallenges[i].ChallengeId;
+        //        _uow.HackathonPhaseRepository.Update(phases[i]);
+        //    }
+
+        //    await _uow.SaveAsync();
+
+        //    // 5. Map sang DTO trả về
+        //    return _mapper.Map<List<ChallengeDto>>(selectedChallenges);
+        //}
     }
 }
