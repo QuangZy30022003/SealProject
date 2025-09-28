@@ -25,5 +25,16 @@ namespace Repositories.Repos
                 .Include(c => c.User)
                 .ToListAsync();
         }
+
+        //public async Task<List<Challenge>> GetApprovedChallengesByHackathonAsync(int hackathonId)
+        //{
+        //    var hackathon = await _context.Hackathons.FindAsync(hackathonId);
+        //    if (hackathon == null) return new List<Challenge>();
+
+        //    return await _context.Challenges
+        //        .Include(c => c.Season)
+        //        .Where(c => c.Season.Code == hackathon.Season && c.Status == "Approved")
+        //        .ToListAsync();
+        //}
     }
 }

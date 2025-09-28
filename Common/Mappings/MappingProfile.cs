@@ -10,6 +10,8 @@ using Common.DTOs.TeamDto;
 using Common.DTOs.SeasonDto;
 using Common.DTOs.ChallengeDto;
 using Common.DTOs.TeamInvitationDto;
+using Common.DTOs.HackathonPhaseDto;
+using Common.DTOs.HackathonDto;
 
 
 
@@ -56,6 +58,19 @@ namespace Common.Mappings
                     opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.IsExpired,
                     opt => opt.MapFrom(src => src.ExpiresAt < DateTime.UtcNow));
+
+
+            // HackathonPhaseProfile
+            CreateMap<HackathonPhase, HackathonPhaseDto>().ReverseMap();
+            CreateMap<HackathonPhaseCreateDto, HackathonPhase>();
+            CreateMap<HackathonPhaseUpdateDto, HackathonPhase>();
+
+            //Hackathon
+
+            CreateMap<Hackathon, HackathonResponseDto>();
+              //   .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season));
+            CreateMap<HackathonCreateDto, Hackathon>();
+            CreateMap<HackathonDto, Hackathon>();
         }
     }
 }

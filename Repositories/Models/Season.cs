@@ -15,5 +15,6 @@ namespace Repositories.Models
         public DateTime EndDate { get; set; }
 
         public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
+         public virtual ICollection<Hackathon> Hackathons { get; set; } = new List<Hackathon>();
     }
 }
