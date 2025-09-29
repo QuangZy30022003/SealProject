@@ -69,7 +69,11 @@ namespace Common.Helper
                     1 => "Member",
                     2 => "Admin",
                     3 => "TeamLeader",
-                    4 => "Partner"
+                    4 => "Partner",
+                    5 => "Mentor",
+                    6 => "Judge",
+                    7 => "ChapterLeader",
+                    8 => "SystemAdministrator"
                 };
 
                 claims.Add(new Claim(ClaimTypes.Role, roleName));

@@ -15,6 +15,7 @@ public partial class MentorAssignment
 
     public DateTime? AssignedAt { get; set; }
 
+    public string Status { get; set; } = "Pending";
     public virtual Chapter? Chapter { get; set; }
 
     public virtual User? Mentor { get; set; }
