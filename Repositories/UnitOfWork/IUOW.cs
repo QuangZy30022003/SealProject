@@ -36,6 +36,8 @@ namespace Repositories.UnitOfWork
         IChallengeRepository ChallengeRepository { get; }
 
         IHackathonPhaseRepository HackathonPhaseRepository { get; }
+
+        IMentorAssignmentRepository MentorAssignmentRepository { get; }
         Task<int> SaveAsync();
     }
 }

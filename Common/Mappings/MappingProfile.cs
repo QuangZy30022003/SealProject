@@ -1,4 +1,4 @@
-using Common.DTOs.ChapterDto;
+﻿using Common.DTOs.ChapterDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +12,7 @@ using Common.DTOs.ChallengeDto;
 using Common.DTOs.TeamInvitationDto;
 using Common.DTOs.HackathonPhaseDto;
 using Common.DTOs.HackathonDto;
+using Common.DTOs.AssignedTeamDto;
 
 
 
@@ -71,6 +72,12 @@ namespace Common.Mappings
               //   .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season));
             CreateMap<HackathonCreateDto, Hackathon>();
             CreateMap<HackathonDto, Hackathon>();
+
+            CreateMap<MentorAssignment, MentorAssignmentResponseDto>()
+              .ForMember(dest => dest.MentorId, opt => opt.MapFrom(src => src.MentorId))
+              .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
+              .ForMember(dest => dest.ChapterId, opt => opt.MapFrom(src => src.ChapterId));
+            
         }
     }
 }
