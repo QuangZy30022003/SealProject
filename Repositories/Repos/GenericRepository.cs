@@ -81,5 +81,22 @@ namespace Repositories.Repos
                 : await _dbSet.CountAsync(predicate);
         }
 
+        public async Task<IEnumerable<T>> GetAllIncludingAsync(
+       Expression<Func<T, bool>>? predicate = null,
+       params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (predicate != null)
+                query = query.Where(predicate);
+
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+            }
+
+            return await query.ToListAsync();
+        }
+
     }
 }

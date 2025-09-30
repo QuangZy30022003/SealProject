@@ -25,6 +25,7 @@ namespace Service
             service.AddScoped<IHackathonPhaseService, HackathonPhaseService>();
             service.AddScoped<IMentorAssignmentService, MentorAssignmentService>();
             service.AddScoped<ITeamChallengeService, TeamChallengeService>();
+            service.AddScoped<ITeamMemberService, TeamMemberService>();
             return service;
         }
     }

@@ -22,5 +22,8 @@ namespace Repositories.Interface
         void Remove(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
+        Task<IEnumerable<T>> GetAllIncludingAsync(
+        Expression<Func<T, bool>>? predicate = null,
+        params Expression<Func<T, object>>[] includeProperties);
     }
 }
