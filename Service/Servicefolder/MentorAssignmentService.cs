@@ -63,45 +63,61 @@ namespace Service.Servicefolder
             if (chapter == null)
                 throw new Exception("Chapter not found!");
 
-            // 4. Tạo bản ghi mới
+            // 4. Kiểm tra assignment cũ
+            var existing = await _uow.MentorAssignments.GetAllAsync(
+                filter: a => a.TeamId == dto.TeamId && a.ChapterId == dto.ChapterId && a.MentorId == dto.MentorId
+            );
+
+            var latest = existing.OrderByDescending(a => a.AssignmentId).FirstOrDefault();
+
+            if (latest != null)
+            {
+                if (latest.Status == "Pending")
+                {
+                    // Nếu Pending > 3 ngày thì auto reject
+                    if (latest.AssignedAt.HasValue && latest.AssignedAt.Value.AddDays(3) < DateTime.UtcNow)
+                    {
+                        latest.Status = "Rejected";
+                        _uow.MentorAssignments.Update(latest);
+                        await _uow.SaveAsync();
+                    }
+                    else
+                    {
+                        throw new Exception("This assignment is still pending, cannot register again!");
+                    }
+                }
+                else if (latest.Status == "Approved")
+                {
+                    throw new Exception("This assignment is already approved, cannot register again!");
+                }
+            }
+
+            // 5. Tạo bản ghi mới
             var assignment = new MentorAssignment
             {
                 MentorId = dto.MentorId,
                 ChapterId = dto.ChapterId,
                 TeamId = dto.TeamId,
                 Status = "Pending",
-                AssignedAt = null
+                AssignedAt = DateTime.UtcNow
             };
 
             await _uow.MentorAssignments.AddAsync(assignment);
             await _uow.SaveAsync();
 
-            // 5. Tạo link accept / reject
-            var baseUrl = _configuration["App:BaseUrl"];
-            var acceptUrl = $"{baseUrl}/api/mentorassignments/accept/{assignment.AssignmentId}";
-            var rejectUrl = $"{baseUrl}/api/mentorassignments/reject/{assignment.AssignmentId}";
-
-            // 6. Soạn email đẹp hơn
-            string subject = "📩 Mentor Assignment Request";
+            // 6. Gửi mail cho mentor
+            string subject = "📩 Mentor Assignment Notification";
             string body = $@"
 <p>Dear <b>{mentor.FullName}</b>,</p>
-<p>The team <b>{team.TeamName}</b> from Chapter <b>{chapter.ChapterName}</b> has requested you as their mentor.</p>
-<p>Please choose one of the following options:</p>
-<p>
-    <a href='{acceptUrl}' style='padding:10px 20px;background:#28a745;color:white;text-decoration:none;border-radius:5px;'>✅ Accept</a>
-    &nbsp;&nbsp;
-    <a href='{rejectUrl}' style='padding:10px 20px;background:#dc3545;color:white;text-decoration:none;border-radius:5px;'>❌ Reject</a>
-</p>
+<p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Chapter <b>{chapter.ChapterName}</b>.</p>
+<p>Status of this assignment: <b>{assignment.Status}</b></p>
 <p>Best regards,<br/>Seal System</p>";
 
-            // 7. Gửi email
             await _emailService.SendEmailAsync(mentor.Email, subject, body);
 
-            // 8. Trả kết quả về client
+            // 7. Trả kết quả về client
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }
-
-
 
         public async Task<MentorAssignmentResponseDto> ApproveAsync(int assignmentId)
         {

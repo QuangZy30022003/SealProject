@@ -27,6 +27,8 @@ namespace Repositories.UnitOfWork
         IRepository<Criterion> Criteria { get; }
         IRepository<TeamMember> TeamMembers { get; }
         IRepository<TeamInvitation> TeamInvitations { get; }
+
+        IRepository<TeamChallenge> TeamChallenges { get; }
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
         IChapterRepository ChaptersRepository { get; }
