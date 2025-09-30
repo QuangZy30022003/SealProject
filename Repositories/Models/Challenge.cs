@@ -23,6 +23,6 @@ namespace Repositories.Models
         public int UserId { get; set; }
         public virtual User User { get; set; } = null!;
 
-        public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
+      //  public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
     }
 }

@@ -13,6 +13,7 @@ using Common.DTOs.TeamInvitationDto;
 using Common.DTOs.HackathonPhaseDto;
 using Common.DTOs.HackathonDto;
 using Common.DTOs.AssignedTeamDto;
+using Common.DTOs.TeamChallengeDto;
 
 
 
@@ -77,7 +78,11 @@ namespace Common.Mappings
               .ForMember(dest => dest.MentorId, opt => opt.MapFrom(src => src.MentorId))
               .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
               .ForMember(dest => dest.ChapterId, opt => opt.MapFrom(src => src.ChapterId));
-            
+            // TEAM CHALLENGE 
+            CreateMap<TeamChallenge, TeamChallengeResponseDto>()
+               .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+               .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
+            CreateMap<TeamChallengeRegisterDto, TeamChallenge>();
         }
     }
 }

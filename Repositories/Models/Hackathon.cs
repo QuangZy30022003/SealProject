@@ -31,4 +31,5 @@ public partial class Hackathon
     public virtual ICollection<Prize> Prizes { get; set; } = new List<Prize>();
 
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
 }

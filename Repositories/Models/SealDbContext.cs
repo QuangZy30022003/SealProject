@@ -415,22 +415,39 @@ public partial class SealDbContext : DbContext
         // TeamChallenge
         modelBuilder.Entity<TeamChallenge>(entity =>
         {
-            entity.HasKey(e => new { e.TeamId, e.ChallengeId }).HasName("PK_TeamChallenges");
+            entity.HasKey(e => e.TeamChallengeId)
+                  .HasName("PK_TeamChallenges");
 
-            entity.Property(e => e.TeamId).HasColumnName("TeamID");
-            entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
-            entity.Property(e => e.RegisteredAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.TeamChallengeId)
+                  .HasColumnName("TeamChallengeID");
 
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamChallenges)
-                  .HasForeignKey(d => d.TeamId);
+            entity.Property(e => e.TeamId)
+                  .HasColumnName("TeamID");
 
-            entity.HasOne(d => d.Challenge).WithMany(p => p.TeamChallenges)
-                  .HasForeignKey(d => d.ChallengeId);
+            entity.Property(e => e.HackathonId)
+                  .HasColumnName("HackathonID");
+
+            entity.Property(e => e.RegisteredAt)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Team)
+                  .WithMany(p => p.TeamChallenges)
+                  .HasForeignKey(d => d.TeamId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_TeamChallenges_Teams");
+
+            entity.HasOne(d => d.Hackathon)
+                  .WithMany(p => p.TeamChallenges)
+                  .HasForeignKey(d => d.HackathonId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_TeamChallenges_Hackathons");
         });
+
         //team invitation
         modelBuilder.Entity<TeamInvitation>(entity =>
         {
-            entity.HasKey(t => t.InvitationId); 
+            entity.HasKey(t => t.InvitationId);
             entity.Property(t => t.InvitedEmail).IsRequired();
             entity.Property(t => t.InvitationCode).IsRequired();
         });
