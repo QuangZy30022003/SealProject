@@ -10,31 +10,31 @@ namespace Repositories.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "IsApproved",
-                table: "Challenges");
+            //migrationBuilder.DropColumn(
+            //    name: "IsApproved",
+            //    table: "Challenges");
 
-            migrationBuilder.AddColumn<string>(
-                name: "Status",
-                table: "Challenges",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+            //migrationBuilder.AddColumn<string>(
+            //    name: "Status",
+            //    table: "Challenges",
+            //    type: "nvarchar(max)",
+            //    nullable: false,
+            //    defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Status",
-                table: "Challenges");
+            //migrationBuilder.DropColumn(
+            //    name: "Status",
+            //    table: "Challenges");
 
-            migrationBuilder.AddColumn<bool>(
-                name: "IsApproved",
-                table: "Challenges",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+            //migrationBuilder.AddColumn<bool>(
+            //    name: "IsApproved",
+            //    table: "Challenges",
+            //    type: "bit",
+            //    nullable: false,
+            //    defaultValue: false);
         }
     }
 }

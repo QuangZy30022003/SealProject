@@ -16,4 +16,5 @@ public partial class HackathonPhase
     public DateTime EndDate { get; set; }
 
     public virtual Hackathon? Hackathon { get; set; }
+    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 }

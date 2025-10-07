@@ -15,6 +15,7 @@ using Common.DTOs.HackathonDto;
 using Common.DTOs.AssignedTeamDto;
 using Common.DTOs.TeamChallengeDto;
 using Common.DTOs.TeamMemberDto;
+using Common.DTOs.StudentVerification;
 
 
 
@@ -89,6 +90,14 @@ namespace Common.Mappings
             CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email));
+
+            // StudentVerify
+            CreateMap<StudentVerificationDto, StudentVerification>()
+            .ForMember(dest => dest.StudentEmail, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.FrontCardImage, opt => opt.Ignore())
+            .ForMember(dest => dest.BackCardImage, opt => opt.Ignore())
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"));
         }
     }
 }

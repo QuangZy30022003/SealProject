@@ -45,4 +45,8 @@ public partial class User
 
     public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
 
+    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    public virtual ICollection<StudentVerification> StudentVerifications { get; set; } = new List<StudentVerification>();
+
+
 }
