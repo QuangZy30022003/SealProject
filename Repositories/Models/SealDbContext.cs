@@ -54,7 +54,9 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<TeamChallenge> TeamChallenges { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-    public virtual DbSet<TeamInvitation> TeamInvitations { get; set; }  
+    public virtual DbSet<TeamInvitation> TeamInvitations { get; set; }
+    public virtual DbSet<StudentVerification> StudentVerifications { get; set; }
+
 
     //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -298,24 +300,61 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Submission>(entity =>
         {
-            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE1057EB597C1");
+            entity.HasKey(e => e.SubmissionId)
+                .HasName("PK__Submission");
 
-            entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
-            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.SubmissionId)
+                .HasColumnName("SubmissionID");
+
+            entity.Property(e => e.TeamId)
+                .HasColumnName("TeamID");
+
+            entity.Property(e => e.PhaseId)
+                .HasColumnName("PhaseID");
+
+            entity.Property(e => e.SubmittedBy)
+                .HasColumnName("SubmittedBy");
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.GitHubLink)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.DemoLink)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.ReportLink)
+                .HasMaxLength(500);
+
             entity.Property(e => e.SubmittedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.TeamId).HasColumnName("TeamID");
-            entity.Property(e => e.Title).HasMaxLength(200);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Submissions)
-                .HasForeignKey(d => d.HackathonId)
-                .HasConstraintName("FK__Submissio__Hacka__59063A47");
+            entity.Property(e => e.IsFinal)
+                .HasColumnName("IsFinal")
+                .HasDefaultValue(false);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.Submissions)
+            // 🔹 Relationships
+            entity.HasOne(d => d.Team)
+                .WithMany(p => p.Submissions)
                 .HasForeignKey(d => d.TeamId)
-                .HasConstraintName("FK__Submissio__TeamI__5812160E");
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Submission_Team");
+
+            entity.HasOne(d => d.HackathonPhase)
+                .WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Submission_Phase");
+
+            entity.HasOne(d => d.SubmittedByUser)
+                .WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.SubmittedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Submission_User");
         });
+
 
         modelBuilder.Entity<Team>(entity =>
         {
@@ -450,6 +489,55 @@ public partial class SealDbContext : DbContext
             entity.HasKey(t => t.InvitationId);
             entity.Property(t => t.InvitedEmail).IsRequired();
             entity.Property(t => t.InvitationCode).IsRequired();
+        });
+        modelBuilder.Entity<StudentVerification>(entity =>
+        {
+            entity.HasKey(e => e.VerificationId)
+                  .HasName("PK_StudentVerification");
+
+            entity.Property(e => e.VerificationId)
+                  .HasColumnName("VerificationID");
+
+            entity.Property(e => e.UserId)
+                  .HasColumnName("UserID");
+
+            entity.Property(e => e.UniversityName)
+                  .HasMaxLength(200)
+                  .IsRequired();
+
+            entity.Property(e => e.StudentEmail)
+                  .HasMaxLength(150)
+                  .IsRequired();
+
+            entity.Property(e => e.StudentCode)
+                  .HasMaxLength(50)
+                  .IsRequired();
+
+            entity.Property(e => e.FullName)
+                  .HasMaxLength(150)
+                  .IsRequired();
+
+            entity.Property(e => e.Major)
+                  .HasMaxLength(150);
+
+            entity.Property(e => e.Status)
+                  .HasMaxLength(50)
+                  .HasDefaultValue("Pending");
+
+            entity.Property(e => e.CreatedAt)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UpdatedAt)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            // Quan hệ 1-1 hoặc 1-n với User
+            entity.HasOne(d => d.User)
+                  .WithMany(p => p.StudentVerifications)
+                  .HasForeignKey(d => d.UserId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_StudentVerification_User");
         });
 
         OnModelCreatingPartial(modelBuilder);

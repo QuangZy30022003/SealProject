@@ -40,6 +40,8 @@ namespace Repositories.UnitOfWork
         IHackathonPhaseRepository HackathonPhaseRepository { get; }
 
         IMentorAssignmentRepository MentorAssignmentRepository { get; }
+
+        IStudentVerificationRepository StudentVerificationRepository { get; }
         Task<int> SaveAsync();
     }
 }
