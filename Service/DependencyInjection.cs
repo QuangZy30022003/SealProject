@@ -27,6 +27,7 @@ namespace Service
             service.AddScoped<ITeamChallengeService, TeamChallengeService>();
             service.AddScoped<ITeamMemberService, TeamMemberService>();
             service.AddScoped<IStudentVerificationService, StudentVerificationService>();
+            service.AddScoped<IPhaseChallengeService, PhaseChallengeService>();
             return service;
 
         }

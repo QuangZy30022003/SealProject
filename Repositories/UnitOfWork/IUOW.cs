@@ -42,6 +42,7 @@ namespace Repositories.UnitOfWork
         IMentorAssignmentRepository MentorAssignmentRepository { get; }
 
         IStudentVerificationRepository StudentVerificationRepository { get; }
+        IRepository<PhaseChallenge> PhaseChallenges { get; }
         Task<int> SaveAsync();
     }
 }

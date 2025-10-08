@@ -82,9 +82,9 @@ namespace Common.Mappings
               .ForMember(dest => dest.ChapterId, opt => opt.MapFrom(src => src.ChapterId));
             // TEAM CHALLENGE 
             CreateMap<TeamChallenge, TeamChallengeResponseDto>()
-               .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
-               .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
-            CreateMap<TeamChallengeRegisterDto, TeamChallenge>();
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+                .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name))
+                .ReverseMap();
 
             //team member
             CreateMap<TeamMember, TeamMemberDto>()

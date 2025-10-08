@@ -22,47 +22,65 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        public async Task<TeamChallengeResponseDto> RegisterTeamAsync(TeamChallengeRegisterDto dto, int currentUserId)
+        public async Task<IEnumerable<TeamChallengeResponseDto>> RegisterTeamAsync(TeamChallengeRegisterDto dto, int currentUserId)
         {
-            // 1. Validate Team
+            // 1️⃣ Kiểm tra team
             var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
-            if (team == null) throw new Exception("Team not found!");
+            if (team == null)
+                throw new Exception("Team not found!");
 
-            // 2. Chỉ TeamLeader mới có quyền đăng ký
+            // 2️⃣ Chỉ TeamLeader mới được đăng ký
             if (team.LeaderId != currentUserId)
                 throw new Exception("Only the Team Leader can register the team!");
 
-            // 3. Validate Hackathon
+            // 3️⃣ Kiểm tra hackathon
             var hackathon = await _uow.Hackathons.GetByIdAsync(dto.HackathonId);
-            if (hackathon == null) throw new Exception("Hackathon not found!");
+            if (hackathon == null)
+                throw new Exception("Hackathon not found!");
 
-            // 4. Kiểm tra xem Team đã được assign Mentor chưa
-            var hasMentor = (await _uow.MentorAssignments.GetAllAsync(
-                filter: m => m.TeamId == dto.TeamId
-            )).Any();
-
+            // 4️⃣ Team phải có mentor
+            var hasMentor = (await _uow.MentorAssignments.GetAllAsync(m => m.TeamId == dto.TeamId)).Any();
             if (!hasMentor)
                 throw new Exception("Team must be assigned to a mentor before registering!");
 
-            // 5. Kiểm tra xem team đã đăng ký hackathon này chưa
-            var exist = await _uow.TeamChallenges.GetAllAsync(
-                filter: tc => tc.TeamId == dto.TeamId && tc.HackathonId == dto.HackathonId
-            );
+            // 5️⃣ Kiểm tra team đã đăng ký hackathon này chưa
+            var exist = await _uow.TeamChallenges.GetAllAsync(tc =>
+                tc.TeamId == dto.TeamId && tc.HackathonId == dto.HackathonId);
             if (exist.Any())
                 throw new Exception("This team already registered for this hackathon!");
 
-            // 6. Map DTO -> Entity
-            var entity = _mapper.Map<TeamChallenge>(dto);
-            await _uow.TeamChallenges.AddAsync(entity);
+            // 6️⃣ Lấy tất cả phase thuộc hackathon
+            var phases = await _uow.HackathonPhases.GetAllAsync(p => p.HackathonId == dto.HackathonId);
+            if (!phases.Any())
+                throw new Exception("Hackathon must have at least one phase before registration!");
+
+            // 7️⃣ Tạo TeamChallenge cho từng phase
+            var now = DateTime.UtcNow;
+            var newChallenges = new List<TeamChallenge>();
+            foreach (var phase in phases)
+            {
+                var teamChallenge = new TeamChallenge
+                {
+                    TeamId = dto.TeamId,
+                    HackathonId = dto.HackathonId,
+                    PhaseId = phase.PhaseId,    
+                    RegisteredAt = now,
+                    Status = true
+                };
+                newChallenges.Add(teamChallenge);
+                await _uow.TeamChallenges.AddAsync(teamChallenge);
+            }
+
             await _uow.SaveAsync();
 
-            // 7. Load navigation để mapper có dữ liệu
-            var loaded = await _uow.TeamChallenges.GetAllAsync(
-                filter: x => x.TeamChallengeId == entity.TeamChallengeId,
-                includeProperties: "Team,Hackathon"
+            // 8️⃣ Lấy dữ liệu có include để map sang DTO
+            var result = await _uow.TeamChallenges.GetAllIncludingAsync(
+                tc => tc.TeamId == dto.TeamId && tc.HackathonId == dto.HackathonId,
+                tc => tc.Team,
+                tc => tc.Hackathon
             );
 
-            return _mapper.Map<TeamChallengeResponseDto>(loaded.First());
+            return _mapper.Map<IEnumerable<TeamChallengeResponseDto>>(result);
         }
     }
 }

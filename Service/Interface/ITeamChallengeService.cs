@@ -9,6 +9,6 @@ namespace Service.Interface
 {
     public interface ITeamChallengeService
     {
-        Task<TeamChallengeResponseDto> RegisterTeamAsync(TeamChallengeRegisterDto dto, int currentUserId);
+        Task<IEnumerable<TeamChallengeResponseDto>> RegisterTeamAsync(TeamChallengeRegisterDto dto, int currentUserId);
     }
 }
