@@ -57,6 +57,9 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<TeamInvitation> TeamInvitations { get; set; }
     public virtual DbSet<StudentVerification> StudentVerifications { get; set; }
 
+    public virtual DbSet<PhaseChallenge> PhaseChallenges { get; set; }
+
+
 
     //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -538,6 +541,36 @@ public partial class SealDbContext : DbContext
                   .HasForeignKey(d => d.UserId)
                   .OnDelete(DeleteBehavior.Cascade)
                   .HasConstraintName("FK_StudentVerification_User");
+        });
+        modelBuilder.Entity<PhaseChallenge>(entity =>
+        {
+            entity.HasKey(e => e.PhaseChallengeId)
+                  .HasName("PK_PhaseChallenges");
+
+            entity.Property(e => e.PhaseChallengeId)
+                  .HasColumnName("PhaseChallengeID");
+
+            entity.Property(e => e.PhaseId)
+                  .HasColumnName("PhaseID");
+
+            entity.Property(e => e.ChallengeId)
+                  .HasColumnName("ChallengeID");
+
+            entity.Property(e => e.AssignedAt)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(e => e.Phase)
+                  .WithMany(p => p.PhaseChallenges)
+                  .HasForeignKey(e => e.PhaseId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_PhaseChallenges_HackathonPhases");
+
+            entity.HasOne(e => e.Challenge)
+                  .WithMany(p => p.PhaseChallenges)
+                  .HasForeignKey(e => e.ChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_PhaseChallenges_Challenges");
         });
 
         OnModelCreatingPartial(modelBuilder);

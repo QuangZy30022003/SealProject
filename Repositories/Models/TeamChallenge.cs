@@ -12,7 +12,7 @@ namespace Repositories.Models
         public int TeamId { get; set; }
         public int HackathonId { get; set; }
         public int PhaseId { get; set; }   // thêm PhaseId
-        public bool Status { get; set; } = true;
+        public bool Status { get; set; } = false;
         public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
 
         public virtual Team Team { get; set; } = null!;

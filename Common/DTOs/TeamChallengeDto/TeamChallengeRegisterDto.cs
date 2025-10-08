@@ -18,6 +18,7 @@ namespace Common.DTOs.TeamChallengeDto
         public string TeamName { get; set; } = null!;
         public int HackathonId { get; set; }
         public string HackathonName { get; set; } = null!;
+        public int PhaseId { get; set; }
         public DateTime RegisteredAt { get; set; }
     }
 

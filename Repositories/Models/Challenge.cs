@@ -22,7 +22,8 @@ namespace Repositories.Models
         // Partner (User role = Partner)
         public int UserId { get; set; }
         public virtual User User { get; set; } = null!;
+        public virtual ICollection<PhaseChallenge> PhaseChallenges { get; set; } = new List<PhaseChallenge>();
 
-      //  public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
+        //  public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
     }
 }

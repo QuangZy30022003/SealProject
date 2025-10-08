@@ -15,6 +15,7 @@ namespace Repositories.Models
 
         public virtual HackathonPhase Phase { get; set; } = null!;
         public virtual Challenge Challenge { get; set; } = null!;
+ 
     }
 
 }

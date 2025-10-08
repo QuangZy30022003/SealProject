@@ -17,4 +17,6 @@ public partial class HackathonPhase
 
     public virtual Hackathon? Hackathon { get; set; }
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    public virtual ICollection<PhaseChallenge> PhaseChallenges { get; set; } = new List<PhaseChallenge>();
+
 }

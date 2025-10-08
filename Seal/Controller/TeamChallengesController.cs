@@ -22,15 +22,19 @@ namespace Seal.Controller
         {
             try
             {
-                // Lấy current user từ JWT claim
                 var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
 
                 var result = await _service.RegisterTeamAsync(dto, userId);
-                return Ok(result);
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Team registered successfully for {result.Count()} phases!",
+                    data = result
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
     }

@@ -41,6 +41,8 @@
             public IHackathonPhaseRepository HackathonPhaseRepository { get; }
             public IMentorAssignmentRepository MentorAssignmentRepository { get; }
         public IStudentVerificationRepository StudentVerificationRepository { get; }
+        public IRepository<PhaseChallenge> PhaseChallenges { get; }
+
 
         public UOW(SealDbContext context)
             {
@@ -73,9 +75,11 @@
                 HackathonPhaseRepository = new HackathonPhaseRepository(_context);
                 MentorAssignmentRepository = new MentorAssignmentRepository(_context);
             StudentVerificationRepository = new StudentVerificationRepository(_context);
+            PhaseChallenges = new GenericRepository<PhaseChallenge>(_context);
+
         }
 
-            public async Task<int> SaveAsync()
+        public async Task<int> SaveAsync()
             {
                 return await _context.SaveChangesAsync();
             }
