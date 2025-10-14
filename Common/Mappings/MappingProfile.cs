@@ -16,6 +16,8 @@ using Common.DTOs.AssignedTeamDto;
 using Common.DTOs.TeamChallengeDto;
 using Common.DTOs.TeamMemberDto;
 using Common.DTOs.StudentVerification;
+using Common.DTOs.AppealDto;
+using Common.DTOs.PenaltyBonusDto;
 
 
 
@@ -98,6 +100,19 @@ namespace Common.Mappings
             .ForMember(dest => dest.FrontCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.BackCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"));
+
+            // PenaltiesBonuse
+            CreateMap<PenaltiesBonuse, PenaltiesBonuseResponseDto>()
+    .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
+    .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
+            CreateMap<CreatePenaltiesBonuseDto, PenaltiesBonuse>();
+
+
+            // Appeal
+            CreateMap<Appeal, AppealResponseDto>()
+    .ForMember(dest => dest.ReviewedByName, opt => opt.MapFrom(src => src.ReviewedBy != null ? src.ReviewedBy.FullName : null));
+            CreateMap<CreateAppealDto, Appeal>();
+
         }
     }
 }

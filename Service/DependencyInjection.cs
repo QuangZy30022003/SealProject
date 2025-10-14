@@ -28,6 +28,8 @@ namespace Service
             service.AddScoped<ITeamMemberService, TeamMemberService>();
             service.AddScoped<IStudentVerificationService, StudentVerificationService>();
             service.AddScoped<IPhaseChallengeService, PhaseChallengeService>();
+            service.AddScoped<IPenaltyService, PenaltyService>();
+            service.AddScoped<IAppealService, AppealService>();
             return service;
 
         }

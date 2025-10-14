@@ -57,6 +57,7 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<TeamInvitation> TeamInvitations { get; set; }
     public virtual DbSet<StudentVerification> StudentVerifications { get; set; }
 
+    public virtual DbSet<Appeal> Appeals { get; set; }
     public virtual DbSet<PhaseChallenge> PhaseChallenges { get; set; }
 
 
@@ -572,6 +573,7 @@ public partial class SealDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade)
                   .HasConstraintName("FK_PhaseChallenges_Challenges");
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
