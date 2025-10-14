@@ -27,22 +27,37 @@ namespace Service.Servicefolder
         {
             var chapter = await _uow.Chapters.GetByIdAsync(dto.ChapterId);
             if (chapter == null)
-            {
                 throw new Exception("Chapter does not exist. Please create a chapter first.");
-            }
-            // check trùng tên trong cùng Chapter
+
+            // 1️ Check trùng tên trong cùng Chapter
             var exists = await _uow.TeamsRepository.ExistsByNameAsync(dto.TeamName, dto.ChapterId);
             if (exists)
-            {
                 throw new Exception("Team name already exists in this chapter");
-            }
 
+            // 2️⃣ Check student verification
+            var verification = await _uow.StudentVerifications
+                .FirstOrDefaultAsync(v => v.UserId == dto.LeaderId);
+
+            if (verification == null || !string.Equals(verification.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Student has not been approved for verification. Cannot create team.");
+
+            // 3️ Map & create team
             var entity = _mapper.Map<Team>(dto);
             await _uow.Teams.AddAsync(entity);
             await _uow.SaveAsync();
 
+            // 4️ Update user role to Leader
+            var leader = await _uow.Users.GetByIdAsync(dto.LeaderId);
+            if (leader != null)
+            {
+                leader.RoleId = 3; // (Role Team Leader)
+                _uow.Users.Update(leader);
+                await _uow.SaveAsync();
+            }
+
             return _mapper.Map<TeamDto>(entity);
         }
+
         public async Task<TeamDto?> GetByIdAsync(int id)
         {
             var entity = await _uow.Teams.GetByIdAsync(id);
