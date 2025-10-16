@@ -117,38 +117,41 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Hackathon>(entity =>
         {
-            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEB230112AC");
+            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEBC3FD865C");
+
+            entity.HasIndex(e => e.CreatedBy, "IX_Hackathons_CreatedBy");
 
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
             entity.Property(e => e.Season).HasMaxLength(20);
             entity.Property(e => e.Theme).HasMaxLength(200);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Hackathons)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Hackathon__Creat__4CA06362");
-            entity.HasOne(h => h.SeasonNavigation)
-        .WithMany(s => s.Hackathons)
-        .HasPrincipalKey(s => s.Code)   // Season.Code
-        .HasForeignKey(h => h.Season);  // Hackathon.Season 
+                .HasConstraintName("FK__Hackathon__Creat__3A81B327");
         });
 
         modelBuilder.Entity<HackathonPhase>(entity =>
         {
-            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D42DAB2AC98");
+            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D42DF28EC72");
+
+            entity.HasIndex(e => e.HackathonId, "IX_HackathonPhases_HackathonID");
 
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
-            entity.Property(e => e.PhaseName).HasMaxLength(100);
+            entity.Property(e => e.PhaseName)
+                .IsRequired()
+                .HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonPhases)
                 .HasForeignKey(d => d.HackathonId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Hackathon__Hacka__4F7CD00D");
+                .HasConstraintName("FK__Hackathon__Hacka__3D5E1FD2");
         });
-
         modelBuilder.Entity<Leaderboard>(entity =>
         {
             entity
@@ -301,64 +304,28 @@ public partial class SealDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__Scores__Submissi__5FB337D6");
         });
-
         modelBuilder.Entity<Submission>(entity =>
         {
-            entity.HasKey(e => e.SubmissionId)
-                .HasName("PK__Submission");
+            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE1050C9EA9BB");
 
-            entity.Property(e => e.SubmissionId)
-                .HasColumnName("SubmissionID");
+            entity.HasIndex(e => e.TeamId, "IX_Submissions_TeamID");
 
-            entity.Property(e => e.TeamId)
-                .HasColumnName("TeamID");
-
-            entity.Property(e => e.PhaseId)
-                .HasColumnName("PhaseID");
-
-            entity.Property(e => e.SubmittedBy)
-                .HasColumnName("SubmittedBy");
-
-            entity.Property(e => e.Title)
-                .HasMaxLength(200);
-
-            entity.Property(e => e.GitHubLink)
-                .HasMaxLength(500);
-
-            entity.Property(e => e.DemoLink)
-                .HasMaxLength(500);
-
-            entity.Property(e => e.ReportLink)
-                .HasMaxLength(500);
-
+            entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
             entity.Property(e => e.SubmittedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.Title).HasMaxLength(200);
 
-            entity.Property(e => e.IsFinal)
-                .HasColumnName("IsFinal")
-                .HasDefaultValue(false);
-
-            // 🔹 Relationships
-            entity.HasOne(d => d.Team)
-                .WithMany(p => p.Submissions)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_Submission_Team");
-
-            entity.HasOne(d => d.HackathonPhase)
-                .WithMany(p => p.Submissions)
-                .HasForeignKey(d => d.PhaseId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_Submission_Phase");
-
-            entity.HasOne(d => d.SubmittedByUser)
-                .WithMany(p => p.Submissions)
+            entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.Submissions)
                 .HasForeignKey(d => d.SubmittedBy)
-                .OnDelete(DeleteBehavior.Restrict)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Submission_User");
-        });
 
+            entity.HasOne(d => d.Team).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.TeamId)
+                .HasConstraintName("FK__Submissio__TeamI__45F365D3");
+        });
 
         modelBuilder.Entity<Team>(entity =>
         {
@@ -545,34 +512,21 @@ public partial class SealDbContext : DbContext
         });
         modelBuilder.Entity<PhaseChallenge>(entity =>
         {
-            entity.HasKey(e => e.PhaseChallengeId)
-                  .HasName("PK_PhaseChallenges");
+            entity.HasKey(e => e.PhaseChallengeId).HasName("PK__PhaseCha__9A75B672A3020308");
 
-            entity.Property(e => e.PhaseChallengeId)
-                  .HasColumnName("PhaseChallengeID");
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.Property(e => e.PhaseId)
-                  .HasColumnName("PhaseID");
+            entity.HasOne(d => d.Challenge).WithMany(p => p.PhaseChallenges)
+                .HasForeignKey(d => d.ChallengeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PhaseChallenges_Challenge");
 
-            entity.Property(e => e.ChallengeId)
-                  .HasColumnName("ChallengeID");
-
-            entity.Property(e => e.AssignedAt)
-                  .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(e => e.Phase)
-                  .WithMany(p => p.PhaseChallenges)
-                  .HasForeignKey(e => e.PhaseId)
-                  .OnDelete(DeleteBehavior.Cascade)
-                  .HasConstraintName("FK_PhaseChallenges_HackathonPhases");
-
-            entity.HasOne(e => e.Challenge)
-                  .WithMany(p => p.PhaseChallenges)
-                  .HasForeignKey(e => e.ChallengeId)
-                  .OnDelete(DeleteBehavior.Cascade)
-                  .HasConstraintName("FK_PhaseChallenges_Challenges");
+            entity.HasOne(d => d.Phase).WithMany(p => p.PhaseChallenges)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PhaseChallenges_HackathonPhases");
         });
+
 
 
         OnModelCreatingPartial(modelBuilder);

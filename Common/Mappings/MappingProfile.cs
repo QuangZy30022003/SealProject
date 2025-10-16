@@ -18,6 +18,7 @@ using Common.DTOs.TeamMemberDto;
 using Common.DTOs.StudentVerification;
 using Common.DTOs.AppealDto;
 using Common.DTOs.PenaltyBonusDto;
+using Common.DTOs.Submission;
 
 
 
@@ -113,6 +114,13 @@ namespace Common.Mappings
     .ForMember(dest => dest.ReviewedByName, opt => opt.MapFrom(src => src.ReviewedBy != null ? src.ReviewedBy.FullName : null));
             CreateMap<CreateAppealDto, Appeal>();
 
+            //Submission
+
+            CreateMap<SubmissionCreateDto, Submission>()
+               .ForMember(dest => dest.SubmissionId, opt => opt.Ignore()) // ID tự sinh
+               .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())  // gán thủ công trong service
+               .ForMember(dest => dest.IsFinal, opt => opt.Ignore())      // gán mặc định
+               .ForMember(dest => dest.SubmittedAt, opt => opt.Ignore()); // gán DateTime.UtcNow
         }
     }
 }

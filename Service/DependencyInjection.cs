@@ -30,6 +30,7 @@ namespace Service
             service.AddScoped<IPhaseChallengeService, PhaseChallengeService>();
             service.AddScoped<IPenaltyService, PenaltyService>();
             service.AddScoped<IAppealService, AppealService>();
+            service.AddScoped<ISubmissionService, SubmissionService>();
             return service;
 
         }
