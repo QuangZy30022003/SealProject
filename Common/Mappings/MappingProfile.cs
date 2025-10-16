@@ -16,6 +16,7 @@ using Common.DTOs.AssignedTeamDto;
 using Common.DTOs.TeamChallengeDto;
 using Common.DTOs.TeamMemberDto;
 using Common.DTOs.StudentVerification;
+using Common.DTOs.Submission;
 
 
 
@@ -98,6 +99,14 @@ namespace Common.Mappings
             .ForMember(dest => dest.FrontCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.BackCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"));
+
+            //Submission
+
+            CreateMap<SubmissionCreateDto, Submission>()
+               .ForMember(dest => dest.SubmissionId, opt => opt.Ignore()) // ID tự sinh
+               .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())  // gán thủ công trong service
+               .ForMember(dest => dest.IsFinal, opt => opt.Ignore())      // gán mặc định
+               .ForMember(dest => dest.SubmittedAt, opt => opt.Ignore()); // gán DateTime.UtcNow
         }
     }
 }
