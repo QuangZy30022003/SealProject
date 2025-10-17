@@ -20,8 +20,15 @@ namespace Seal.Controller
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreatePenaltiesBonuseDto dto)
         {
-            var result = await _service.CreateAsync(dto);
-            return Ok(result);
+            try
+            {
+                var result = await _service.CreateAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -42,23 +49,36 @@ namespace Seal.Controller
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
-            if (result == null) return NotFound("Adjustment not found.");
+            if (result == null)
+                return NotFound(new { message = "Adjustment not found." });
+
             return Ok(result);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePenaltiesBonuseDto dto)
         {
-            var result = await _service.UpdateAsync(id, dto);
-            if (result == null) return NotFound("Adjustment not found.");
-            return Ok(result);
+            try
+            {
+                var result = await _service.UpdateAsync(id, dto);
+                if (result == null)
+                    return NotFound(new { message = "Adjustment not found." });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteAsync(id);
-            if (!success) return NotFound("Adjustment not found.");
+            if (!success)
+                return NotFound(new { message = "Adjustment not found." });
+
             return NoContent();
         }
     }

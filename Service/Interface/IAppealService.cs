@@ -13,6 +13,7 @@ namespace Service.Interface
         Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto);
         Task<IEnumerable<AppealResponseDto>> GetAppealsByTeamAsync(int teamId);
         Task<IEnumerable<AppealResponseDto>> GetAllAppealsAsync();
+        Task<AppealResponseDto?> GetAppealByIdAsync(int appealId);
         Task<AppealResponseDto?> ReviewAppealAsync(int appealId, ReviewAppealDto dto);
     }
 }

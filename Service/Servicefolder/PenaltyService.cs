@@ -24,6 +24,26 @@ namespace Service.Servicefolder
 
         public async Task<PenaltiesBonuseResponseDto> CreateAsync(CreatePenaltiesBonuseDto dto)
         {
+            // Validate loại adjustment
+            if (string.IsNullOrWhiteSpace(dto.Type) ||
+                !(dto.Type.Equals("Penalty", StringComparison.OrdinalIgnoreCase) ||
+                  dto.Type.Equals("Bonus", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new Exception("Type must be either 'Penalty' or 'Bonus'.");
+            }
+
+            // Nếu là penalty, điểm phải âm hoặc > 0 nhưng được trừ
+            if (dto.Type.Equals("Penalty", StringComparison.OrdinalIgnoreCase) && dto.Points > 0)
+            {
+                dto.Points = -Math.Abs(dto.Points);
+            }
+
+            // Nếu là bonus thì điểm phải dương
+            if (dto.Type.Equals("Bonus", StringComparison.OrdinalIgnoreCase) && dto.Points < 0)
+            {
+                dto.Points = Math.Abs(dto.Points);
+            }
+
             var adjustment = new PenaltiesBonuse
             {
                 TeamId = dto.TeamId,
@@ -65,6 +85,12 @@ namespace Service.Servicefolder
         {
             var entity = await _uow.PenaltiesBonuses.GetByIdAsync(id);
             if (entity == null) return null;
+
+            // Giữ nguyên loại (Penalty/Bonus)
+            if (entity.Type?.Equals("Penalty", StringComparison.OrdinalIgnoreCase) == true && dto.Points > 0)
+                dto.Points = -Math.Abs(dto.Points);
+            if (entity.Type?.Equals("Bonus", StringComparison.OrdinalIgnoreCase) == true && dto.Points < 0)
+                dto.Points = Math.Abs(dto.Points);
 
             entity.Points = dto.Points;
             entity.Reason = dto.Reason;
