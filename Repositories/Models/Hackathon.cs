@@ -23,8 +23,6 @@ public partial class Hackathon
 
     public virtual User CreatedByNavigation { get; set; }
 
-    public virtual ICollection<Criterion> Criteria { get; set; } = new List<Criterion>();
-
     public virtual ICollection<HackathonPhase> HackathonPhases { get; set; } = new List<HackathonPhase>();
 
     public virtual ICollection<PenaltiesBonuse> PenaltiesBonuses { get; set; } = new List<PenaltiesBonuse>();

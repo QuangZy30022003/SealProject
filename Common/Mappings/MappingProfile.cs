@@ -19,6 +19,7 @@ using Common.DTOs.StudentVerification;
 using Common.DTOs.AppealDto;
 using Common.DTOs.PenaltyBonusDto;
 using Common.DTOs.Submission;
+using Common.DTOs.CriterionDTO;
 
 
 
@@ -121,6 +122,27 @@ namespace Common.Mappings
                .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())  // gán thủ công trong service
                .ForMember(dest => dest.IsFinal, opt => opt.Ignore())      // gán mặc định
                .ForMember(dest => dest.SubmittedAt, opt => opt.Ignore()); // gán DateTime.UtcNow
+
+            CreateMap<Criterion, CriterionReadDTO>()
+           .ForMember(dest => dest.PhaseChallengeName,
+               opt => opt.MapFrom(src =>
+                   src.PhaseChallenge != null && src.PhaseChallenge.Challenge != null
+                       ? src.PhaseChallenge.Challenge.Title   // ← đổi Name → Title
+                       : null))
+           .ForMember(dest => dest.Details,
+               opt => opt.MapFrom(src => src.CriterionDetails));
+
+            CreateMap<CriterionCreateDTO, Criterion>()
+                .ForMember(dest => dest.CriterionDetails,
+                    opt => opt.MapFrom(src => src.Details));
+
+            CreateMap<CriterionUpdateDTO, Criterion>()
+                .ForMember(dest => dest.CriterionDetails,
+                    opt => opt.MapFrom(src => src.Details));
+
+            CreateMap<CriterionDetail, CriterionDetailDTO>().ReverseMap();
+            CreateMap<CriterionDetailCreateDTO, CriterionDetail>();
+
         }
     }
 }
