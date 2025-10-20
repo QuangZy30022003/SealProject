@@ -44,6 +44,8 @@ namespace Repositories.UnitOfWork
         public IStudentVerificationRepository StudentVerificationRepository { get; }
         public IRepository<PhaseChallenge> PhaseChallenges { get; }
 
+        public IRepository<CriterionDetail> CriterionDetail { get; }
+
 
         public UOW(SealDbContext context)
         {
@@ -79,6 +81,7 @@ namespace Repositories.UnitOfWork
             PhaseChallenges = new GenericRepository<PhaseChallenge>(_context);
             Appeals = new GenericRepository<Appeal>(_context);
             StudentVerifications = new GenericRepository<StudentVerification>(_context);
+            CriterionDetail = new GenericRepository<CriterionDetail>(_context);
         }
 
         public async Task<int> SaveAsync()

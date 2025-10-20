@@ -31,6 +31,7 @@ namespace Service
             service.AddScoped<IPenaltyService, PenaltyService>();
             service.AddScoped<IAppealService, AppealService>();
             service.AddScoped<ISubmissionService, SubmissionService>();
+            service.AddScoped<ICriterionService, CriterionService>();
             return service;
 
         }

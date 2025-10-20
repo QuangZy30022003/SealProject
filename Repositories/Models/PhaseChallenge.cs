@@ -18,4 +18,6 @@ public partial class PhaseChallenge
     public virtual Challenge Challenge { get; set; }
 
     public virtual HackathonPhase Phase { get; set; }
+
+    public virtual ICollection<Criterion> Criterion { get; set; } = new List<Criterion>();
 }

@@ -44,6 +44,8 @@ namespace Repositories.UnitOfWork
 
         IStudentVerificationRepository StudentVerificationRepository { get; }
         IRepository<PhaseChallenge> PhaseChallenges { get; }
+
+        IRepository<CriterionDetail> CriterionDetail { get; }
         Task<int> SaveAsync();
     }
 }

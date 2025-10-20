@@ -105,15 +105,29 @@ public partial class SealDbContext : DbContext
             entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2DD6CC5237");
 
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
-            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.PhaseChallengeId).HasColumnName("PhaseChallengeID");
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Criteria)
-                .HasForeignKey(d => d.HackathonId)
+            entity.HasOne(d => d.PhaseChallenge)
+                .WithMany(p => p.Criterion)
+                .HasForeignKey(d => d.PhaseChallengeId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Criteria__Hackat__5CD6CB2B");
+                .HasConstraintName("FK_Criteria_PhaseChallenge");
         });
+
+        modelBuilder.Entity<CriterionDetail>(entity =>
+        {
+            entity.ToTable("CriterionDetails");
+            entity.HasKey(e => e.CriterionDetailId);
+            entity.Property(e => e.Description).HasMaxLength(255);
+
+            entity.HasOne(d => d.Criterion)
+                  .WithMany(p => p.CriterionDetails)
+                  .HasForeignKey(d => d.CriteriaId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
 
         modelBuilder.Entity<Hackathon>(entity =>
         {
