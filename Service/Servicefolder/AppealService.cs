@@ -25,27 +25,51 @@ namespace Service.Servicefolder
 
         public async Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto)
         {
-            // 1️ Check adjustment tồn tại
-            var adjustment = await _uow.PenaltiesBonuses.GetByIdAsync(dto.AdjustmentId);
-            if (adjustment == null)
-                throw new Exception("Adjustment not found.");
+            // Validate appeal type và required fields
+            if (dto.AppealType == AppealType.Penalty && !dto.AdjustmentId.HasValue)
+                throw new Exception("AdjustmentId is required for penalty appeals.");
 
-            // 2️ Check đúng team
-            if (adjustment.TeamId != dto.TeamId)
-                throw new Exception("You cannot appeal for another team's adjustment.");
+            if (dto.AppealType == AppealType.Score && !dto.ScoreId.HasValue)
+                throw new Exception("ScoreId is required for score appeals.");
 
-            // 3️ Check trùng khiếu nại
+            // 1️ Check adjustment/score tồn tại và đúng team
+            if (dto.AppealType == AppealType.Penalty)
+            {
+                var adjustment = await _uow.PenaltiesBonuses.GetByIdAsync(dto.AdjustmentId.Value);
+                if (adjustment == null)
+                    throw new Exception("Adjustment not found.");
+
+                if (adjustment.TeamId != dto.TeamId)
+                    throw new Exception("You cannot appeal for another team's adjustment.");
+            }
+            else if (dto.AppealType == AppealType.Score)
+            {
+                var score = await _uow.Scores.GetByIdAsync(dto.ScoreId.Value);
+                if (score == null)
+                    throw new Exception("Score not found.");
+
+                // Check team thông qua submission
+                if (score.Submission?.TeamId != dto.TeamId)
+                    throw new Exception("You cannot appeal for another team's score.");
+            }
+
+            // 2️ Check trùng khiếu nại
             var existing = (await _uow.Appeals.GetAllAsync(a =>
-                a.AdjustmentId == dto.AdjustmentId && a.TeamId == dto.TeamId))
+                a.AppealType == dto.AppealType &&
+                ((dto.AppealType == AppealType.Penalty && a.AdjustmentId == dto.AdjustmentId) ||
+                 (dto.AppealType == AppealType.Score && a.ScoreId == dto.ScoreId)) &&
+                a.TeamId == dto.TeamId))
                 .FirstOrDefault();
 
             if (existing != null)
-                throw new Exception("This adjustment already has an appeal from your team.");
+                throw new Exception($"This {dto.AppealType.ToLower()} already has an appeal from your team.");
 
-            // 4️ Tạo appeal mới
+            // 3️ Tạo appeal mới
             var appeal = new Appeal
             {
+                AppealType = dto.AppealType,
                 AdjustmentId = dto.AdjustmentId,
+                ScoreId = dto.ScoreId,
                 TeamId = dto.TeamId,
                 Message = dto.Message,
                 Status = AppealStatus.Pending,
@@ -56,14 +80,13 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
 
             return _mapper.Map<AppealResponseDto>(appeal);
-
         }
 
         public async Task<IEnumerable<AppealResponseDto>> GetAppealsByTeamAsync(int teamId)
         {
             var appeals = await _uow.Appeals.GetAllAsync(
                 a => a.TeamId == teamId,
-                includeProperties: "Penalty,ReviewedBy"
+                includeProperties: "Penalty,Score,ReviewedBy"
             );
 
             return _mapper.Map<IEnumerable<AppealResponseDto>>(appeals);
@@ -72,7 +95,7 @@ namespace Service.Servicefolder
         public async Task<IEnumerable<AppealResponseDto>> GetAllAppealsAsync()
         {
             var appeals = await _uow.Appeals.GetAllAsync(
-                includeProperties: "Penalty,ReviewedBy,Team"
+                includeProperties: "Penalty,Score,ReviewedBy,Team"
             );
 
             return _mapper.Map<IEnumerable<AppealResponseDto>>(appeals);
@@ -103,15 +126,29 @@ namespace Service.Servicefolder
             // ✅ Nếu Appeal được chấp nhận
             if (dto.Status == AppealStatus.Approved)
             {
-                var adjustment = await _uow.PenaltiesBonuses.GetByIdAsync(appeal.AdjustmentId);
-                if (adjustment != null)
+                if (appeal.AppealType == AppealType.Penalty && appeal.AdjustmentId.HasValue)
                 {
-                    // Chỉ revert nếu là Penalty
-                    if (adjustment.Type?.Equals("Penalty", StringComparison.OrdinalIgnoreCase) == true)
+                    var adjustment = await _uow.PenaltiesBonuses.GetByIdAsync(appeal.AdjustmentId.Value);
+                    if (adjustment != null)
                     {
-                        adjustment.Points = 0;
-                        adjustment.Reason += " (Reverted by approved appeal)";
-                        _uow.PenaltiesBonuses.Update(adjustment);
+                        // Chỉ revert nếu là Penalty
+                        if (adjustment.Type?.Equals("Penalty", StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            adjustment.Points = 0;
+                            adjustment.Reason += " (Reverted by approved appeal)";
+                            _uow.PenaltiesBonuses.Update(adjustment);
+                        }
+                    }
+                }
+                else if (appeal.AppealType == AppealType.Score && appeal.ScoreId.HasValue)
+                {
+                    var score = await _uow.Scores.GetByIdAsync(appeal.ScoreId.Value);
+                    if (score != null)
+                    {
+                        // Có thể thêm logic xử lý score ở đây nếu cần
+                        // Ví dụ: ghi chú lại score đã được khiếu nại
+                        score.Comment += " (Score appealed and approved)";
+                        _uow.Scores.Update(score);
                     }
                 }
             }

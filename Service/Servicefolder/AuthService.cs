@@ -1,4 +1,6 @@
-﻿using Common.Helper;
+﻿using AutoMapper;
+using Common.DTOs.AuthDto;
+using Common.Helper;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -16,16 +18,23 @@ namespace Service.Servicefolder
         private readonly IUOW _uow;
         private readonly IEmailService _emailService;
         private readonly JwtHelper _jwtHelper;
-        public AuthService(IUOW uow, IEmailService emailService, JwtHelper jwtHelper)
+        private readonly IMapper _mapper;
+        public AuthService(IUOW uow, IEmailService emailService, JwtHelper jwtHelper, IMapper mapper)
         {
             _uow = uow;
             _emailService = emailService;
             _jwtHelper = jwtHelper;
+            _mapper = mapper;
         }
 
         public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsync(string email)
         {
             var user = await _uow.AuthRepository.GetByEmailAsync(email);
+
+            // ❗Nếu user tồn tại mà bị block => không cho login
+            if (user != null && user.IsBlocked)
+                throw new UnauthorizedAccessException("Your account has been blocked by the administrator.");
+
 
             if (user == null)
             {
@@ -41,7 +50,8 @@ namespace Service.Servicefolder
                     IsVerified = false,
                     Token = Guid.NewGuid().ToString(),
                     RefreshToken = null,
-                    RefreshTokenExpiryTime = null
+                    RefreshTokenExpiryTime = null,
+                    IsBlocked = false
                 };
 
                 await _uow.Users.AddAsync(user);
@@ -130,9 +140,42 @@ namespace Service.Servicefolder
             return "Email verified successfully. You can now log in.";
         }
 
-        public async Task<User?> GetUserByIdAsync(int userId)
+        public async Task<UserResponseDto?> GetUserByIdAsync(int userId)
         {
-            return await _uow.AuthRepository.GetByIdAsync(userId);
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null) return null;
+            return _mapper.Map<UserResponseDto>(user);
+        }
+
+        public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
+        {
+            var users = await _uow.Users.GetAllAsync(includeProperties: "Role");
+            return _mapper.Map<IEnumerable<UserResponseDto>>(users);
+        }
+
+        public async Task<bool> UpdateUserInfoAsync(int userId, UpdateUserDto dto)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null) return false;
+
+            if (user.IsBlocked)
+                throw new UnauthorizedAccessException("Your account has been blocked by admin.");
+
+            user.FullName = dto.FullName;
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+            return true;
+        }
+
+        public async Task<bool> SetUserBlockedStatusAsync(int userId, bool isBlocked)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null) return false;
+
+            user.IsBlocked = isBlocked;
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+            return true;
         }
 
     }

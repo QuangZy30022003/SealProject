@@ -1,4 +1,5 @@
 ﻿using Common;
+using Common.DTOs.AuthDto;
 using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -111,6 +112,63 @@ namespace Seal.Controller
                 return NotFound(new { message = "User not found" });
 
             return Ok(user);
+        }
+
+        //[Authorize]
+        [HttpGet("users/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            //var currentUserId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
+            //var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            //if (currentUserId != id && role != "Administrator")
+            //    return Forbid();
+
+            var user = await _authService.GetUserByIdAsync(id);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(user);
+        }
+        //[Authorize]
+        [HttpGet("users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _authService.GetAllUsersAsync();
+            return Ok(users);
+        }
+
+        [Authorize]
+        [HttpPut("update-info/{id}")]
+        public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateUserDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+                if (userIdClaim == null)
+                    return Unauthorized(new { message = "Invalid token" });
+                var userId = int.Parse(userIdClaim.Value);
+
+                var result = await _authService.UpdateUserInfoAsync(userId, dto);
+                if (!result) return NotFound(new { message = "User not found" });
+
+                return Ok(new { message = "Profile updated successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        //[Authorize(Roles = "Administrator,Moderator")]
+        [HttpPut("users/{id}/block")]
+        public async Task<IActionResult> BlockUser(int id, [FromQuery] bool isBlocked)
+        {
+            var result = await _authService.SetUserBlockedStatusAsync(id, isBlocked);
+            if (!result) return NotFound(new { message = "User not found" });
+
+            string status = isBlocked ? "blocked" : "unblocked";
+            return Ok(new { message = $"User {status} successfully" });
         }
     }
 }

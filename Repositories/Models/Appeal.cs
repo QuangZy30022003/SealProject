@@ -10,7 +10,10 @@ namespace Repositories.Models
     {
         public int AppealId { get; set; }
 
-        public int AdjustmentId { get; set; } // FK -> PenaltiesBonuse
+        // Thay đổi để hỗ trợ nhiều loại khiếu nại
+        public string AppealType { get; set; } = "Penalty"; // Penalty | Score
+        public int? AdjustmentId { get; set; } // FK -> PenaltiesBonuse (cho penalty)
+        public int? ScoreId { get; set; } // FK -> Score (cho score)
         public int TeamId { get; set; }
 
         public string Message { get; set; } = string.Empty;
@@ -25,6 +28,7 @@ namespace Repositories.Models
 
         // relationships
         public virtual PenaltiesBonuse? Penalty { get; set; }
+        public virtual Score? Score { get; set; }
         public virtual Team? Team { get; set; }
 
         // ✅ navigation property
