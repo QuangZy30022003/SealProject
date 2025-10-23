@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Storage;
 using Repositories.Interface;
 using Repositories.Models;
 using Repositories.Repos;
@@ -46,6 +47,11 @@ namespace Repositories.UnitOfWork
 
         public IRepository<CriterionDetail> CriterionDetail { get; }
 
+        public IScoreRepository ScoreRepository { get; }
+
+        public ICriterionDetailRepository CriterionDetailRepository { get; }
+        public IPhaseChallengeRepository PhaseChallengeRepository { get; }
+
 
         public UOW(SealDbContext context)
         {
@@ -82,6 +88,9 @@ namespace Repositories.UnitOfWork
             Appeals = new GenericRepository<Appeal>(_context);
             StudentVerifications = new GenericRepository<StudentVerification>(_context);
             CriterionDetail = new GenericRepository<CriterionDetail>(_context);
+            ScoreRepository = new ScoreRepository(_context);
+            CriterionDetailRepository = new CriterionDetailRepository(_context);
+            PhaseChallengeRepository = new PhaseChallengeRepository(_context);
         }
 
         public async Task<int> SaveAsync()
@@ -91,6 +100,10 @@ namespace Repositories.UnitOfWork
         public void Dispose()
         {
             _context.Dispose();
+        }
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
     }
 }

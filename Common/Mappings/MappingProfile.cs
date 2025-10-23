@@ -20,6 +20,7 @@ using Common.DTOs.AppealDto;
 using Common.DTOs.PenaltyBonusDto;
 using Common.DTOs.Submission;
 using Common.DTOs.CriterionDTO;
+using Common.DTOs.ScoreDto;
 
 
 
@@ -61,7 +62,7 @@ namespace Common.Mappings
             //  TeamInvitation 
             CreateMap<TeamInvitation, InvitationStatusDto>()
                 .ForMember(dest => dest.Status,
-                    opt => opt.MapFrom(src => src.Status.ToString())) 
+                    opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.TeamName,
                     opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.IsExpired,
@@ -76,7 +77,7 @@ namespace Common.Mappings
             //Hackathon
 
             CreateMap<Hackathon, HackathonResponseDto>();
-              //   .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season));
+            //   .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season));
             CreateMap<HackathonCreateDto, Hackathon>();
             CreateMap<HackathonDto, Hackathon>();
 
@@ -142,7 +143,31 @@ namespace Common.Mappings
 
             CreateMap<CriterionDetail, CriterionDetailDTO>().ReverseMap();
             CreateMap<CriterionDetailCreateDTO, CriterionDetail>();
+            // Score
+            // Map từ entity Score → DTO đọc ra
+            CreateMap<Score, ScoreReadDto>()
+              .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
+              .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score1))
+              .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
+              .ForMember(dest => dest.JudgeName, opt => opt.MapFrom(src => src.Judge.FullName))
+              .ForMember(dest => dest.ScoredAt, opt => opt.MapFrom(src => src.ScoredAt));
+            // Map khi lưu dữ liệu (DTO → Entity)
+            CreateMap<JudgeScoreDto, Score>()
+              .ForMember(dest => dest.Score1, opt => opt.Ignore()) // tổng điểm sẽ tính trong service
+              .ForMember(dest => dest.CriteriaId, opt => opt.MapFrom(src => src.CriteriaId))
+              .ForMember(dest => dest.SubmissionId, opt => opt.MapFrom(src => src.SubmissionId))
+              .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
+              .ForMember(dest => dest.JudgeId, opt => opt.Ignore()) // gán trong service
+              .ForMember(dest => dest.ScoredAt, opt => opt.Ignore())
+              .ForMember(dest => dest.Criteria, opt => opt.Ignore())
+              .ForMember(dest => dest.Judge, opt => opt.Ignore())
+              .ForMember(dest => dest.Submission, opt => opt.Ignore());
+            //payload
 
+            CreateMap<HackathonCreatePayloadDto, Hackathon>();
+            CreateMap<PhaseCreatePayloadDto, HackathonPhase>();
+            CreateMap<PrizeCreatePayloadDto, Prize>();
+         //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
+        }
         }
     }
-}

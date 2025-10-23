@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Repositories.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 namespace Repositories.UnitOfWork
 {
     public interface IUOW : IDisposable
@@ -46,6 +47,11 @@ namespace Repositories.UnitOfWork
         IRepository<PhaseChallenge> PhaseChallenges { get; }
 
         IRepository<CriterionDetail> CriterionDetail { get; }
+        IScoreRepository ScoreRepository { get; }
+
+        IPhaseChallengeRepository PhaseChallengeRepository { get; }
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
         Task<int> SaveAsync();
     }
 }
