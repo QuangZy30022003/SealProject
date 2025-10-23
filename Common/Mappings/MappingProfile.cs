@@ -21,6 +21,8 @@ using Common.DTOs.PenaltyBonusDto;
 using Common.DTOs.Submission;
 using Common.DTOs.CriterionDTO;
 using Common.DTOs.ScoreDto;
+using Common.DTOs.TeamJoinRequestDto;
+using Common.DTOs.AuthDto;
 
 
 
@@ -113,8 +115,10 @@ namespace Common.Mappings
 
             // Appeal
             CreateMap<Appeal, AppealResponseDto>()
-    .ForMember(dest => dest.ReviewedByName, opt => opt.MapFrom(src => src.ReviewedBy != null ? src.ReviewedBy.FullName : null));
-            CreateMap<CreateAppealDto, Appeal>();
+               .ForMember(dest => dest.ReviewedByName, opt => opt.MapFrom(src => src.ReviewedBy != null ? src.ReviewedBy.FullName : null));
+            CreateMap<CreateAppealDto, Appeal>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => "Pending"));
 
             //Submission
 
@@ -167,7 +171,18 @@ namespace Common.Mappings
             CreateMap<HackathonCreatePayloadDto, Hackathon>();
             CreateMap<PhaseCreatePayloadDto, HackathonPhase>();
             CreateMap<PrizeCreatePayloadDto, Prize>();
-         //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
+            //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
+
+            // TeamJoinRequest
+            CreateMap<TeamJoinRequest, JoinRequestResponseDto>()
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : null))
+                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null));
+            CreateMap<CreateJoinRequestDto, TeamJoinRequest>();
+
+            //user
+            CreateMap<User, UserResponseDto>()
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.RoleName : null));
         }
         }
     }

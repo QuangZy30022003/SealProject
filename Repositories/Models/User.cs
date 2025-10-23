@@ -23,6 +23,9 @@ public partial class User
     public string? RefreshToken { get; set; }
 
     public DateTime? RefreshTokenExpiryTime { get; set; }
+
+    public bool IsBlocked { get; set; } = false;
+
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();

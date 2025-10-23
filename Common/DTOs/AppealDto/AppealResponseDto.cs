@@ -9,7 +9,9 @@ namespace Common.DTOs.AppealDto
     public class AppealResponseDto
     {
         public int AppealId { get; set; }
-        public int AdjustmentId { get; set; }
+        public string AppealType { get; set; } = string.Empty;
+        public int? AdjustmentId { get; set; }
+        public int? ScoreId { get; set; }
         public int TeamId { get; set; }
         public string Message { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending";

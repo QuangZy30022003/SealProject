@@ -1,4 +1,5 @@
-﻿using Repositories.Models;
+﻿using Common.DTOs.AuthDto;
+using Repositories.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,11 @@ namespace Service.Interface
         Task<(string accessToken, string refreshToken)> RefreshTokenAsync(string refreshToken);
 
         Task<string> VerifyEmailAsync(string token);
-        Task<User?> GetUserByIdAsync(int userId);
+        Task<UserResponseDto?> GetUserByIdAsync(int userId);
+
+        Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
+        Task<bool> UpdateUserInfoAsync(int userId, UpdateUserDto dto);
+        Task<bool> SetUserBlockedStatusAsync(int userId, bool isBlocked);
     }
 }
 

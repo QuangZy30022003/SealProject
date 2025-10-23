@@ -59,6 +59,7 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<Appeal> Appeals { get; set; }
     public virtual DbSet<PhaseChallenge> PhaseChallenges { get; set; }
+    public virtual DbSet<TeamJoinRequest> TeamJoinRequests { get; set; }
 
 
 
@@ -545,7 +546,32 @@ public partial class SealDbContext : DbContext
                 .HasConstraintName("FK_PhaseChallenges_HackathonPhases");
         });
 
+        // TeamJoinRequest
+        modelBuilder.Entity<TeamJoinRequest>(entity =>
+        {
+            entity.HasKey(e => e.RequestId).HasName("PK_TeamJoinRequests");
 
+            entity.Property(e => e.RequestId).HasColumnName("RequestID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Message).HasMaxLength(500);
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Pending");
+            entity.Property(e => e.LeaderResponse).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.RespondedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Team)
+                .WithMany()
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TeamJoinRequests_Teams");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TeamJoinRequests_Users");
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }
