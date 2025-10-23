@@ -145,6 +145,10 @@ public partial class SealDbContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Hackathons)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("FK__Hackathon__Creat__3A81B327");
+            entity.HasOne(h => h.SeasonNavigation)
+       .WithMany(s => s.Hackathons)
+       .HasPrincipalKey(s => s.Code)   
+       .HasForeignKey(h => h.Season); 
         });
 
         modelBuilder.Entity<HackathonPhase>(entity =>

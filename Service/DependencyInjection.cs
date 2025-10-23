@@ -32,6 +32,8 @@ namespace Service
             service.AddScoped<IAppealService, AppealService>();
             service.AddScoped<ISubmissionService, SubmissionService>();
             service.AddScoped<ICriterionService, CriterionService>();
+            service.AddScoped<IScoreService, ScoreService>();
+            service.AddScoped<IHackathonFullService, HackathonFullService>();
             return service;
 
         }
