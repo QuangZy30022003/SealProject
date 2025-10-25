@@ -52,6 +52,7 @@ namespace Repositories.UnitOfWork
 
         IPhaseChallengeRepository PhaseChallengeRepository { get; }
 
+        IPrizeRepository PrizeRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<int> SaveAsync();
     }

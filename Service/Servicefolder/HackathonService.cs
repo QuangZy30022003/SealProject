@@ -60,7 +60,8 @@ namespace Service.Servicefolder
                 Theme = dto.Theme,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                CreatedBy = userId
+                CreatedBy = userId,
+                  Status = dto.Status ?? "Pending"
             };
 
             await _uow.Hackathons.AddAsync(hackathon);
@@ -101,6 +102,7 @@ namespace Service.Servicefolder
             hackathon.Theme = dto.Theme;
             hackathon.StartDate = dto.StartDate;
             hackathon.EndDate = dto.EndDate;
+            hackathon.Status = dto.Status ?? hackathon.Status;
 
             _uow.Hackathons.Update(hackathon);
             await _uow.SaveAsync();
@@ -119,5 +121,26 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
             return true;
         }
+
+        public async Task<HackathonResponseDto?> UpdateStatusAsync(int id, string status)
+        {
+            // Validate status hợp lệ
+            var validStatuses = new[] { "Pending", "InProgress", "Complete", "Unactive" };
+            if (!validStatuses.Contains(status))
+                throw new ArgumentException("Invalid status");
+
+            var hackathon = await _uow.Hackathons.GetByIdAsync(id);
+            if (hackathon == null)
+                return null;
+
+            // (Optionally) validate transition rules here
+
+            hackathon.Status = status;
+            _uow.Hackathons.Update(hackathon);
+            await _uow.SaveAsync();
+
+            return _mapper.Map<HackathonResponseDto>(hackathon);
+        }
+
     }
 }

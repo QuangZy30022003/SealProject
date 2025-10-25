@@ -15,5 +15,6 @@ namespace Service.Interface
         Task<HackathonResponseDto> CreateHackathonAsync(HackathonCreateDto dto, int userId);
         Task<HackathonResponseDto?> UpdateHackathonAsync(int id, HackathonCreateDto dto, int userId);
         Task<bool> DeleteAsync(int id);
+        Task<HackathonResponseDto?> UpdateStatusAsync(int id, string status);
     }
 }
