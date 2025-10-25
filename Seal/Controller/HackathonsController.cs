@@ -34,20 +34,48 @@ namespace Seal.Controller
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] HackathonCreateDto dto)
         {
-            var userId = int.Parse(User.FindFirst("UserId").Value);
-
-            var created = await _service.CreateHackathonAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = created.HackathonId }, created);
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UserId").Value);
+                var created = await _service.CreateHackathonAsync(dto, userId);
+                return CreatedAtAction(nameof(GetById), new { id = created.HackathonId }, created);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] HackathonCreateDto dto)
         {
-            var userId = int.Parse(User.FindFirst("UserId").Value);
-
-            var updated = await _service.UpdateHackathonAsync(id, dto, userId);
-            return updated == null ? NotFound() : Ok(updated);
+            try
+            {
+                var userId = int.Parse(User.FindFirst("UserId").Value);
+                var updated = await _service.UpdateHackathonAsync(id, dto, userId);
+                return updated == null ? NotFound(new { message = "Hackathon not found" }) : Ok(updated);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
         }
      
         [HttpDelete("{id}")]
@@ -57,5 +85,40 @@ namespace Seal.Controller
             var deleted = await _service.DeleteAsync(id);
             return deleted ? NoContent() : NotFound();
         }
+
+        [HttpPatch("{id}/status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateDto dto)
+        {
+            try
+            {
+                if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+                    return BadRequest(new { message = "Status is required." });
+
+                var validStatuses = new[] { "Pending", "InProgress", "Complete", "Unactive" };
+                if (!validStatuses.Contains(dto.Status))
+                    return BadRequest(new { message = "Invalid status." });
+
+                var updated = await _service.UpdateStatusAsync(id, dto.Status);
+                if (updated == null)
+                    return NotFound(new { message = "Hackathon not found." });
+
+                return Ok(updated);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Không gửi detail ra production (ở dev có thể log)
+                return StatusCode(500, new { message = "An unexpected error occurred." });
+            }
+        }
+
     }
 }

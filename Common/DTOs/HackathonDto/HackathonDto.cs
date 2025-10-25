@@ -25,6 +25,7 @@ namespace Common.DTOs.HackathonDto
         public string? Theme { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
+        public string Status { get; set; }
     }
 
     public class HackathonCreateDto
@@ -34,6 +35,11 @@ namespace Common.DTOs.HackathonDto
         public string? Theme { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
+        public string Status { get; set; } = "Pending";
     }
 
+    public class StatusUpdateDto
+    {
+        public string Status { get; set; } = null!;
+    }
 }

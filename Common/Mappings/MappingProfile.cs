@@ -21,6 +21,7 @@ using Common.DTOs.PenaltyBonusDto;
 using Common.DTOs.Submission;
 using Common.DTOs.CriterionDTO;
 using Common.DTOs.ScoreDto;
+using Common.DTOs.PrizeDto;
 
 
 
@@ -167,7 +168,14 @@ namespace Common.Mappings
             CreateMap<HackathonCreatePayloadDto, Hackathon>();
             CreateMap<PhaseCreatePayloadDto, HackathonPhase>();
             CreateMap<PrizeCreatePayloadDto, Prize>();
-         //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
+            //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
+
+            //Prize 
+            CreateMap<Prize, PrizeDTO>()
+               .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
+
+            CreateMap<CreatePrizeDTO, Prize>();
+            CreateMap<UpdatePrizeDTO, Prize>();
         }
         }
     }

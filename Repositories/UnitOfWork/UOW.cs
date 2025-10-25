@@ -52,6 +52,8 @@ namespace Repositories.UnitOfWork
         public ICriterionDetailRepository CriterionDetailRepository { get; }
         public IPhaseChallengeRepository PhaseChallengeRepository { get; }
 
+        public IPrizeRepository PrizeRepository { get; }
+
 
         public UOW(SealDbContext context)
         {
@@ -91,6 +93,7 @@ namespace Repositories.UnitOfWork
             ScoreRepository = new ScoreRepository(_context);
             CriterionDetailRepository = new CriterionDetailRepository(_context);
             PhaseChallengeRepository = new PhaseChallengeRepository(_context);
+            PrizeRepository = new PrizeRepository(_context);
         }
 
         public async Task<int> SaveAsync()
