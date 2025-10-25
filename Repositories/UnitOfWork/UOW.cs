@@ -34,6 +34,7 @@ namespace Repositories.UnitOfWork
         public IRepository<StudentVerification> StudentVerifications { get; }
         public IRepository<Appeal> Appeals { get; }
         public IRepository<TeamChallenge> TeamChallenges { get; }
+        public IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         public IAuthRepository AuthRepository { get; }
         public ITeamRepository TeamsRepository { get; }
         public IChapterRepository ChaptersRepository { get; }
@@ -93,7 +94,11 @@ namespace Repositories.UnitOfWork
             ScoreRepository = new ScoreRepository(_context);
             CriterionDetailRepository = new CriterionDetailRepository(_context);
             PhaseChallengeRepository = new PhaseChallengeRepository(_context);
+
             PrizeRepository = new PrizeRepository(_context);
+
+            TeamJoinRequests = new GenericRepository<TeamJoinRequest>(_context);
+
         }
 
         public async Task<int> SaveAsync()

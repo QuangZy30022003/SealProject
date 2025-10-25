@@ -31,6 +31,7 @@ namespace Repositories.UnitOfWork
         IRepository<StudentVerification> StudentVerifications { get; }
         IRepository<Appeal> Appeals { get; }
         IRepository<TeamChallenge> TeamChallenges { get; }
+        IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
         IChapterRepository ChaptersRepository { get; }
