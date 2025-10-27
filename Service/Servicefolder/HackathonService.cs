@@ -28,11 +28,15 @@ namespace Service.Servicefolder
             return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
         }
 
-        public async Task<HackathonResponseDto?> GetByIdAsync(int id)
+        public async Task<HackathonDetailResponseDto?> GetByIdAsync(int id)
         {
-            var entity = await _uow.Hackathons.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<HackathonResponseDto>(entity);
+            var entity = await _uow.HackathonPhaseRepository.GetHackathonDetailAsync(id);
+            if (entity == null) return null;
+
+            return _mapper.Map<HackathonDetailResponseDto>(entity);
         }
+
+
 
         public async Task<HackathonResponseDto> CreateHackathonAsync(HackathonCreateDto dto, int userId)
         {

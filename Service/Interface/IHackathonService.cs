@@ -11,10 +11,11 @@ namespace Service.Interface
     public interface IHackathonService
     {
         Task<IEnumerable<HackathonResponseDto>> GetAllAsync();
-        Task<HackathonResponseDto?> GetByIdAsync(int id);
+        Task<HackathonDetailResponseDto?> GetByIdAsync(int id);
         Task<HackathonResponseDto> CreateHackathonAsync(HackathonCreateDto dto, int userId);
         Task<HackathonResponseDto?> UpdateHackathonAsync(int id, HackathonCreateDto dto, int userId);
         Task<bool> DeleteAsync(int id);
         Task<HackathonResponseDto?> UpdateStatusAsync(int id, string status);
+
     }
 }

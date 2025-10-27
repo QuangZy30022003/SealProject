@@ -25,5 +25,14 @@ namespace Repositories.Repos
                 .OrderBy(p => p.StartDate)
                 .ToListAsync();
         }
+
+        public async Task<Hackathon?> GetHackathonDetailAsync(int id)
+        {
+            return await _context.Hackathons
+                .Include(h => h.HackathonPhases)
+                .Include(h => h.Prizes)
+                .Include(h => h.SeasonNavigation)
+                .FirstOrDefaultAsync(h => h.HackathonId == id);
+        }
     }
 }

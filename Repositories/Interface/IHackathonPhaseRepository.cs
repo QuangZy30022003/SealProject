@@ -10,5 +10,6 @@ namespace Repositories.Interface
     public interface IHackathonPhaseRepository : IRepository<HackathonPhase>
     {
         Task<List<HackathonPhase>> GetByHackathonIdAsync(int hackathonId);
+        Task<Hackathon?> GetHackathonDetailAsync(int id);
     }
 }

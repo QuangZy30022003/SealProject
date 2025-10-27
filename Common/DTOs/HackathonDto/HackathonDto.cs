@@ -42,4 +42,36 @@ namespace Common.DTOs.HackathonDto
     {
         public string Status { get; set; } = null!;
     }
+
+    public class HackathonDetailResponseDto
+    {
+        public int HackathonId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Season { get; set; }
+        public string? Theme { get; set; }
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+        public string Status { get; set; } = null!;
+
+        public List<HackathonPhaseDtos> Phases { get; set; } = new();
+        public List<PrizeDto> Prizes { get; set; } = new();
+    }
+
+    public class HackathonPhaseDtos
+    {
+        public int PhaseId { get; set; }
+        public string PhaseName { get; set; } = null!;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+
+    public class PrizeDto
+    {
+        public int PrizeId { get; set; }
+        public string? PrizeName { get; set; }
+        public string? PrizeType { get; set; }
+        public int? Rank { get; set; }
+        public string? Reward { get; set; }
+    }
+
 }

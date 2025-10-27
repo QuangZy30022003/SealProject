@@ -48,6 +48,9 @@ namespace Common.Mappings
             CreateMap<SeasonRequest, Season>()
       .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SeasonCode));
             CreateMap<SeasonUpdateDto, Season>();
+            CreateMap<Season, SeasonResponse>()
+    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code)); // ✅ sửa lỗi null
+
             // Challenge
 
             CreateMap<Challenge, ChallengeDto>()
@@ -76,6 +79,14 @@ namespace Common.Mappings
             CreateMap<HackathonPhase, HackathonPhaseDto>().ReverseMap();
             CreateMap<HackathonPhaseCreateDto, HackathonPhase>();
             CreateMap<HackathonPhaseUpdateDto, HackathonPhase>();
+            // Hackathon chi tiết
+            CreateMap<Hackathon, HackathonDetailResponseDto>()
+      .ForMember(dest => dest.Season, opt => opt.MapFrom(src => src.SeasonNavigation.Code))
+      .ForMember(dest => dest.Phases, opt => opt.MapFrom(src => src.HackathonPhases))
+      .ForMember(dest => dest.Prizes, opt => opt.MapFrom(src => src.Prizes));
+
+            CreateMap<HackathonPhase, HackathonPhaseDtos>();
+            CreateMap<Prize, PrizeDto>();
 
             //Hackathon
 
