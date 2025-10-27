@@ -23,6 +23,19 @@ namespace Repositories.Repos
             return await _context.Seasons
                 .FirstOrDefaultAsync(s => s.Code == code);
         }
+        public async Task<Season?> GetByNameAsync(string name)
+        {
+            return await _context.Seasons
+                .FirstOrDefaultAsync(s => s.Name.ToLower() == name.ToLower());
+        }
+
+        // chỉ thao tác update db, ko chứa logic
+        public async Task UpdateSeasonAsync(Season season)
+        {
+            _context.Seasons.Update(season);
+            await _context.SaveChangesAsync();
+        }
+
     }
 
 }

@@ -25,11 +25,15 @@ namespace Seal.Controller
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetHackathonDetail(int id)
         {
             var result = await _service.GetByIdAsync(id);
-            return result == null ? NotFound() : Ok(result);
+            if (result == null)
+                return NotFound(new { message = "Hackathon not found" });
+
+            return Ok(result);
         }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] HackathonCreateDto dto)
@@ -38,7 +42,7 @@ namespace Seal.Controller
             {
                 var userId = int.Parse(User.FindFirst("UserId").Value);
                 var created = await _service.CreateHackathonAsync(dto, userId);
-                return CreatedAtAction(nameof(GetById), new { id = created.HackathonId }, created);
+                return CreatedAtAction(nameof(GetHackathonDetail), new { id = created.HackathonId }, created);
             }
             catch (ArgumentException ex)
             {

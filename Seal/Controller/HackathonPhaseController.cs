@@ -28,31 +28,52 @@ namespace Seal.Controller
         public async Task<IActionResult> GetById(int id)
         {
             var phase = await _service.GetByIdAsync(id);
-            if (phase == null) return NotFound();
+            if (phase == null)
+                return NotFound(new { message = "Không tìm thấy phase." });
+
             return Ok(phase);
         }
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] HackathonPhaseCreateDto dto)
         {
-            var created = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.PhaseId }, created);
+            try
+            {
+                var created = await _service.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.PhaseId }, created);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] HackathonPhaseUpdateDto dto)
         {
-            var success = await _service.UpdateAsync(id, dto);
-            return success ? Ok() : NotFound();
+            try
+            {
+                var success = await _service.UpdateAsync(id, dto);
+                if (!success)
+                    return NotFound(new { message = "Không tìm thấy phase để cập nhật." });
+
+                return Ok(new { message = "Cập nhật phase thành công." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteAsync(id);
-            if (!success) return NotFound();
+            if (!success)
+                return NotFound(new { message = "Không tìm thấy phase để xóa." });
 
-            return NoContent();
+            return Ok(new { message = "Xóa phase thành công." });
         }
     }
 }

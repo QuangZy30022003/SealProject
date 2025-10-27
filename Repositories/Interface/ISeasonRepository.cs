@@ -10,5 +10,7 @@ namespace Repositories.Interface
     public interface ISeasonRepository : IRepository<Season>
     {
         Task<Season?> GetByCodeAsync(string code);
+        Task<Season?> GetByNameAsync(string name);
+        Task UpdateSeasonAsync(Season season);
     }
 }

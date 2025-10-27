@@ -59,39 +59,33 @@ namespace Service.Servicefolder
 
         public async Task<string> UpdateAsync(int id, SeasonUpdateDto dto)
         {
+            // ✅ 1. Lấy entity hiện tại
             var season = await _uow.SeasonRepository.GetByIdAsync(id);
             if (season == null)
                 return $"Season with ID {id} not found.";
 
-            // Validate: StartDate < EndDate
+            // ✅ 2. Validate StartDate < EndDate
             if (dto.StartDate >= dto.EndDate)
                 return "StartDate must be earlier than EndDate.";
 
-            // Check duplicate Code (ignore current season)
-            var existCode = await _uow.SeasonRepository
-                .FirstOrDefaultAsync(x => x.Code.ToLower() == dto.SeasonCode.ToLower() && x.SeasonId != id);
-            if (existCode != null)
+            // ✅ 3. Kiểm tra trùng Code
+            var existCode = await _uow.SeasonRepository.GetByCodeAsync(dto.SeasonCode);
+            if (existCode != null && existCode.SeasonId != id)
                 return $"Season Code '{dto.SeasonCode}' already exists.";
 
-            // Check duplicate Name (ignore current season)
-            var existName = await _uow.SeasonRepository
-                .FirstOrDefaultAsync(x => x.Name.ToLower() == dto.Name.ToLower() && x.SeasonId != id);
-            if (existName != null)
+            // ✅ 4. Kiểm tra trùng Name
+            var existName = await _uow.SeasonRepository.GetByNameAsync(dto.Name);
+            if (existName != null && existName.SeasonId != id)
                 return $"Season Name '{dto.Name}' already exists.";
 
-            // Update fields
-            season.Code = dto.SeasonCode;
-            season.Name = dto.Name;
-            season.StartDate = dto.StartDate;
-            season.EndDate = dto.EndDate;
+            // ✅ 5. Mapping DTO → entity (AutoMapper sẽ tự map)
+            _mapper.Map(dto, season);
 
-            _uow.SeasonRepository.Update(season);
-            await _uow.SaveAsync();
+            // ✅ 6. Lưu thay đổi
+            await _uow.SeasonRepository.UpdateSeasonAsync(season);
 
             return "Season updated successfully!";
         }
-
-
         public async Task<bool> DeleteAsync(int id)
         {
             var season = await _uow.SeasonRepository.GetByIdAsync(id);

@@ -1,6 +1,8 @@
 ﻿using Common;
 using Common.DTOs.AuthDto;
 using Common.Helper;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Dto.AuthDto;
@@ -51,8 +53,8 @@ namespace Seal.Controller
         }
 
 
-        [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] string email)
+        [HttpPost("google-login-Test-BE")]
+        public async Task<IActionResult> GoogleLoginBE([FromBody] string email)
         {
             var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
 
@@ -170,5 +172,36 @@ namespace Seal.Controller
             string status = isBlocked ? "blocked" : "unblocked";
             return Ok(new { message = $"User {status} successfully" });
         }
+
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleCallback")
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync("Cookies");
+
+            if (!authenticateResult.Succeeded)
+                return BadRequest("Google authentication failed.");
+
+            var claims = authenticateResult.Principal?.Identities?.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var fullName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return BadRequest("Unable to retrieve user info from Google.");
+
+            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
+
+            var frontendUrl = $"https://your-frontend-domain.com/login-success?accessToken={accessToken}&refreshToken={refreshToken}";
+            return Redirect(frontendUrl);
+        }
+
     }
 }
