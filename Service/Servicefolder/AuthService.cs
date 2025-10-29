@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.DTOs.AuthDto;
 using Common.Helper;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -178,5 +179,37 @@ namespace Service.Servicefolder
             return true;
         }
 
+
+        public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string email, string fullName)
+        {
+            var user = await _uow.AuthRepository.GetByEmailAsync(email);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    FullName = fullName,
+                    RoleId = 1, // Default Member
+                    IsVerified = true
+                };
+
+                await _uow.AuthRepository.AddAsync(user);
+            }
+
+            // Sinh Access Token
+            var accessToken = _jwtHelper.GenerateToken(user);
+
+            // Sinh Refresh Token (random string)
+            var refreshToken = Guid.NewGuid().ToString();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            // Cập nhật DB
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return (accessToken, refreshToken, user.IsVerified);
+        }
     }
 }

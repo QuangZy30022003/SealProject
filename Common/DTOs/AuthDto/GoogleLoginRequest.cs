@@ -11,4 +11,9 @@ namespace Repositories.Dto.AuthDto
         public string Email { get; set; }
      
     }
+
+    public class GoogleLoginRequestDto
+    {
+        public string Token { get; set; } = string.Empty;
+    }
 }

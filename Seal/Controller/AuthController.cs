@@ -11,6 +11,8 @@ using Service.Interface;
 using Service.Servicefolder;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace Seal.Controller
 {
@@ -22,12 +24,15 @@ namespace Seal.Controller
         private readonly JwtHelper _jwtHelper;
         private readonly IAuthService _authService;
         private readonly IUserContextService _userContext;
-        public AuthController(IUOW uow, JwtHelper jwtHelper, IAuthService authService, IUserContextService userContextService)
+        private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
+        public AuthController(IUOW uow, JwtHelper jwtHelper, IAuthService authService, IUserContextService userContextService, IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _uow = uow;
             _jwtHelper = jwtHelper;
             _authService = authService;
-
+            _configuration = configuration;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet("verify")]
@@ -173,35 +178,32 @@ namespace Seal.Controller
             return Ok(new { message = $"User {status} successfully" });
         }
 
-        [HttpGet("google-login")]
-        public IActionResult GoogleLogin()
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request)
         {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action("GoogleCallback")
-            };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
+            if (string.IsNullOrEmpty(request.Token))
+                return BadRequest("Token is required.");
 
-        [HttpGet("google-callback")]
-        public async Task<IActionResult> GoogleCallback()
-        {
-            var authenticateResult = await HttpContext.AuthenticateAsync("Cookies");
+            // ✅ Xác thực token với Google
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetStringAsync($"https://oauth2.googleapis.com/tokeninfo?id_token={request.Token}");
+            var payload = JObject.Parse(response);
 
-            if (!authenticateResult.Succeeded)
-                return BadRequest("Google authentication failed.");
+            var email = payload["email"]?.ToString();
+            var name = payload["name"]?.ToString();
 
-            var claims = authenticateResult.Principal?.Identities?.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var fullName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             if (string.IsNullOrEmpty(email))
-                return BadRequest("Unable to retrieve user info from Google.");
+                return BadRequest("Invalid Google token.");
 
-            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
+            // ✅ Xử lý user trong DB (tạo hoặc lấy user)
+            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsyncs(email, name);
 
-            var frontendUrl = $"https://your-frontend-domain.com/login-success?accessToken={accessToken}&refreshToken={refreshToken}";
-            return Redirect(frontendUrl);
+            return Ok(new
+            {
+                accessToken,
+                refreshToken,
+                isVerified
+            });
         }
-
     }
 }
