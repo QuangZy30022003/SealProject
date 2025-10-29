@@ -24,7 +24,9 @@ namespace Service.Servicefolder
 
         public async Task<IEnumerable<HackathonResponseDto>> GetAllAsync()
         {
-            var entities = await _uow.Hackathons.GetAllAsync();
+            var entities = await _uow.Hackathons.GetAllIncludingAsync(null,
+                  h => h.SeasonNavigation);
+
             return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
         }
 
@@ -60,7 +62,7 @@ namespace Service.Servicefolder
             var hackathon = new Hackathon
             {
                 Name = dto.Name,
-                Season = season.Name,   // Lưu Name (ex: "Summer 2025")
+                SeasonId = dto.SeasonId,
                 Theme = dto.Theme,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
@@ -102,7 +104,7 @@ namespace Service.Servicefolder
 
 
             hackathon.Name = dto.Name;
-            hackathon.Season = season.Name;
+            hackathon.SeasonId = dto.SeasonId;
             hackathon.Theme = dto.Theme;
             hackathon.StartDate = dto.StartDate;
             hackathon.EndDate = dto.EndDate;

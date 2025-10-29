@@ -56,7 +56,7 @@ namespace Service.Servicefolder
                 // ✅ Tạo Hackathon
                 var hackathon = _mapper.Map<Hackathon>(dto.Hackathon);
                 hackathon.CreatedBy = userid;
-                hackathon.Season = season.Name;
+                hackathon.SeasonId = season.SeasonId;
                 await _uow.Hackathons.AddAsync(hackathon);
                 await _uow.SaveAsync();
 

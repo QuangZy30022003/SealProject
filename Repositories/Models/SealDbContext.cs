@@ -135,12 +135,12 @@ public partial class SealDbContext : DbContext
             entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEBC3FD865C");
 
             entity.HasIndex(e => e.CreatedBy, "IX_Hackathons_CreatedBy");
-
+            entity.HasIndex(e => e.SeasonId, "IX_Hackathons_SeasonId");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.Season).HasMaxLength(20);
+     
             entity.Property(e => e.Theme).HasMaxLength(200);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Hackathons)
@@ -148,8 +148,8 @@ public partial class SealDbContext : DbContext
                 .HasConstraintName("FK__Hackathon__Creat__3A81B327");
             entity.HasOne(h => h.SeasonNavigation)
        .WithMany(s => s.Hackathons)
-       .HasPrincipalKey(s => s.Code)   
-       .HasForeignKey(h => h.Season); 
+ .HasForeignKey(h => h.SeasonId)
+        .HasConstraintName("FK_Hackathons_Seasons");
         });
 
         modelBuilder.Entity<HackathonPhase>(entity =>
