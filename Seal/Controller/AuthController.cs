@@ -181,29 +181,15 @@ namespace Seal.Controller
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request)
         {
-            if (string.IsNullOrEmpty(request.Token))
-                return BadRequest("Token is required.");
-
-            // ✅ Xác thực token với Google
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetStringAsync($"https://oauth2.googleapis.com/tokeninfo?id_token={request.Token}");
-            var payload = JObject.Parse(response);
-
-            var email = payload["email"]?.ToString();
-            var name = payload["name"]?.ToString();
-
-            if (string.IsNullOrEmpty(email))
-                return BadRequest("Invalid Google token.");
-
-            // ✅ Xử lý user trong DB (tạo hoặc lấy user)
-            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsyncs(email, name);
+            var result = await _authService.LoginWithGoogleAsyncs(request.Token);
 
             return Ok(new
             {
-                accessToken,
-                refreshToken,
-                isVerified
+                accessToken = result.accessToken,
+                refreshToken = result.refreshToken,
+                isVerified = result.isVerified
             });
         }
+
     }
 }

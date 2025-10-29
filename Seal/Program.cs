@@ -73,7 +73,7 @@ builder.Services.AddCors(options =>
                    .AllowCredentials();
         });
 });
-
+builder.Services.AddHttpClient();
 builder.Services.AddAuthorization();
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);

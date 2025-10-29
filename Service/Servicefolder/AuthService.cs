@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Common.DTOs.AuthDto;
 using Common.Helper;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -20,12 +22,14 @@ namespace Service.Servicefolder
         private readonly IEmailService _emailService;
         private readonly JwtHelper _jwtHelper;
         private readonly IMapper _mapper;
-        public AuthService(IUOW uow, IEmailService emailService, JwtHelper jwtHelper, IMapper mapper)
+        private readonly IConfiguration _configuration;
+        public AuthService(IUOW uow, IEmailService emailService, JwtHelper jwtHelper, IMapper mapper, IConfiguration configuration)
         {
             _uow = uow;
             _emailService = emailService;
             _jwtHelper = jwtHelper;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsync(string email)
@@ -180,36 +184,70 @@ namespace Service.Servicefolder
         }
 
 
-        public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string email, string fullName)
+        public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string idToken)
         {
+            // 1️⃣ Lấy clientId từ cấu hình
+            var clientId = _configuration["Authentication:Google:ClientId"];
+
+            // 2️⃣ Xác thực id_token từ Google
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                });
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedAccessException($"Invalid Google token: {ex.Message}");
+            }
+
+            // 3️⃣ Lấy thông tin từ payload
+            var email = payload.Email;
+            var fullName = payload.Name ?? email.Split('@')[0];
+            var picture = payload.Picture;
+
+            // 4️⃣ Tìm user theo email
             var user = await _uow.AuthRepository.GetByEmailAsync(email);
 
+            if (user != null && user.IsBlocked)
+                throw new UnauthorizedAccessException("Your account has been blocked by the administrator.");
+
+            // 5️⃣ Nếu chưa có user thì tạo mới
             if (user == null)
             {
                 user = new User
                 {
-                    Email = email,
                     FullName = fullName,
-                    RoleId = 1, // Default Member
-                    IsVerified = true
+                    Email = email,
+                    PasswordHash = string.Empty,
+                    RoleId = 1,
+                    CreatedAt = DateTime.UtcNow,
+                    IsVerified = true,
+                    Token = null,
+                    RefreshToken = null,
+                    RefreshTokenExpiryTime = null,
+                    IsBlocked = false
                 };
 
-                await _uow.AuthRepository.AddAsync(user);
+                await _uow.Users.AddAsync(user);
+                await _uow.SaveAsync();
             }
 
-            // Sinh Access Token
+            // 6️⃣ Tạo access + refresh token
             var accessToken = _jwtHelper.GenerateToken(user);
+            var refreshToken = _jwtHelper.GenerateRefreshToken();
 
-            // Sinh Refresh Token (random string)
-            var refreshToken = Guid.NewGuid().ToString();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-            // Cập nhật DB
             _uow.Users.Update(user);
             await _uow.SaveAsync();
 
+            // 7️⃣ Trả kết quả
             return (accessToken, refreshToken, user.IsVerified);
         }
+
     }
 }

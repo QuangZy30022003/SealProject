@@ -21,7 +21,7 @@ namespace Service.Interface
         Task<bool> UpdateUserInfoAsync(int userId, UpdateUserDto dto);
         Task<bool> SetUserBlockedStatusAsync(int userId, bool isBlocked);
 
-        Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string email, string fullName);
+        Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string idToken);
     }
 }
 
