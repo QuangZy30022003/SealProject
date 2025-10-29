@@ -20,8 +20,8 @@ namespace Common.DTOs.HackathonDto
     {
         public int HackathonId { get; set; }
         public string Name { get; set; } = null!;
-        public string? Season { get; set; }
-    //    public string? SeasonName { get; set; } // Name
+        public int? SeasonId { get; set; }           // mới: trả về ID để client dùng
+        public string? SeasonName { get; set; }      // hiển thị tên Season (ex: "Summer 2025")
         public string? Theme { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }

@@ -10,9 +10,7 @@ public partial class Hackathon
     public int HackathonId { get; set; }
 
     public string Name { get; set; }
-
-    public string Season { get; set; }
-
+    public int? SeasonId { get; set; }
     public string Theme { get; set; }
 
     public DateOnly? StartDate { get; set; }

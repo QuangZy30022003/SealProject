@@ -90,9 +90,9 @@ namespace Common.Mappings
 
             //Hackathon
 
-            CreateMap<Hackathon, HackathonResponseDto>();
-            //   .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season));
-            CreateMap<HackathonCreateDto, Hackathon>();
+            CreateMap<Hackathon, HackathonResponseDto>()
+                .ForMember(dest => dest.SeasonId, opt => opt.MapFrom(src => src.SeasonId))
+                .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.SeasonNavigation.Name)); CreateMap<HackathonCreateDto, Hackathon>();
             CreateMap<HackathonDto, Hackathon>();
 
             CreateMap<MentorAssignment, MentorAssignmentResponseDto>()
