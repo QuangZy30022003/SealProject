@@ -25,5 +25,8 @@ namespace Repositories.Interface
         Task<IEnumerable<T>> GetAllIncludingAsync(
         Expression<Func<T, bool>>? predicate = null,
         params Expression<Func<T, object>>[] includeProperties);
+        Task<T?> GetByIdIncludingAsync(
+        Expression<Func<T, bool>> predicate,
+        params Expression<Func<T, object>>[] includeProperties);
     }
 }

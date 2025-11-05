@@ -12,43 +12,56 @@ namespace Repositories.UnitOfWork
     public interface IUOW : IDisposable
     {
         IRepository<User> Users { get; }
-        IRepository<Team> Teams { get; }
-        IRepository<Chapter> Chapters { get; }
-        IRepository<Submission> Submissions { get; }
-        IRepository<MentorAssignment> MentorAssignments { get; }
-        IRepository<Prize> Prizes { get; }
-        IRepository<PrizeAllocation> PrizeAllocations { get; }
         IRepository<Role> Roles { get; }
-        IRepository<AuditLog> AuditLogs { get; }
-        IRepository<Notification> Notifications { get; }
-        IRepository<Score> Scores { get; }
-        IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
-        IRepository<Hackathon> Hackathons { get; }
-        IRepository<HackathonPhase> HackathonPhases { get; }
-        IRepository<Criterion> Criteria { get; }
+        IRepository<StudentVerification> StudentVerifications { get; }
+
+
+        IRepository<Chapter> Chapters { get; }
+        IRepository<Team> Teams { get; }
         IRepository<TeamMember> TeamMembers { get; }
         IRepository<TeamInvitation> TeamInvitations { get; }
-        IRepository<StudentVerification> StudentVerifications { get; }
-        IRepository<Appeal> Appeals { get; }
         IRepository<TeamJoinRequest> TeamJoinRequests { get; }
-        IAuthRepository AuthRepository { get; }
-        ITeamRepository TeamsRepository { get; }
-        IChapterRepository ChaptersRepository { get; }
-        ISeasonRepository SeasonRepository { get; }
-        ITeamInvitationRepository TeamInvitationRepository { get; }
+        IRepository<MentorAssignment> MentorAssignments { get; }
+
+
+        IRepository<Prize> Prizes { get; }
+        IRepository<PrizeAllocation> PrizeAllocations { get; }
+
+        
+        IRepository<AuditLog> AuditLogs { get; }
+        IRepository<Notification> Notifications { get; }
+
+
+        IRepository<Submission> Submissions { get; }
+        IRepository<Score> Scores { get; }
+        IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
+        IRepository<Appeal> Appeals { get; }
+
+
+        IRepository<Season> Seasons { get; }
+        IRepository<Hackathon> Hackathons { get; }
+        IRepository<HackathonPhase> HackathonPhases { get; }
+        IRepository<Challenge> Challenges { get; }
+
+
+        IRepository<Criterion> Criteria { get; }
+        IRepository<CriterionDetail> CriterionDetail { get; }
+
+
+        IRepository<Track> Tracks { get; }
+        IRepository<TeamTrackSelection> TeamTrackSelections { get; }
+        IRepository<Group> Groups { get; }
+        IRepository<GroupTeam> GroupsTeams { get; }
+
+
+        IRepository<FinalQualification> FinalQualifications { get; }
+        IRepository<ScheduleEvent> ScheduleEvents { get; }
+
 
         IChallengeRepository ChallengeRepository { get; }
-
         IHackathonPhaseRepository HackathonPhaseRepository { get; }
-
         IMentorAssignmentRepository MentorAssignmentRepository { get; }
-
-        IStudentVerificationRepository StudentVerificationRepository { get; }
-
-        IRepository<CriterionDetail> CriterionDetail { get; }
         IScoreRepository ScoreRepository { get; }
-
-
         IPrizeRepository PrizeRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<int> SaveAsync();

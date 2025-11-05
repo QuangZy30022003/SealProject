@@ -147,7 +147,7 @@ namespace Service.Servicefolder
 
         public async Task<string> RejectInvitationAsync(Guid invitationCode, int userId)
         {
-            var invitation = await _uow.TeamInvitationRepository.GetByCodeAsync(invitationCode);
+            var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(x => x.InvitationCode == invitationCode);
             if (invitation == null)
                 throw new Exception("Invitation not found.");
 
@@ -167,7 +167,7 @@ namespace Service.Servicefolder
 
         public async Task<InvitationStatusDto> GetInvitationStatusAsync(Guid invitationCode)
         {
-            var invitation = await _uow.TeamInvitationRepository.GetByCodeAsync(invitationCode);
+            var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(x => x.InvitationCode == invitationCode);
             if (invitation == null)
                 throw new Exception("Invitation not found");
 
@@ -186,7 +186,7 @@ namespace Service.Servicefolder
             var leader = await _uow.Users.GetByIdAsync(team.TeamLeaderId);
 
             // get list invitation accepted
-            var acceptedInvitations = await _uow.TeamInvitationRepository
+            var acceptedInvitations = await _uow.TeamInvitations
                 .GetAllAsync(i => i.TeamId == teamId && i.Status == InvitationStatus.Accepted);
 
             var memberCount = acceptedInvitations.Count() + 1; 
