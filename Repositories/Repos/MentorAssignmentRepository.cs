@@ -22,7 +22,7 @@ namespace Repositories.Repos
         {
             return await _context.MentorAssignments
                 .Include(ma => ma.Team)
-                    .ThenInclude(t => t.Leader)
+                    .ThenInclude(t => t.TeamLeader)
                 .Include(ma => ma.Chapter)
                 .Where(ma => ma.MentorId == mentorId)
                 .ToListAsync();

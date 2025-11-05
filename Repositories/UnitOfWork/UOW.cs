@@ -15,44 +15,57 @@ namespace Repositories.UnitOfWork
         private readonly SealDbContext _context;
 
         public IRepository<User> Users { get; }
-        public IRepository<Team> Teams { get; }
-        public IRepository<Chapter> Chapters { get; }
-        public IRepository<Submission> Submissions { get; }
-        public IRepository<MentorAssignment> MentorAssignments { get; }
-        public IRepository<Prize> Prizes { get; }
-        public IRepository<PrizeAllocation> PrizeAllocations { get; }
         public IRepository<Role> Roles { get; }
-        public IRepository<AuditLog> AuditLogs { get; }
-        public IRepository<Notification> Notifications { get; }
-        public IRepository<Score> Scores { get; }
-        public IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
-        public IRepository<Hackathon> Hackathons { get; }
-        public IRepository<HackathonPhase> HackathonPhases { get; }
-        public IRepository<Criterion> Criteria { get; }
+        public IRepository<StudentVerification> StudentVerifications { get; }
+
+
+        public IRepository<Chapter> Chapters { get; }
+        public IRepository<Team> Teams { get; }
         public IRepository<TeamMember> TeamMembers { get; }
         public IRepository<TeamInvitation> TeamInvitations { get; }
-        public IRepository<StudentVerification> StudentVerifications { get; }
-        public IRepository<Appeal> Appeals { get; }
-        public IRepository<TeamChallenge> TeamChallenges { get; }
         public IRepository<TeamJoinRequest> TeamJoinRequests { get; }
-        public IAuthRepository AuthRepository { get; }
-        public ITeamRepository TeamsRepository { get; }
-        public IChapterRepository ChaptersRepository { get; }
-        public ISeasonRepository SeasonRepository { get; }
-        public ITeamInvitationRepository TeamInvitationRepository { get; }
+        public IRepository<MentorAssignment> MentorAssignments { get; }
+
+
+        public IRepository<Submission> Submissions { get; }
+        public IRepository<Score> Scores { get; }
+        public IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
+        public IRepository<Appeal> Appeals { get; }
+
+
+        public IRepository<Criterion> Criteria { get; }
+        public IRepository<CriterionDetail> CriterionDetail { get; }
+
+
+        public IRepository<Prize> Prizes { get; }
+        public IRepository<PrizeAllocation> PrizeAllocations { get; }
+
+
+        public IRepository<AuditLog> AuditLogs { get; }
+        public IRepository<Notification> Notifications { get; }
+
+
+        public IRepository<Season> Seasons { get; }
+        public IRepository<Hackathon> Hackathons { get; }
+        public IRepository<HackathonPhase> HackathonPhases { get; }
+        public IRepository<Challenge> Challenges { get; }
+
+
+        public IRepository<Track> Tracks { get; }
+        public IRepository<TeamTrackSelection> TeamTrackSelections { get; }
+        public IRepository<Group> Groups { get; }
+        public IRepository<GroupTeam> GroupsTeams { get; }
+        
+
+        public IRepository<FinalQualification> FinalQualifications { get; }
+        public IRepository<ScheduleEvent> ScheduleEvents { get; }
+
+
         public IChallengeRepository ChallengeRepository { get; }
         public IHackathonPhaseRepository HackathonPhaseRepository { get; }
         public IMentorAssignmentRepository MentorAssignmentRepository { get; }
-        public IStudentVerificationRepository StudentVerificationRepository { get; }
-        public IRepository<PhaseChallenge> PhaseChallenges { get; }
-
-        public IRepository<CriterionDetail> CriterionDetail { get; }
-
         public IScoreRepository ScoreRepository { get; }
-
         public ICriterionDetailRepository CriterionDetailRepository { get; }
-        public IPhaseChallengeRepository PhaseChallengeRepository { get; }
-
         public IPrizeRepository PrizeRepository { get; }
 
 
@@ -61,43 +74,58 @@ namespace Repositories.UnitOfWork
             _context = context;
 
             Users = new GenericRepository<User>(_context);
-            Teams = new GenericRepository<Team>(_context);
-            Chapters = new GenericRepository<Chapter>(_context);
-            Submissions = new GenericRepository<Submission>(_context);
-            MentorAssignments = new GenericRepository<MentorAssignment>(_context);
-            Prizes = new GenericRepository<Prize>(_context);
-            PrizeAllocations = new GenericRepository<PrizeAllocation>(_context);
+            StudentVerifications = new GenericRepository<StudentVerification>(_context);
             Roles = new GenericRepository<Role>(_context);
-            AuditLogs = new GenericRepository<AuditLog>(_context);
-            Notifications = new GenericRepository<Notification>(_context);
-            Scores = new GenericRepository<Score>(_context);
-            PenaltiesBonuses = new GenericRepository<PenaltiesBonuse>(_context);
-            Hackathons = new GenericRepository<Hackathon>(_context);
-            HackathonPhases = new GenericRepository<HackathonPhase>(_context);
-            Criteria = new GenericRepository<Criterion>(_context);
+
+            Chapters = new GenericRepository<Chapter>(_context);
+            Teams = new GenericRepository<Team>(_context);
             TeamMembers = new GenericRepository<TeamMember>(_context);
             TeamInvitations = new GenericRepository<TeamInvitation>(_context);
-            TeamChallenges = new GenericRepository<TeamChallenge>(_context);
-            AuthRepository = new AuthRepository(_context);
-            TeamsRepository = new TeamRepository(_context);
-            ChaptersRepository = new ChapterRepository(_context);
-            SeasonRepository = new SeasonRepository(_context);
-            TeamInvitationRepository = new TeamInvitationRepository(_context);
-            ChallengeRepository = new ChallengeRepository(_context);
-            HackathonPhaseRepository = new HackathonPhaseRepository(_context);
-            MentorAssignmentRepository = new MentorAssignmentRepository(_context);
-            StudentVerificationRepository = new StudentVerificationRepository(_context);
-            PhaseChallenges = new GenericRepository<PhaseChallenge>(_context);
-            Appeals = new GenericRepository<Appeal>(_context);
-            StudentVerifications = new GenericRepository<StudentVerification>(_context);
-            CriterionDetail = new GenericRepository<CriterionDetail>(_context);
-            ScoreRepository = new ScoreRepository(_context);
-            CriterionDetailRepository = new CriterionDetailRepository(_context);
-            PhaseChallengeRepository = new PhaseChallengeRepository(_context);
-
-            PrizeRepository = new PrizeRepository(_context);
-
             TeamJoinRequests = new GenericRepository<TeamJoinRequest>(_context);
+            MentorAssignments = new GenericRepository<MentorAssignment>(_context);
+            
+            Prizes = new GenericRepository<Prize>(_context);
+            PrizeAllocations = new GenericRepository<PrizeAllocation>(_context);
+           
+            AuditLogs = new GenericRepository<AuditLog>(_context);
+            Notifications = new GenericRepository<Notification>(_context);
+
+            Seasons = new GenericRepository<Season>(_context);
+            Hackathons = new GenericRepository<Hackathon>(_context);
+            HackathonPhases = new GenericRepository<HackathonPhase>(_context);
+            Challenges = new GenericRepository<Challenge>(_context);
+
+            Submissions = new GenericRepository<Submission>(_context);
+            Scores = new GenericRepository<Score>(_context);
+            PenaltiesBonuses = new GenericRepository<PenaltiesBonuse>(_context);
+            Appeals = new GenericRepository<Appeal>(_context);
+
+            Criteria = new GenericRepository<Criterion>(_context);
+            CriterionDetail = new GenericRepository<CriterionDetail>(_context);
+            
+            Tracks = new GenericRepository<Track>(_context);
+            TeamTrackSelections = new GenericRepository<TeamTrackSelection>(_context);
+            Groups = new GenericRepository<Group>(_context);
+            GroupsTeams = new GenericRepository<GroupTeam>(_context);
+
+            FinalQualifications = new GenericRepository<FinalQualification>(_context);
+            ScheduleEvents = new GenericRepository<ScheduleEvent>(_context);
+
+            
+            
+
+            ChallengeRepository = new ChallengeRepository(_context);
+
+            HackathonPhaseRepository = new HackathonPhaseRepository(_context);
+
+            MentorAssignmentRepository = new MentorAssignmentRepository(_context);
+
+            ScoreRepository = new ScoreRepository(_context);
+            
+            CriterionDetailRepository = new CriterionDetailRepository(_context);
+            
+            PrizeRepository = new PrizeRepository(_context);
+           
 
         }
 

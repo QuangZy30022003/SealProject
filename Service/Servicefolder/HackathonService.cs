@@ -25,7 +25,7 @@ namespace Service.Servicefolder
         public async Task<IEnumerable<HackathonResponseDto>> GetAllAsync()
         {
             var entities = await _uow.Hackathons.GetAllIncludingAsync(null,
-                  h => h.SeasonNavigation);
+                  h => h.Season);
 
             return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
         }
@@ -42,7 +42,7 @@ namespace Service.Servicefolder
 
         public async Task<HackathonResponseDto> CreateHackathonAsync(HackathonCreateDto dto, int userId)
         {
-            var season = await _uow.SeasonRepository.GetByIdAsync(dto.SeasonId);
+            var season = await _uow.Seasons.GetByIdAsync(dto.SeasonId);
             if (season == null)
                 throw new ArgumentException("Season not found");
 
@@ -85,7 +85,7 @@ namespace Service.Servicefolder
             if (hackathon.CreatedBy != userId)
                 throw new UnauthorizedAccessException("You are not authorized to update this hackathon");
 
-            var season = await _uow.SeasonRepository.GetByIdAsync(dto.SeasonId);
+            var season = await _uow.Seasons.GetByIdAsync(dto.SeasonId);
             if (season == null)
                 throw new ArgumentException("Season not found");
 

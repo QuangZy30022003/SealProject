@@ -27,13 +27,13 @@ namespace Service.Servicefolder
             var team = await _uow.Teams.GetByIdAsync(teamId);
             if (team == null) throw new Exception("Team not found");
 
-            if (team.LeaderId != currentUserId)
+            if (team.TeamLeaderId != currentUserId)
                 throw new UnauthorizedAccessException("Only leader can kick members");
 
             var member = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == memberId);
             if (member == null) throw new Exception("Member not found in team");
 
-            if (member.UserId == team.LeaderId)
+            if (member.UserId == team.TeamLeaderId)
                 throw new Exception("Leader cannot be kicked");
 
             _uow.TeamMembers.Remove(member);
@@ -48,7 +48,7 @@ namespace Service.Servicefolder
             if (member == null) throw new Exception("You are not in this team");
 
             var team = await _uow.Teams.GetByIdAsync(teamId);
-            if (team.LeaderId == userId)
+            if (team.TeamLeaderId == userId)
                 throw new Exception("Leader cannot leave the team. Please transfer leadership first.");
 
             _uow.TeamMembers.Remove(member);

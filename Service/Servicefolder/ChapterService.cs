@@ -24,7 +24,7 @@ namespace Service.Servicefolder
         public async Task<ChapterDto> CreateChapterAsync(CreateChapterDto dto)
         {
             // check trùng tên
-            var exists = await _uow.ChaptersRepository.ExistsByNameAsync(dto.ChapterName);
+            var exists = await _uow.Chapters.ExistsAsync(c => c.ChapterName == dto.ChapterName);
             if (exists)
             {
                 throw new Exception("Chapter name already exists");

@@ -9,7 +9,7 @@ public partial class HackathonPhase
 {
     public int PhaseId { get; set; }
 
-    public int? HackathonId { get; set; }
+    public int HackathonId { get; set; }
 
     public string PhaseName { get; set; }
 
@@ -17,9 +17,13 @@ public partial class HackathonPhase
 
     public DateTime EndDate { get; set; }
 
+    public virtual ICollection<Criterion> Criteria { get; set; } = new List<Criterion>();
+
+    public virtual ICollection<FinalQualification> FinalQualifications { get; set; } = new List<FinalQualification>();
+
     public virtual Hackathon Hackathon { get; set; }
 
-    public virtual ICollection<PhaseChallenge> PhaseChallenges { get; set; } = new List<PhaseChallenge>();
+    public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
 
-    public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
+    public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
 }

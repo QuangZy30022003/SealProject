@@ -9,19 +9,13 @@ public partial class Submission
 {
     public int SubmissionId { get; set; }
 
-    public int? TeamId { get; set; }
+    public int TeamId { get; set; }
 
     public string Title { get; set; }
 
-    public string GitHubLink { get; set; }
-
-    public string DemoLink { get; set; }
-
-    public string ReportLink { get; set; }
+    public string FilePath { get; set; }
 
     public DateTime? SubmittedAt { get; set; }
-
-    public int PhaseChallengeId { get; set; }
 
     public int SubmittedBy { get; set; }
 

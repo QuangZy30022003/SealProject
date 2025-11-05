@@ -24,16 +24,13 @@ namespace Service
             service.AddScoped<IHackathonService, HackathonService>();
             service.AddScoped<IHackathonPhaseService, HackathonPhaseService>();
             service.AddScoped<IMentorAssignmentService, MentorAssignmentService>();
-            service.AddScoped<ITeamChallengeService, TeamChallengeService>();
             service.AddScoped<ITeamMemberService, TeamMemberService>();
             service.AddScoped<IStudentVerificationService, StudentVerificationService>();
-            service.AddScoped<IPhaseChallengeService, PhaseChallengeService>();
             service.AddScoped<IPenaltyService, PenaltyService>();
             service.AddScoped<IAppealService, AppealService>();
             service.AddScoped<ISubmissionService, SubmissionService>();
             service.AddScoped<ICriterionService, CriterionService>();
             service.AddScoped<IScoreService, ScoreService>();
-            service.AddScoped<IHackathonFullService, HackathonFullService>();
 
             service.AddScoped<IPrizeService, PrizeService>();
 

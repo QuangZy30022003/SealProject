@@ -5,15 +5,19 @@ using System.Collections.Generic;
 
 namespace Repositories.Models;
 
-public partial class TeamMember
+public partial class GroupTeam
 {
+    public int GroupTeamId { get; set; }
+
+    public int GroupId { get; set; }
+
+    public int? Rank { get; set; }
+
     public int TeamId { get; set; }
 
-    public int UserId { get; set; }
+    public DateTime? JoinedAt { get; set; }
 
-    public string RoleInTeam { get; set; }
+    public virtual Group Group { get; set; }
 
     public virtual Team Team { get; set; }
-
-    public virtual User User { get; set; }
 }

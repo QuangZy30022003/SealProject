@@ -22,21 +22,11 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CriterionReadDTO>> GetByPhaseChallengeAsync(int phaseChallengeId)
-        {
-            var entities = await _uow.Criteria.GetAllIncludingAsync(
-                c => c.PhaseChallengeId == phaseChallengeId,
-                c => c.PhaseChallenge,
-                c => c.CriterionDetails);
-
-            return _mapper.Map<IEnumerable<CriterionReadDTO>>(entities);
-        }
-
+    
         public async Task<CriterionReadDTO?> GetByIdAsync(int id)
         {
             var entity = await _uow.Criteria.GetAllIncludingAsync(
                 c => c.CriteriaId == id,
-                c => c.PhaseChallenge,
                 c => c.CriterionDetails);
 
             var criterion = entity.FirstOrDefault();
@@ -62,7 +52,6 @@ namespace Service.Servicefolder
 
             var created = await _uow.Criteria.GetAllIncludingAsync(
                 c => c.CriteriaId == entity.CriteriaId,
-                c => c.PhaseChallenge,
                 c => c.CriterionDetails);
 
             return _mapper.Map<CriterionReadDTO>(created.First());
@@ -114,7 +103,6 @@ namespace Service.Servicefolder
         {
             var entities = await _uow.Criteria.GetAllIncludingAsync(
                 c => true,
-                c => c.PhaseChallenge,
                 c => c.CriterionDetails);
 
             return _mapper.Map<IEnumerable<CriterionReadDTO>>(entities);

@@ -36,17 +36,15 @@ namespace Seal.Controller
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] HackathonPhaseCreateDto dto)
+        public async Task<IActionResult> CreateMultiple([FromBody] List<HackathonPhaseCreateDto> phases)
         {
-            try
+            var createdPhases = new List<HackathonPhaseDto>();
+            foreach (var dto in phases)
             {
                 var created = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = created.PhaseId }, created);
+                createdPhases.Add(created);
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(createdPhases);
         }
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]

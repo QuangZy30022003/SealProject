@@ -10,16 +10,15 @@ namespace Service.Interface
 {
     public interface IChallengeService
     {
-        Task<IEnumerable<ChallengeDto>> GetAllAsync();
-        Task<ChallengeDto?> GetByIdAsync(int id);
-        Task<ChallengeDto> CreateFromFileAsync(ChallengeCreateUnifiedDto dto, IFormFile file, int userId);
+        //Task<IEnumerable<ChallengeDto>> GetAllAsync();
+        //Task<ChallengeDto?> GetByIdAsync(int id);
+        //Task<ChallengeDto> CreateFromFileAsync(ChallengeCreateUnifiedDto dto, IFormFile file, int userId);
 
-        Task<ChallengeDto> CreateFromLinkAsync(ChallengeCreateUnifiedDto dto, int userId);
-        Task<bool> PartnerDeleteAsync(int id, int userId);
-        Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto);
+        //Task<ChallengeDto> CreateFromLinkAsync(ChallengeCreateUnifiedDto dto, int userId);
+        //Task<bool> PartnerDeleteAsync(int id, int userId);
+        //Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto);
 
-        Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto);
-  //      Task<List<ChallengeDto>> RandomAssignAsync(int hackathonId, int numberOfPhases);
+        //Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto);
 
     }
 }

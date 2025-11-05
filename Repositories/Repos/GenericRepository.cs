@@ -82,8 +82,8 @@ namespace Repositories.Repos
         }
 
         public async Task<IEnumerable<T>> GetAllIncludingAsync(
-       Expression<Func<T, bool>>? predicate = null,
-       params Expression<Func<T, object>>[] includeProperties)
+        Expression<Func<T, bool>>? predicate = null,
+        params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _dbSet;
 
@@ -96,6 +96,20 @@ namespace Repositories.Repos
             }
 
             return await query.ToListAsync();
+        }
+
+        public async Task<T?> GetByIdIncludingAsync(
+        Expression<Func<T, bool>> predicate,
+        params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _dbSet;
+
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+            }
+
+            return await query.FirstOrDefaultAsync(predicate);
         }
 
     }

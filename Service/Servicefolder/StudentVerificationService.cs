@@ -28,7 +28,7 @@ namespace Service.Servicefolder
 
         public async Task SubmitAsync(int userId, string userEmail, StudentVerificationDto dto)
         {
-            var existing = await _uow.StudentVerificationRepository.GetByUserIdAsync(userId);
+            var existing = await _uow.StudentVerifications.FirstOrDefaultAsync(sv => sv.UserId == userId);
             if (existing != null)
                 throw new Exception("Bạn đã gửi yêu cầu xác thực trước đó.");
 
@@ -68,13 +68,13 @@ namespace Service.Servicefolder
             verification.BackCardImage = backPath;
             verification.Status = "Pending";
 
-            await _uow.StudentVerificationRepository.AddAsync(verification);
+            await _uow.StudentVerifications.AddAsync(verification);
             await _uow.SaveAsync();
         }
 
         public async Task<bool> ApproveVerificationAsync(int verificationId)
         {
-            var verification = await _uow.StudentVerificationRepository.GetByIdAsync(verificationId);
+            var verification = await _uow.StudentVerifications.GetByIdAsync(verificationId);
             if (verification == null)
                 return false;
 
@@ -85,7 +85,7 @@ namespace Service.Servicefolder
             verification.Status = "Approved";
             verification.UpdatedAt = DateTime.Now;
 
-            _uow.StudentVerificationRepository.Update(verification);
+            _uow.StudentVerifications.Update(verification);
             await _uow.SaveAsync();
 
             return true;
@@ -93,7 +93,7 @@ namespace Service.Servicefolder
 
         public async Task<bool> RejectVerificationAsync(int verificationId)
         {
-            var verification = await _uow.StudentVerificationRepository.GetByIdAsync(verificationId);
+            var verification = await _uow.StudentVerifications.GetByIdAsync(verificationId);
             if (verification == null)
                 return false;
 
@@ -107,7 +107,7 @@ namespace Service.Servicefolder
             // Nếu có cột lưu lý do
             // verification.RejectionReason = reason;
 
-            _uow.StudentVerificationRepository.Update(verification);
+            _uow.StudentVerifications.Update(verification);
             await _uow.SaveAsync();
 
             return true;

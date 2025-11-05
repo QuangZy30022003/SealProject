@@ -14,9 +14,7 @@ namespace Repositories
     {
         public static IServiceCollection AddRepository(this IServiceCollection service)
         {
-            service.AddScoped<IRoleRepository, RoleRepository>();
             service.AddScoped<IUOW, UOW>();
-            service.AddScoped<IAuthRepository, AuthRepository>();
             return service;
         }
     }

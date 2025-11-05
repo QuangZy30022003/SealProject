@@ -13,6 +13,7 @@ namespace Common.DTOs.AuthDto
         public string Email { get; set; } = string.Empty;
         public string? RoleName { get; set; }
         public bool IsVerified { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public bool IsBlocked { get; set; }
+        public DateTime? CreatedAt { get; set; } 
     }
 }

@@ -34,7 +34,7 @@ namespace Service.Servicefolder
 
         public async Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsync(string email)
         {
-            var user = await _uow.AuthRepository.GetByEmailAsync(email);
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             // ❗Nếu user tồn tại mà bị block => không cho login
             if (user != null && user.IsBlocked)
@@ -129,7 +129,7 @@ namespace Service.Servicefolder
             if (string.IsNullOrEmpty(token))
                 throw new ArgumentException("Invalid token.");
 
-            var user = await _uow.AuthRepository.GetByTokenAsync(token);
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Token == token);
             if (user == null)
                 throw new KeyNotFoundException("User not found or token invalid.");
 
@@ -147,7 +147,7 @@ namespace Service.Servicefolder
 
         public async Task<UserResponseDto?> GetUserByIdAsync(int userId)
         {
-            var user = await _uow.Users.GetByIdAsync(userId);
+            var user = await _uow.Users.GetByIdIncludingAsync(u => u.UserId == userId, u => u.Role);
             if (user == null) return null;
             return _mapper.Map<UserResponseDto>(user);
         }
@@ -209,7 +209,7 @@ namespace Service.Servicefolder
             var picture = payload.Picture;
 
             // 4️⃣ Tìm user theo email
-            var user = await _uow.AuthRepository.GetByEmailAsync(email);
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user != null && user.IsBlocked)
                 throw new UnauthorizedAccessException("Your account has been blocked by the administrator.");

@@ -30,7 +30,7 @@ namespace Service.Servicefolder
                 throw new Exception("Chapter does not exist. Please create a chapter first.");
 
             // 1️ Check trùng tên trong cùng Chapter
-            var exists = await _uow.TeamsRepository.ExistsByNameAsync(dto.TeamName, dto.ChapterId);
+            var exists = await _uow.Teams.ExistsAsync(t => t.TeamName == dto.TeamName && t.ChapterId == dto.ChapterId);
             if (exists)
                 throw new Exception("Team name already exists in this chapter");
 
@@ -78,7 +78,7 @@ namespace Service.Servicefolder
             // check nếu đổi tên thì tên có trùng không
             if (!string.Equals(team.TeamName, dto.TeamName, StringComparison.OrdinalIgnoreCase))
             {
-                var exists = await _uow.TeamsRepository.ExistsByNameAsync(dto.TeamName, dto.ChapterId);
+                var exists = await _uow.Teams.ExistsAsync(t => t.TeamName == dto.TeamName && t.ChapterId == dto.ChapterId);
                 if (exists)
                     throw new Exception("Team name already exists in this chapter");
             }

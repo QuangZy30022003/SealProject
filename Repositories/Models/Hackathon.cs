@@ -10,7 +10,9 @@ public partial class Hackathon
     public int HackathonId { get; set; }
 
     public string Name { get; set; }
-    public int? SeasonId { get; set; }
+
+    public int SeasonId { get; set; }
+
     public string Theme { get; set; }
 
     public DateOnly? StartDate { get; set; }
@@ -18,16 +20,14 @@ public partial class Hackathon
     public DateOnly? EndDate { get; set; }
 
     public int? CreatedBy { get; set; }
-    public string Status { get; set; } = "Pending";
 
-    public virtual User CreatedByNavigation { get; set; }
+    public string Status { get; set; }
 
     public virtual ICollection<HackathonPhase> HackathonPhases { get; set; } = new List<HackathonPhase>();
 
-    public virtual ICollection<PenaltiesBonuse> PenaltiesBonuses { get; set; } = new List<PenaltiesBonuse>();
-
     public virtual ICollection<Prize> Prizes { get; set; } = new List<Prize>();
 
-    public virtual ICollection<TeamChallenge> TeamChallenges { get; set; } = new List<TeamChallenge>();
-    public virtual Season? SeasonNavigation { get; set; }
+    public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
+
+    public virtual Season Season { get; set; }
 }

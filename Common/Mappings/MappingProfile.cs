@@ -54,7 +54,6 @@ namespace Common.Mappings
             // Challenge
 
             CreateMap<Challenge, ChallengeDto>()
-               .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season.Name))
                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName));
 
             CreateMap<ChallengeCreateUnifiedDto, Challenge>()
@@ -81,7 +80,7 @@ namespace Common.Mappings
             CreateMap<HackathonPhaseUpdateDto, HackathonPhase>();
             // Hackathon chi tiết
             CreateMap<Hackathon, HackathonDetailResponseDto>()
-      .ForMember(dest => dest.Season, opt => opt.MapFrom(src => src.SeasonNavigation.Code))
+      .ForMember(dest => dest.Season, opt => opt.MapFrom(src => src.Season.Code))
       .ForMember(dest => dest.Phases, opt => opt.MapFrom(src => src.HackathonPhases))
       .ForMember(dest => dest.Prizes, opt => opt.MapFrom(src => src.Prizes));
 
@@ -92,19 +91,14 @@ namespace Common.Mappings
 
             CreateMap<Hackathon, HackathonResponseDto>()
                 .ForMember(dest => dest.SeasonId, opt => opt.MapFrom(src => src.SeasonId))
-                .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.SeasonNavigation.Name)); CreateMap<HackathonCreateDto, Hackathon>();
+                .ForMember(dest => dest.SeasonName, opt => opt.MapFrom(src => src.Season.Name)); CreateMap<HackathonCreateDto, Hackathon>();
             CreateMap<HackathonDto, Hackathon>();
 
             CreateMap<MentorAssignment, MentorAssignmentResponseDto>()
               .ForMember(dest => dest.MentorId, opt => opt.MapFrom(src => src.MentorId))
               .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
               .ForMember(dest => dest.ChapterId, opt => opt.MapFrom(src => src.ChapterId));
-            // TEAM CHALLENGE 
-            CreateMap<TeamChallenge, TeamChallengeResponseDto>()
-                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
-                .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name))
-                .ReverseMap();
-
+  
             //team member
             CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
@@ -120,8 +114,8 @@ namespace Common.Mappings
 
             // PenaltiesBonuse
             CreateMap<PenaltiesBonuse, PenaltiesBonuseResponseDto>()
-    .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null))
-    .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
+    .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null));
+    //.ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
             CreateMap<CreatePenaltiesBonuseDto, PenaltiesBonuse>();
 
 
@@ -141,11 +135,6 @@ namespace Common.Mappings
                .ForMember(dest => dest.SubmittedAt, opt => opt.Ignore()); // gán DateTime.UtcNow
 
             CreateMap<Criterion, CriterionReadDTO>()
-           .ForMember(dest => dest.PhaseChallengeName,
-               opt => opt.MapFrom(src =>
-                   src.PhaseChallenge != null && src.PhaseChallenge.Challenge != null
-                       ? src.PhaseChallenge.Challenge.Title   // ← đổi Name → Title
-                       : null))
            .ForMember(dest => dest.Details,
                opt => opt.MapFrom(src => src.CriterionDetails));
 
@@ -186,9 +175,7 @@ namespace Common.Mappings
             //   CreateMap<ChallengeCreateUnifiedPayloadDto, Challenge>();
 
 
-            CreateMap<Prize, PrizeDTO>()
-               .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
-
+            CreateMap<Prize, PrizeDTO>();
             CreateMap<CreatePrizeDTO, Prize>();
             CreateMap<UpdatePrizeDTO, Prize>();
 
