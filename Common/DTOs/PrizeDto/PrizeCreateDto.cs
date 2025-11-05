@@ -14,7 +14,6 @@ namespace Common.DTOs.PrizeDto
         public int? Rank { get; set; }
         public string? Reward { get; set; }
         public int? HackathonId { get; set; }
-        public string? HackathonName { get; set; }
     }
 
     public class CreatePrizeDTO

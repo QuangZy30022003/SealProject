@@ -9,7 +9,6 @@ namespace Service.Interface
 {
     public interface ICriterionService
     {
-        Task<IEnumerable<CriterionReadDTO>> GetByPhaseChallengeAsync(int phaseChallengeId);
         Task<CriterionReadDTO?> GetByIdAsync(int id);
         Task<CriterionReadDTO> CreateAsync(CriterionCreateDTO dto);
         Task<bool> UpdateAsync(CriterionUpdateDTO dto);

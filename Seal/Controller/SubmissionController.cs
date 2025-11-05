@@ -17,41 +17,41 @@ namespace Seal.Controller
             _submissionService = submissionService;
         }
 
-        // 🟢 Thành viên tạo bản nháp
-        [HttpPost("create-draft")]
-        public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
-        {
-            var userId = int.Parse(User.FindFirst("UserId")!.Value); // hoặc ClaimTypes.NameIdentifier
-            var result = await _submissionService.CreateDraftSubmissionAsync(dto, userId);
-            return Ok(new
-            {
-                success = true,
-                message = "Draft submission created successfully!",
-                data = result
-            });
-        }
+        //// 🟢 Thành viên tạo bản nháp
+        //[HttpPost("create-draft")]
+        //public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
+        //{
+        //    var userId = int.Parse(User.FindFirst("UserId")!.Value); // hoặc ClaimTypes.NameIdentifier
+        //    var result = await _submissionService.CreateDraftSubmissionAsync(dto, userId);
+        //    return Ok(new
+        //    {
+        //        success = true,
+        //        message = "Draft submission created successfully!",
+        //        data = result
+        //    });
+        //}
 
-        // 🟢 Leader chọn bản final
-        [HttpPost("set-final")]
-        public async Task<IActionResult> SetFinal([FromBody] SubmissionSelectFinalDto dto)
-        {
-            var userId = int.Parse(User.FindFirst("UserId")!.Value);
-            var result = await _submissionService.SetFinalSubmissionAsync(dto, userId);
-            return Ok(new
-            {
-                success = true,
-                message = "Final submission selected successfully!",
-                data = result
-            });
-        }
+        //// 🟢 Leader chọn bản final
+        //[HttpPost("set-final")]
+        //public async Task<IActionResult> SetFinal([FromBody] SubmissionSelectFinalDto dto)
+        //{
+        //    var userId = int.Parse(User.FindFirst("UserId")!.Value);
+        //    var result = await _submissionService.SetFinalSubmissionAsync(dto, userId);
+        //    return Ok(new
+        //    {
+        //        success = true,
+        //        message = "Final submission selected successfully!",
+        //        data = result
+        //    });
+        //}
 
-        // 🟢 Lấy tất cả submission của team trong phase
-        [HttpGet("submissions/team-phase")]
-        [Authorize(Roles = "Admin,Judge")]
-        public async Task<IActionResult> GetByTeamAndPhase([FromQuery] int? teamId, [FromQuery] int? phaseChallengeId)
-        {
-            var result = await _submissionService.GetSubmissionsByTeamAndPhaseAsync(teamId, phaseChallengeId);
-            return Ok(new { success = true, data = result });
-        }
+        //// 🟢 Lấy tất cả submission của team trong phase
+        //[HttpGet("submissions/team-phase")]
+        //[Authorize(Roles = "Admin,Judge")]
+        //public async Task<IActionResult> GetByTeamAndPhase([FromQuery] int? teamId, [FromQuery] int? phaseChallengeId)
+        //{
+        //    var result = await _submissionService.GetSubmissionsByTeamAndPhaseAsync(teamId, phaseChallengeId);
+        //    return Ok(new { success = true, data = result });
+        //}
     }
 }

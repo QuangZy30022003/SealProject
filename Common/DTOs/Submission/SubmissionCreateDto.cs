@@ -11,9 +11,8 @@ namespace Common.DTOs.Submission
         public int TeamId { get; set; }
         public int PhaseChallengeId { get; set; }
         public string? Title { get; set; }
-        public string? GitHubLink { get; set; }
-        public string? DemoLink { get; set; }
-        public string? ReportLink { get; set; }
+        public string FilePath { get; set; }
+
     }
 
     public class SubmissionResponseDto
@@ -23,9 +22,8 @@ namespace Common.DTOs.Submission
         public string PhaseName { get; set; } = null!;
         public int PhaseChallengeId { get; set; }  // 🆕 thêm dòng này
         public string? Title { get; set; }
-        public string? GitHubLink { get; set; }
-        public string? DemoLink { get; set; }
-        public string? ReportLink { get; set; }
+        public string FilePath { get; set; }
+
         public bool IsFinal { get; set; }
         public DateTime? SubmittedAt { get; set; }
         public string SubmittedByName { get; set; } = null!;

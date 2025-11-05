@@ -30,7 +30,6 @@ namespace Repositories.UnitOfWork
         IRepository<TeamInvitation> TeamInvitations { get; }
         IRepository<StudentVerification> StudentVerifications { get; }
         IRepository<Appeal> Appeals { get; }
-        IRepository<TeamChallenge> TeamChallenges { get; }
         IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         IAuthRepository AuthRepository { get; }
         ITeamRepository TeamsRepository { get; }
@@ -45,12 +44,10 @@ namespace Repositories.UnitOfWork
         IMentorAssignmentRepository MentorAssignmentRepository { get; }
 
         IStudentVerificationRepository StudentVerificationRepository { get; }
-        IRepository<PhaseChallenge> PhaseChallenges { get; }
 
         IRepository<CriterionDetail> CriterionDetail { get; }
         IScoreRepository ScoreRepository { get; }
 
-        IPhaseChallengeRepository PhaseChallengeRepository { get; }
 
         IPrizeRepository PrizeRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();

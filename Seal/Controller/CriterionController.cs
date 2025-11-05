@@ -15,15 +15,6 @@ namespace Seal.Controller
         {
             _criterionService = criterionService;
         }
-
-        [HttpGet("Criterion/{phaseChallengeId}")]
-        [Authorize]
-        public async Task<IActionResult> GetByPhaseChallenge(int phaseChallengeId)
-        {
-            var result = await _criterionService.GetByPhaseChallengeAsync(phaseChallengeId);
-            return Ok(result);
-        }
-
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetById(int id)

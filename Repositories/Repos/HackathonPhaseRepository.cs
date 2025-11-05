@@ -31,7 +31,7 @@ namespace Repositories.Repos
             return await _context.Hackathons
                 .Include(h => h.HackathonPhases)
                 .Include(h => h.Prizes)
-                .Include(h => h.SeasonNavigation)
+                .Include(h => h.Season)
                 .FirstOrDefaultAsync(h => h.HackathonId == id);
         }
     }

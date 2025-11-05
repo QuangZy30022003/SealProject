@@ -37,8 +37,8 @@ namespace Service.Servicefolder
                 ChapterId = a.Chapter?.ChapterId ?? 0,
                 ChapterName = a.Chapter?.ChapterName ?? string.Empty,
                 AssignedAt = a.AssignedAt,
-                LeaderId = a.Team?.LeaderId,
-                LeaderName = a.Team?.Leader?.FullName,
+                LeaderId = a.Team?.TeamLeaderId,
+                LeaderName = a.Team?.TeamLeader?.FullName,
                 Status = a.Status
             });
         }
@@ -132,7 +132,7 @@ namespace Service.Servicefolder
 
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
-            var leader = team?.Leader;
+            var leader = team?.TeamLeader;
 
             if (leader != null && !string.IsNullOrEmpty(leader.Email))
             {
@@ -162,7 +162,7 @@ namespace Service.Servicefolder
 
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
-            var leader = team?.Leader;
+            var leader = team?.TeamLeader;
 
             if (leader != null && !string.IsNullOrEmpty(leader.Email))
             {

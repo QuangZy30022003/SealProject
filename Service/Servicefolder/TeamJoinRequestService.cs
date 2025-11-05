@@ -95,7 +95,7 @@ namespace Service.Servicefolder
 
             // Check leader có quyền duyệt không
             var team = await _uow.Teams.GetByIdAsync(request.TeamId);
-            if (team?.LeaderId != leaderId)
+            if (team?.TeamLeaderId != leaderId)
                 throw new UnauthorizedAccessException("Only team leader can respond to join requests.");
 
             // Check request chưa được xử lý

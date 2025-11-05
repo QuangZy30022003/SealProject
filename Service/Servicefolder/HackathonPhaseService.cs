@@ -68,7 +68,7 @@ namespace Service.Servicefolder
             if (dto.StartDate >= dto.EndDate)
                 throw new Exception("StartDate must be before EndDate");
 
-            var existingPhases = await _uow.HackathonPhaseRepository.GetByHackathonIdAsync(phase.HackathonId.Value);
+            var existingPhases = await _uow.HackathonPhaseRepository.GetByHackathonIdAsync(phase.HackathonId);
 
             bool overlap = existingPhases.Any(p =>
                 p.PhaseId != id &&

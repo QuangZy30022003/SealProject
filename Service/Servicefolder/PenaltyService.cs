@@ -47,7 +47,7 @@ namespace Service.Servicefolder
             var adjustment = new PenaltiesBonuse
             {
                 TeamId = dto.TeamId,
-                HackathonId = dto.HackathonId,
+              //  HackathonId = dto.HackathonId,
                 Type = dto.Type,
                 Points = dto.Points,
                 Reason = dto.Reason,

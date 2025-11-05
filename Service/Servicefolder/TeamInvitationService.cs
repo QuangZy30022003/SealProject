@@ -29,7 +29,7 @@ namespace Service.Servicefolder
             if (team == null)
                 throw new Exception("Team not found");
 
-            if (team.LeaderId != inviterUserId)
+            if (team.TeamLeaderId != inviterUserId)
                 throw new UnauthorizedAccessException("Only team leader can invite");
 
             // Dùng ExistsAsync thay cho IsEmailInvitedAsync
@@ -101,13 +101,12 @@ namespace Service.Servicefolder
             if (memberCount >= 3)
             {
                 // Thêm leader
-                if (team.LeaderId.HasValue &&
-                    !await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == team.LeaderId.Value))
+                if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == team.TeamLeaderId))
                 {
                     await _uow.TeamMembers.AddAsync(new TeamMember
                     {
                         TeamId = team.TeamId,
-                        UserId = team.LeaderId.Value,
+                        UserId = team.TeamLeaderId,
                         RoleInTeam = "Leader"
                     });
                 }
@@ -184,7 +183,7 @@ namespace Service.Servicefolder
             if (team == null) throw new Exception("Team not found");
 
             // get leader
-            var leader = await _uow.Users.GetByIdAsync(team.LeaderId);
+            var leader = await _uow.Users.GetByIdAsync(team.TeamLeaderId);
 
             // get list invitation accepted
             var acceptedInvitations = await _uow.TeamInvitationRepository

@@ -9,7 +9,7 @@ namespace Repositories.Interface
 {
     public interface IChallengeRepository : IRepository<Challenge>
     {
-        Task<IEnumerable<Challenge>> GetChallengesWithSeasonAndUserAsync();
+      //  Task<IEnumerable<Challenge>> GetChallengesWithSeasonAndUserAsync();
 
        //Task<List<Challenge>> GetApprovedChallengesByHackathonAsync(int hackathonId);
     }

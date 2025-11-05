@@ -25,7 +25,7 @@ namespace Service.Servicefolder
         public async Task<IEnumerable<HackathonResponseDto>> GetAllAsync()
         {
             var entities = await _uow.Hackathons.GetAllIncludingAsync(null,
-                  h => h.SeasonNavigation);
+                  h => h.Season);
 
             return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
         }
