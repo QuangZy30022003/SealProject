@@ -16,162 +16,118 @@ namespace Service.Servicefolder
     {
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
+        private readonly IFileUploadService _fileUploadService;
 
-        public ChallengeService(IUOW uow, IMapper mapper)
+        public ChallengeService(IUOW uow, IMapper mapper, IFileUploadService fileUploadService)
         {
             _uow = uow;
             _mapper = mapper;
+            _fileUploadService = fileUploadService;
         }
 
-        //public async Task<IEnumerable<ChallengeDto>> GetAllAsync()
-        //{
-        //    var entities = await _uow.ChallengeRepository.GetChallengesWithSeasonAndUserAsync();
-        //    return _mapper.Map<IEnumerable<ChallengeDto>>(entities);
-        //}
+        public async Task<IEnumerable<ChallengeDto>> GetAllAsync()
+        {
+            var entities = await _uow.ChallengeRepository.GetAllIncludingAsync();
+            return _mapper.Map<IEnumerable<ChallengeDto>>(entities);
+        }
 
-        //public async Task<ChallengeDto?> GetByIdAsync(int id)
-        //{
-        //    var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-        //    return entity == null ? null : _mapper.Map<ChallengeDto>(entity);
-        //}
+        public async Task<ChallengeDto?> GetByIdAsync(int id)
+        {
+            var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
+            return entity == null ? null : _mapper.Map<ChallengeDto>(entity);
+        }
 
-        //public async Task<ChallengeDto> CreateFromFileAsync(ChallengeCreateUnifiedDto dto, IFormFile file, int userId)
-        //{
-        //    // lưu file vào wwwroot/uploads/challenges/
-        //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "challenges");
-        //    if (!Directory.Exists(folderPath))
-        //        Directory.CreateDirectory(folderPath);
+        public async Task<ChallengeDto> CreateAsync(ChallengeCreateUnifiedDto dto, int userId)
+        {
+            // ✅ Validate: ít nhất 1 trong 2 phải có
+            if (dto.File == null )
+                throw new ArgumentException("Bạn phải cung cấp file ");
 
-        //    var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-        //    var filePath = Path.Combine(folderPath, fileName);
+            string? fileUrl = null;
 
-        //    using (var stream = new FileStream(filePath, FileMode.Create))
-        //    {
-        //        await file.CopyToAsync(stream);
-        //    }
+            if (dto.File != null)
+            {
+                // Upload file lên Cloudinary
+                fileUrl = await _fileUploadService.UploadAsync(dto.File);
+            }
+            var challenge = new Challenge
+            {
+                Title = dto.Title,
+                Description = dto.Description,
+                HackathonId = dto.HackathonId,
+                UserId = userId,
+                FilePath = fileUrl,
+                Status = "Pending",
+                CreatedAt = DateTime.UtcNow
+            };
 
-        //    var challenge = new Challenge
-        //    {
-        //        Title = dto.Title,
-        //        Description = dto.Description,
-        //        SeasonId = dto.SeasonId,
-        //        UserId = userId,
-        //        FilePath = $"/uploads/challenges/{fileName}", // đường dẫn lưu DB
-        //        Status = "Pending",
-        //        CreatedAt = DateTime.UtcNow
-        //    };
+            await _uow.ChallengeRepository.AddAsync(challenge);
+            await _uow.SaveAsync();
 
-        //    await _uow.ChallengeRepository.AddAsync(challenge);
-        //    await _uow.SaveAsync();
-
-        //    return _mapper.Map<ChallengeDto>(challenge);
-        //}
-
-        //public async Task<ChallengeDto> CreateFromLinkAsync(ChallengeCreateUnifiedDto dto, int userId)
-        //{
-        //    var challenge = new Challenge
-        //    {
-        //        Title = dto.Title,
-        //        Description = dto.Description,
-        //        SeasonId = dto.SeasonId,
-        //        UserId = userId,
-        //        FilePath = dto.FilePath, // link online
-        //        Status = "Pending",
-        //        CreatedAt = DateTime.UtcNow
-        //    };
-
-        //    await _uow.ChallengeRepository.AddAsync(challenge);
-        //    await _uow.SaveAsync();
-
-        //    return _mapper.Map<ChallengeDto>(challenge);
-        //}
+            return _mapper.Map<ChallengeDto>(challenge);
+        }
 
 
-        //public async Task<bool> PartnerDeleteAsync(int id, int userId)
-        //{
-        //    var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-        //    if (entity == null) return false;
+        public async Task<bool> PartnerDeleteAsync(int id, int userId)
+        {
+            var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
+            if (entity == null) return false;
 
-        //    if (entity.UserId != userId) return false;
+            if (entity.UserId != userId) return false;
 
-        //    // Không cho xóa nếu Complete hoặc Cancel
-        //    if (entity.Status == "Complete" || entity.Status == "Cancel")
-        //        return false;
+            // Không cho xóa nếu Complete hoặc Cancel
+            if (entity.Status == "Complete" || entity.Status == "Cancel")
+                return false;
 
-        //    _uow.ChallengeRepository.Remove(entity);
-        //    await _uow.SaveAsync();
-        //    return true;
-        //}
+            _uow.ChallengeRepository.Remove(entity);
+            await _uow.SaveAsync();
+            return true;
+        }
 
 
-        //public async Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto)
-        //{
-        //    var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-        //    if (entity == null) return false;
+        public async Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto)
+        {
+            var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
+            if (entity == null) return false;
 
-        //    entity.Status = statusDto.Status;
-        //    _uow.ChallengeRepository.Update(entity);
-        //    await _uow.SaveAsync();
-        //    return true;
-        //}
+            entity.Status = statusDto.Status;
+            _uow.ChallengeRepository.Update(entity);
+            await _uow.SaveAsync();
+            return true;
+        }
 
-        //public async Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto)
-        //{
-        //    var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-        //    if (entity == null)
-        //        return "Challenge không tồn tại";
+        public async Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto)
+        {
+            var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
+            if (entity == null)
+                return "Challenge không tồn tại";
 
-        //    // Chỉ cho phép partner update challenge do mình tạo
-        //    if (entity.UserId != userId)
-        //        return "Bạn không phải chủ sở hữu challenge này";
+            if (entity.UserId != userId)
+                return "Bạn không phải chủ sở hữu challenge này";
 
-        //    // Không cho update nếu đã Complete hoặc Cancel
-        //    if (entity.Status == "Complete" || entity.Status == "Cancel")
-        //        return "Challenge đã Complete hoặc Cancel, không thể update";
+            if (entity.Status == "Complete" || entity.Status == "Cancel")
+                return "Challenge đã Complete hoặc Cancel, không thể update";
 
-        //    entity.Title = dto.Title;
-        //    entity.Description = dto.Description;
-        //    entity.SeasonId = dto.SeasonId;
+            entity.Title = dto.Title;
+            entity.Description = dto.Description;
+            entity.HackathonId = dto.HackathonId;
 
-        //    // Upload file local
-        //    if (dto.File != null)
-        //    {
-        //        // Xóa file cũ nếu có
-        //        if (!string.IsNullOrEmpty(entity.FilePath) && entity.FilePath.StartsWith("/uploads/"))
-        //        {
-        //            var oldFile = Path.Combine("wwwroot", entity.FilePath.TrimStart('/'));
-        //            if (File.Exists(oldFile))
-        //            {
-        //                File.Delete(oldFile);
-        //            }
-        //        }
+            // ✅ Upload file mới (nếu có)
+            if (dto.File != null)
+            {
+                var fileUrl = await _fileUploadService.UploadAsync(dto.File);
+                entity.FilePath = fileUrl;
+            }
 
-        //        // Upload file mới
-        //        var uploadsFolder = Path.Combine("wwwroot", "uploads", "challenges");
-        //        Directory.CreateDirectory(uploadsFolder);
+            // ✅ Validate: cả 2 không thể trống
+            if (string.IsNullOrEmpty(entity.FilePath))
+                return "Challenge phải có file.";
 
-        //        var fileName = $"{Guid.NewGuid()}_{dto.File.FileName}";
-        //        var filePath = Path.Combine(uploadsFolder, fileName);
+            _uow.ChallengeRepository.Update(entity);
+            await _uow.SaveAsync();
 
-        //        using (var stream = new FileStream(filePath, FileMode.Create))
-        //        {
-        //            await dto.File.CopyToAsync(stream);
-        //        }
+            return null;
+        }
 
-        //        entity.FilePath = $"/uploads/challenges/{fileName}";
-        //    }
-        //    else if (!string.IsNullOrEmpty(dto.FilePath))
-        //    {
-        //        // Update bằng link online
-        //        entity.FilePath = dto.FilePath;
-        //    }
-
-        //    _uow.ChallengeRepository.Update(entity);
-        //    await _uow.SaveAsync();
-
-        //    return null; // null nghĩa là thành công
-        //}
-
-       
     }
 }

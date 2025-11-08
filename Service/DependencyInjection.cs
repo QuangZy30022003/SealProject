@@ -35,6 +35,7 @@ namespace Service
             service.AddScoped<IPrizeService, PrizeService>();
 
             service.AddScoped<ITeamJoinRequestService, TeamJoinRequestService>();
+            service.AddScoped<IFileUploadService, FileUploadService>();
 
             return service;
 
