@@ -41,7 +41,7 @@ namespace Repositories.Repos
                 .ToListAsync();
         }
 
-        public async Task<List<IGrouping<int?, Score>>> GetScoresGroupedByCriteriaAsync(int submissionId)
+        public async Task<List<IGrouping<int, Score>>> GetScoresGroupedByCriteriaAsync(int submissionId)
         {
             var scores = await _dbSet
                 .Where(s => s.SubmissionId == submissionId)

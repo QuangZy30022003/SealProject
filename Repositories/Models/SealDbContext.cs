@@ -35,15 +35,23 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<HackathonPhase> HackathonPhases { get; set; }
 
+    public virtual DbSet<HackathonRegistration> HackathonRegistrations { get; set; }
+
+    public virtual DbSet<JudgeAssignment> JudgeAssignments { get; set; }
+
     public virtual DbSet<MentorAssignment> MentorAssignments { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<PartnerProfile> PartnerProfiles { get; set; }
 
     public virtual DbSet<PenaltiesBonuse> PenaltiesBonuses { get; set; }
 
     public virtual DbSet<Prize> Prizes { get; set; }
 
     public virtual DbSet<PrizeAllocation> PrizeAllocations { get; set; }
+
+    public virtual DbSet<Ranking> Rankings { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
@@ -75,13 +83,15 @@ public partial class SealDbContext : DbContext
     {
         modelBuilder.Entity<Appeal>(entity =>
         {
-            entity.HasKey(e => e.AppealId).HasName("PK__Appeals__BB6849F0C2B1C61C");
+            entity.HasKey(e => e.AppealId).HasName("PK__Appeals__BB684E10D09BAEB8");
 
-            entity.Property(e => e.AppealType)
-                .IsRequired()
-                .HasMaxLength(20);
-            entity.Property(e => e.Message).IsRequired();
-            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.AppealId).HasColumnName("AppealID");
+            entity.Property(e => e.AdjustmentId).HasColumnName("AdjustmentID");
+            entity.Property(e => e.AppealType).HasMaxLength(20);
+            entity.Property(e => e.ReviewedById).HasColumnName("ReviewedByID");
+            entity.Property(e => e.ScoreId).HasColumnName("ScoreID");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
             entity.HasOne(d => d.Adjustment).WithMany(p => p.Appeals)
                 .HasForeignKey(d => d.AdjustmentId)
@@ -100,41 +110,42 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__AuditLog__5E5499A899787792");
+            entity.HasKey(e => e.LogId).HasName("PK__AuditLog__5E5499A851FDD747");
 
             entity.Property(e => e.LogId).HasColumnName("LogID");
-            entity.Property(e => e.Action)
-                .IsRequired()
-                .HasMaxLength(200);
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.Action).HasMaxLength(200);
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
             entity.HasOne(d => d.User).WithMany(p => p.AuditLogs)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Challenge>(entity =>
         {
-            entity.HasKey(e => e.ChallengeId).HasName("PK__Challeng__C7AC81280B2BF475");
+            entity.HasKey(e => e.ChallengeId).HasName("PK__Challeng__C7AC81288D87AACE");
 
             entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.FilePath).HasMaxLength(255);
-            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.Title)
                 .IsRequired()
                 .HasMaxLength(200);
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Challenges)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
             entity.HasOne(d => d.User).WithMany(p => p.Challenges)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Chapter>(entity =>
         {
-            entity.HasKey(e => e.ChapterId).HasName("PK__Chapters__0893A34A430B6684");
+            entity.HasKey(e => e.ChapterId).HasName("PK__Chapters__0893A34A0347C581");
 
             entity.Property(e => e.ChapterId).HasColumnName("ChapterID");
             entity.Property(e => e.ChapterLeaderId).HasColumnName("ChapterLeaderID");
@@ -142,42 +153,49 @@ public partial class SealDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ChapterLeader).WithMany(p => p.Chapters)
+                .HasForeignKey(d => d.ChapterLeaderId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Criterion>(entity =>
         {
-            entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2DDC4961E2");
+            entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2D79FFCB23");
 
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
 
-            entity.HasOne(d => d.Phase).WithMany(p => p.Criteria)
-                .HasForeignKey(d => d.PhaseId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Phase).WithMany(p => p.Criteria).HasForeignKey(d => d.PhaseId);
+
+            entity.HasOne(d => d.Track).WithMany(p => p.Criteria).HasForeignKey(d => d.TrackId);
         });
 
         modelBuilder.Entity<CriterionDetail>(entity =>
         {
-            entity.HasKey(e => e.CriterionDetailId).HasName("PK__Criterio__137EE6E075C942E3");
+            entity.HasKey(e => e.CriterionDetailId).HasName("PK__Criterio__137EE6C0A645D748");
 
-            entity.Property(e => e.Description)
-                .IsRequired()
-                .HasMaxLength(255);
+            entity.Property(e => e.CriterionDetailId).HasColumnName("CriterionDetailID");
+            entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
+            entity.Property(e => e.Description).HasMaxLength(255);
 
-            entity.HasOne(d => d.Criteria).WithMany(p => p.CriterionDetails)
-                .HasForeignKey(d => d.CriteriaId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Criteria).WithMany(p => p.CriterionDetails).HasForeignKey(d => d.CriteriaId);
         });
 
         modelBuilder.Entity<FinalQualification>(entity =>
         {
-            entity.HasKey(e => e.QualificationId).HasName("PK__FinalQua__C95C12AA23742760");
+            entity.HasKey(e => e.QualificationId).HasName("PK__FinalQua__C95C128ACEAC333C");
 
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.QualificationId).HasColumnName("QualificationID");
+            entity.Property(e => e.GroupId).HasColumnName("GroupID");
+            entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
 
             entity.HasOne(d => d.Group).WithMany(p => p.FinalQualifications)
                 .HasForeignKey(d => d.GroupId)
@@ -185,13 +203,9 @@ public partial class SealDbContext : DbContext
 
             entity.HasOne(d => d.Phase).WithMany(p => p.FinalQualifications)
                 .HasForeignKey(d => d.PhaseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FinalQualifications_HackathonPhases_PhaseID");
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.FinalQualifications)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FinalQualifications_Teams_TeamID");
+            entity.HasOne(d => d.Team).WithMany(p => p.FinalQualifications).HasForeignKey(d => d.TeamId);
 
             entity.HasOne(d => d.Track).WithMany(p => p.FinalQualifications)
                 .HasForeignKey(d => d.TrackId)
@@ -200,20 +214,27 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Group>(entity =>
         {
-            entity.HasKey(e => e.GroupId).HasName("PK__Groups__149AF36A6D6479B1");
+            entity.HasKey(e => e.GroupId).HasName("PK__Groups__149AF30A4BC05DE8");
 
+            entity.Property(e => e.GroupId).HasColumnName("GroupID");
             entity.Property(e => e.GroupName)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
+
+            entity.HasOne(d => d.Track).WithMany(p => p.Groups).HasForeignKey(d => d.TrackId);
         });
 
         modelBuilder.Entity<GroupTeam>(entity =>
         {
-            entity.HasKey(e => e.GroupTeamId).HasName("PK__GroupTea__4A9DC89C07C04482");
+            entity.HasKey(e => e.GroupTeamId).HasName("PK__GroupTea__4A9DC8BC85FFB1AE");
 
-            entity.HasOne(d => d.Group).WithMany(p => p.GroupTeams)
-                .HasForeignKey(d => d.GroupId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.Property(e => e.GroupTeamId).HasColumnName("GroupTeamID");
+            entity.Property(e => e.AverageScore).HasColumnType("decimal(6, 2)");
+            entity.Property(e => e.GroupId).HasColumnName("GroupID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.GroupTeams).HasForeignKey(d => d.GroupId);
 
             entity.HasOne(d => d.Team).WithMany(p => p.GroupTeams)
                 .HasForeignKey(d => d.TeamId)
@@ -222,94 +243,135 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Hackathon>(entity =>
         {
-            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEB231CFE2A");
+            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEB2997061C");
 
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.SeasonId).HasColumnName("SeasonID");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.Theme).HasMaxLength(200);
+            entity.Property(e => e.Status).HasMaxLength(50);
 
-            entity.HasOne(d => d.Season).WithMany(p => p.Hackathons)
-                .HasForeignKey(d => d.SeasonId)
-                .HasConstraintName("FK_Hackathons_Seasons_SeasonID");
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Hackathons)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Season).WithMany(p => p.Hackathons).HasForeignKey(d => d.SeasonId);
         });
 
         modelBuilder.Entity<HackathonPhase>(entity =>
         {
-            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D423F180216");
+            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D4245717ABB");
 
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
-            entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
             entity.Property(e => e.PhaseName)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonPhases).HasForeignKey(d => d.HackathonId);
         });
 
-        modelBuilder.Entity<MentorAssignment>(entity =>
+        modelBuilder.Entity<HackathonRegistration>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__MentorAs__32499E57A88CEFA6");
+            entity.HasKey(e => e.RegistrationId).HasName("PK__Hackatho__6EF58830440A03C3");
 
-            entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
-            entity.Property(e => e.AssignedAt).HasColumnType("datetime");
-            entity.Property(e => e.ChapterId).HasColumnName("ChapterID");
-            entity.Property(e => e.MentorId).HasColumnName("MentorID");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(20);
+            entity.Property(e => e.RegistrationId).HasColumnName("RegistrationID");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
-            entity.HasOne(d => d.Chapter).WithMany(p => p.MentorAssignments)
-                .HasForeignKey(d => d.ChapterId)
-                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonRegistrations).HasForeignKey(d => d.HackathonId);
+
+            entity.HasOne(d => d.Team).WithMany(p => p.HackathonRegistrations)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<JudgeAssignment>(entity =>
+        {
+            entity.HasKey(e => e.AssignmentId).HasName("PK__JudgeAss__32499E5771E14642");
+
+            entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.JudgeId).HasColumnName("JudgeID");
+            entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.HackathonId);
+
+            entity.HasOne(d => d.Judge).WithMany(p => p.JudgeAssignments)
+                .HasForeignKey(d => d.JudgeId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Phase).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.PhaseId);
+
+            entity.HasOne(d => d.Track).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.TrackId);
+        });
+
+        modelBuilder.Entity<MentorAssignment>(entity =>
+        {
+            entity.HasKey(e => e.AssignmentId).HasName("PK__MentorAs__32499E5754CB8DE0");
+
+            entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.MentorId).HasColumnName("MentorID");
+            entity.Property(e => e.Status).HasMaxLength(20);
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.MentorAssignments)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Mentor).WithMany(p => p.MentorAssignments)
                 .HasForeignKey(d => d.MentorId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.MentorAssignments)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Team).WithMany(p => p.MentorAssignments).HasForeignKey(d => d.TeamId);
         });
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E322537A6F9");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E329E1246A7");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
-            entity.Property(e => e.Message).IsRequired();
-            entity.Property(e => e.SentAt).HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<PartnerProfile>(entity =>
+        {
+            entity.HasKey(e => e.PartnerProfileId).HasName("PK__PartnerP__886A31EE7DAD7C2D");
+
+            entity.Property(e => e.PartnerProfileId).HasColumnName("PartnerProfileID");
+            entity.Property(e => e.CompanyName).HasMaxLength(255);
+            entity.Property(e => e.LogoUrl).HasMaxLength(500);
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Website).HasMaxLength(255);
+
+            entity.HasOne(d => d.User).WithMany(p => p.PartnerProfiles).HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<PenaltiesBonuse>(entity =>
         {
-            entity.HasKey(e => e.AdjustmentId).HasName("PK__Penaltie__E60DB8B3732D54DA");
+            entity.HasKey(e => e.AdjustmentId).HasName("PK__Penaltie__E60DB8B36E1134ED");
 
             entity.Property(e => e.AdjustmentId).HasColumnName("AdjustmentID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Points).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
-            entity.Property(e => e.Type).HasMaxLength(20);
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(20);
 
             entity.HasOne(d => d.Team).WithMany(p => p.PenaltiesBonuses).HasForeignKey(d => d.TeamId);
         });
 
         modelBuilder.Entity<Prize>(entity =>
         {
-            entity.HasKey(e => e.PrizeId).HasName("PK__Prizes__5C36F4BB4E46F545");
+            entity.HasKey(e => e.PrizeId).HasName("PK__Prizes__5C36F4BB61863623");
 
             entity.Property(e => e.PrizeId).HasColumnName("PrizeID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -321,10 +383,9 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<PrizeAllocation>(entity =>
         {
-            entity.HasKey(e => e.AllocationId).HasName("PK__PrizeAll__B3C6D6ABEA5DA1CB");
+            entity.HasKey(e => e.AllocationId).HasName("PK__PrizeAll__B3C6D6ABEBAB69DC");
 
             entity.Property(e => e.AllocationId).HasColumnName("AllocationID");
-            entity.Property(e => e.AwardedAt).HasColumnType("datetime");
             entity.Property(e => e.PrizeId).HasColumnName("PrizeID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -338,9 +399,25 @@ public partial class SealDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        modelBuilder.Entity<Ranking>(entity =>
+        {
+            entity.HasKey(e => e.RankingId).HasName("PK__Rankings__018A6AF9C7734B01");
+
+            entity.Property(e => e.RankingId).HasColumnName("RankingID");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+            entity.Property(e => e.TotalScore).HasColumnType("decimal(6, 2)");
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Rankings).HasForeignKey(d => d.HackathonId);
+
+            entity.HasOne(d => d.Team).WithMany(p => p.Rankings)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A65063656");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3AB6B0B51E");
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName)
@@ -350,25 +427,23 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ScheduleEvent>(entity =>
         {
-            entity.HasKey(e => e.EventId).HasName("PK__Schedule__7944C810AD48433A");
+            entity.HasKey(e => e.EventId).HasName("PK__Schedule__7944C8705F47F2BF");
 
+            entity.Property(e => e.EventId).HasColumnName("EventID");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
             entity.Property(e => e.Location).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.Type).HasMaxLength(50);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.ScheduleEvents)
-                .HasForeignKey(d => d.HackathonId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ScheduleEvents_Hackathons_HackathonID");
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.ScheduleEvents).HasForeignKey(d => d.HackathonId);
 
-            entity.HasOne(d => d.Phase).WithMany(p => p.ScheduleEvents)
-                .HasForeignKey(d => d.PhaseId)
-                .HasConstraintName("FK_ScheduleEvents_HackathonPhases_PhaseID");
+            entity.HasOne(d => d.Phase).WithMany(p => p.ScheduleEvents).HasForeignKey(d => d.PhaseId);
         });
 
         modelBuilder.Entity<Score>(entity =>
         {
-            entity.HasKey(e => e.ScoreId).HasName("PK__Scores__7DD229F143E34A03");
+            entity.HasKey(e => e.ScoreId).HasName("PK__Scores__7DD229F15B60B1A9");
 
             entity.Property(e => e.ScoreId).HasColumnName("ScoreID");
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
@@ -376,23 +451,22 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.Score1)
                 .HasColumnType("decimal(5, 2)")
                 .HasColumnName("Score");
-            entity.Property(e => e.ScoredAt).HasColumnType("datetime");
             entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
 
             entity.HasOne(d => d.Criteria).WithMany(p => p.Scores)
                 .HasForeignKey(d => d.CriteriaId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Judge).WithMany(p => p.Scores)
                 .HasForeignKey(d => d.JudgeId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Submission).WithMany(p => p.Scores).HasForeignKey(d => d.SubmissionId);
         });
 
         modelBuilder.Entity<Season>(entity =>
         {
-            entity.HasKey(e => e.SeasonId).HasName("PK__Season__C1814E18F085A371");
+            entity.HasKey(e => e.SeasonId).HasName("PK__Season__C1814E1828AA9ABD");
 
             entity.ToTable("Season");
 
@@ -407,7 +481,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<StudentVerification>(entity =>
         {
-            entity.HasKey(e => e.VerificationId).HasName("PK__StudentV__306D490778156909");
+            entity.HasKey(e => e.VerificationId).HasName("PK__StudentV__306D490733384AD0");
 
             entity.Property(e => e.BackCardImage).HasMaxLength(500);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
@@ -435,12 +509,16 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Submission>(entity =>
         {
-            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE1058933D939");
+            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE10510993E12");
 
             entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
-            entity.Property(e => e.SubmittedAt).HasColumnType("datetime");
+            entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.Title).HasMaxLength(200);
+
+            entity.HasOne(d => d.Phase).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.Submissions)
                 .HasForeignKey(d => d.SubmittedBy)
@@ -451,17 +529,19 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Team>(entity =>
         {
-            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE7B9DBD76992");
+            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE7B9D5E6F270");
 
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.ChapterId).HasColumnName("ChapterID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
             entity.Property(e => e.TeamLeaderId).HasColumnName("TeamLeaderID");
             entity.Property(e => e.TeamName)
                 .IsRequired()
                 .HasMaxLength(100);
 
             entity.HasOne(d => d.Chapter).WithMany(p => p.Teams).HasForeignKey(d => d.ChapterId);
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Teams).HasForeignKey(d => d.HackathonId);
 
             entity.HasOne(d => d.TeamLeader).WithMany(p => p.Teams)
                 .HasForeignKey(d => d.TeamLeaderId)
@@ -470,33 +550,31 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamInvitation>(entity =>
         {
-            entity.HasKey(e => e.InvitationId).HasName("PK__TeamInvi__033C8DCFDEA29E42");
+            entity.HasKey(e => e.InvitationId).HasName("PK__TeamInvi__033C8D2F6D9E16D5");
 
-            entity.Property(e => e.InvitationId).ValueGeneratedNever();
+            entity.Property(e => e.InvitationId)
+                .ValueGeneratedNever()
+                .HasColumnName("InvitationID");
+            entity.Property(e => e.InvitedByUserId).HasColumnName("InvitedByUserID");
             entity.Property(e => e.InvitedEmail).IsRequired();
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(20);
+            entity.Property(e => e.Status).HasMaxLength(20);
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
             entity.HasOne(d => d.InvitedByUser).WithMany(p => p.TeamInvitations)
                 .HasForeignKey(d => d.InvitedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamInvitations)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Team).WithMany(p => p.TeamInvitations).HasForeignKey(d => d.TeamId);
         });
 
         modelBuilder.Entity<TeamJoinRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__TeamJoin__33A8519AC173334E");
+            entity.HasKey(e => e.RequestId).HasName("PK__TeamJoin__33A8519AF3721BAA");
 
             entity.Property(e => e.RequestId).HasColumnName("RequestID");
             entity.Property(e => e.LeaderResponse).HasMaxLength(500);
             entity.Property(e => e.Message).HasMaxLength(500);
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(20);
+            entity.Property(e => e.Status).HasMaxLength(20);
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
@@ -509,7 +587,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamMember>(entity =>
         {
-            entity.HasKey(e => new { e.TeamId, e.UserId }).HasName("PK__TeamMemb__C3426B7373A51804");
+            entity.HasKey(e => new { e.TeamId, e.UserId }).HasName("PK__TeamMemb__C3426B731462618C");
 
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -524,43 +602,48 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamTrackSelection>(entity =>
         {
-            entity.HasKey(e => e.TeamTrackSelectionId).HasName("PK__TeamTrac__84FCC0CCA4A412A2");
+            entity.HasKey(e => e.TeamTrackSelectionId).HasName("PK__TeamTrac__84FCC0CC3381D806");
 
             entity.HasOne(d => d.Team).WithMany(p => p.TeamTrackSelections)
                 .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .HasConstraintName("FK_TeamTrackSelections_Teams_TeamID");
 
             entity.HasOne(d => d.Track).WithMany(p => p.TeamTrackSelections)
                 .HasForeignKey(d => d.TrackId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TeamTrackSelections_Tracks_TrackID");
         });
 
         modelBuilder.Entity<Track>(entity =>
         {
-            entity.HasKey(e => e.TrackId).HasName("PK__Tracks__7A74F8E0B8CFECFA");
+            entity.HasKey(e => e.TrackId).HasName("PK__Tracks__7A74F8C08EB02D6D");
 
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
+            entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
 
-            entity.HasOne(d => d.Challenge).WithMany(p => p.Tracks).HasForeignKey(d => d.ChallengeId);
+            entity.HasOne(d => d.Challenge).WithMany(p => p.Tracks)
+                .HasForeignKey(d => d.ChallengeId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne(d => d.Phase).WithMany(p => p.Tracks)
-                .HasForeignKey(d => d.PhaseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Tracks_HackathonPhases_PhaseID");
+            entity.HasOne(d => d.Phase).WithMany(p => p.Tracks).HasForeignKey(d => d.PhaseId);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC6F2BBBAC");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC3EDA84A8");
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.RefreshTokenExpiryTime).HasColumnType("datetime");
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.Token).HasMaxLength(255);

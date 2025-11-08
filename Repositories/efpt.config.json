@@ -55,7 +55,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HackathonRegistrations]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Hackathons]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JudgeAssignments]",
          "ObjectType": 0
       },
       {
@@ -64,6 +72,10 @@
       },
       {
          "Name": "[dbo].[Notifications]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PartnerProfiles]",
          "ObjectType": 0
       },
       {
@@ -76,6 +88,10 @@
       },
       {
          "Name": "[dbo].[Prizes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Rankings]",
          "ObjectType": 0
       },
       {
@@ -136,6 +152,7 @@
    "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
    "UseDateOnlyTimeOnly": true,
    "UseDbContextSplitting": false,
    "UseDecimalDataAnnotationForSprocResult": true,
@@ -143,6 +160,7 @@
    "UseHandleBars": false,
    "UseHierarchyId": false,
    "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
    "UseNoDefaultConstructor": false,
@@ -154,5 +172,6 @@
    "UseSchemaFolders": false,
    "UseSchemaNamespaces": false,
    "UseSpatial": false,
-   "UseT4": false
+   "UseT4": false,
+   "UseT4Split": false
 }

@@ -61,7 +61,7 @@ namespace Common.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-            CreateMap<ChallengeUpdateDto, Challenge>();
+            CreateMap<ChallengePartnerUpdateDto, Challenge>();
 
 
             //  TeamInvitation 
@@ -97,7 +97,7 @@ namespace Common.Mappings
             CreateMap<MentorAssignment, MentorAssignmentResponseDto>()
               .ForMember(dest => dest.MentorId, opt => opt.MapFrom(src => src.MentorId))
               .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
-              .ForMember(dest => dest.ChapterId, opt => opt.MapFrom(src => src.ChapterId));
+              .ForMember(dest => dest.HackathonId, opt => opt.MapFrom(src => src.HackathonId));
   
             //team member
             CreateMap<TeamMember, TeamMemberDto>()

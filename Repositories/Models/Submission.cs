@@ -15,11 +15,15 @@ public partial class Submission
 
     public string FilePath { get; set; }
 
-    public DateTime? SubmittedAt { get; set; }
+    public DateTime SubmittedAt { get; set; }
 
     public int SubmittedBy { get; set; }
 
+    public int PhaseId { get; set; }
+
     public bool IsFinal { get; set; }
+
+    public virtual HackathonPhase Phase { get; set; }
 
     public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
 

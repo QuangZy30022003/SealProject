@@ -69,14 +69,14 @@ namespace Service.Servicefolder
 
             return groups.Select(g => new AverageScoreDto
             {
-                CriteriaId = g.Key ?? 0,
+                CriteriaId = g.Key ,
                 AverageScore = Math.Round(g.Average(x => (double)x.Score1), 2),
                 JudgeCount = g.Select(x => x.JudgeId).Distinct().Count(),
                 Comments = g
                     .Where(x => !string.IsNullOrEmpty(x.Comment))
                     .Select(x => new CommentDto
                     {
-                        JudgeId = x.JudgeId ?? 0,
+                        JudgeId = x.JudgeId,
                         Comment = x.Comment
                     }).ToList()
             }).ToList();

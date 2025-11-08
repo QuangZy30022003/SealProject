@@ -30,6 +30,7 @@ namespace Common.DTOs.ChallengeDto
         public DateTime CreatedAt { get; set; }
         public int HackathonId { get; set; }
         public int UserId { get; set; }
+        public string UserName { get; set; } = null!;
     }
 
     public class ChallengeStatusDto

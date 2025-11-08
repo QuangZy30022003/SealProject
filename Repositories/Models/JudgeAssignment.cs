@@ -5,15 +5,17 @@ using System.Collections.Generic;
 
 namespace Repositories.Models;
 
-public partial class MentorAssignment
+public partial class JudgeAssignment
 {
     public int AssignmentId { get; set; }
 
-    public int MentorId { get; set; }
-
-    public int TeamId { get; set; }
+    public int JudgeId { get; set; }
 
     public int HackathonId { get; set; }
+
+    public int? PhaseId { get; set; }
+
+    public int? TrackId { get; set; }
 
     public DateTime AssignedAt { get; set; }
 
@@ -21,7 +23,9 @@ public partial class MentorAssignment
 
     public virtual Hackathon Hackathon { get; set; }
 
-    public virtual User Mentor { get; set; }
+    public virtual User Judge { get; set; }
 
-    public virtual Team Team { get; set; }
+    public virtual HackathonPhase Phase { get; set; }
+
+    public virtual Track Track { get; set; }
 }

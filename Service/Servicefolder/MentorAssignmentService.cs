@@ -34,8 +34,6 @@ namespace Service.Servicefolder
                 AssignmentId = a.AssignmentId,
                 TeamId = a.Team?.TeamId ?? 0,
                 TeamName = a.Team?.TeamName ?? string.Empty,
-                ChapterId = a.Chapter?.ChapterId ?? 0,
-                ChapterName = a.Chapter?.ChapterName ?? string.Empty,
                 AssignedAt = a.AssignedAt,
                 LeaderId = a.Team?.TeamLeaderId,
                 LeaderName = a.Team?.TeamLeader?.FullName,
@@ -58,14 +56,14 @@ namespace Service.Servicefolder
             if (team == null)
                 throw new Exception("Team not found!");
 
-            // 3. Validate Chapter
-            var chapter = await _uow.Chapters.GetByIdAsync(dto.ChapterId);
-            if (chapter == null)
-                throw new Exception("Chapter not found!");
+            // 3. Validate Hackathon
+            var hackathon = await _uow.Hackathons.GetByIdAsync(dto.HackathonId);
+            if (hackathon == null)
+                throw new Exception("Hackathon not found!");
 
             // 4. Kiểm tra assignment cũ
             var existing = await _uow.MentorAssignments.GetAllAsync(
-                filter: a => a.TeamId == dto.TeamId && a.ChapterId == dto.ChapterId && a.MentorId == dto.MentorId
+                filter: a => a.TeamId == dto.TeamId && a.HackathonId == dto.HackathonId && a.MentorId == dto.MentorId
             );
 
             var latest = existing.OrderByDescending(a => a.AssignmentId).FirstOrDefault();
@@ -75,7 +73,7 @@ namespace Service.Servicefolder
                 if (latest.Status == "Pending")
                 {
                     // Nếu Pending > 3 ngày thì auto reject
-                    if (latest.AssignedAt.HasValue && latest.AssignedAt.Value.AddDays(3) < DateTime.UtcNow)
+                    if (latest.AssignedAt.AddDays(3) < DateTime.UtcNow)
                     {
                         latest.Status = "Rejected";
                         _uow.MentorAssignments.Update(latest);
@@ -96,7 +94,7 @@ namespace Service.Servicefolder
             var assignment = new MentorAssignment
             {
                 MentorId = dto.MentorId,
-                ChapterId = dto.ChapterId,
+                HackathonId = dto.HackathonId,
                 TeamId = dto.TeamId,
                 Status = "Pending",
                 AssignedAt = DateTime.UtcNow
@@ -109,7 +107,7 @@ namespace Service.Servicefolder
             string subject = "📩 Mentor Assignment Notification";
             string body = $@"
 <p>Dear <b>{mentor.FullName}</b>,</p>
-<p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Chapter <b>{chapter.ChapterName}</b>.</p>
+<p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Hackathon <b>{hackathon.HackathonId}</b>.</p>
 <p>Status of this assignment: <b>{assignment.Status}</b></p>
 <p>Best regards,<br/>Seal System</p>";
 
@@ -155,7 +153,7 @@ namespace Service.Servicefolder
             if (assignment == null) throw new Exception("Assignment not found");
 
             assignment.Status = "Rejected";
-            assignment.AssignedAt = null;
+            assignment.AssignedAt = DateTime.UtcNow;
 
             _uow.MentorAssignments.Update(assignment);
             await _uow.SaveAsync();
@@ -184,7 +182,7 @@ namespace Service.Servicefolder
         {
             var assignments = await _uow.MentorAssignments.GetAllAsync(
                 filter: a => a.MentorId == mentorId,
-                includeProperties: "Team,Chapter"
+                includeProperties: "Team"
             );
 
             return _mapper.Map<IEnumerable<MentorAssignmentResponseDto>>(assignments);

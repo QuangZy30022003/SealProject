@@ -9,13 +9,15 @@ public partial class Team
 {
     public int TeamId { get; set; }
 
-    public string TeamName { get; set; }
+    public int HackathonId { get; set; }
 
     public int ChapterId { get; set; }
 
+    public string TeamName { get; set; }
+
     public int TeamLeaderId { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
 
@@ -25,11 +27,17 @@ public partial class Team
 
     public virtual ICollection<GroupTeam> GroupTeams { get; set; } = new List<GroupTeam>();
 
+    public virtual Hackathon Hackathon { get; set; }
+
+    public virtual ICollection<HackathonRegistration> HackathonRegistrations { get; set; } = new List<HackathonRegistration>();
+
     public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
 
     public virtual ICollection<PenaltiesBonuse> PenaltiesBonuses { get; set; } = new List<PenaltiesBonuse>();
 
     public virtual ICollection<PrizeAllocation> PrizeAllocations { get; set; } = new List<PrizeAllocation>();
+
+    public virtual ICollection<Ranking> Rankings { get; set; } = new List<Ranking>();
 
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 

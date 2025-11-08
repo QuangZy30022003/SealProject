@@ -11,8 +11,6 @@ namespace Common.DTOs.AssignedTeamDto
         public int AssignmentId { get; set; }
         public int TeamId { get; set; }
         public string TeamName { get; set; } = string.Empty;
-        public int ChapterId { get; set; }
-        public string ChapterName { get; set; } = string.Empty;
         public DateTime? AssignedAt { get; set; }
 
         // Thông tin leader
@@ -24,7 +22,7 @@ namespace Common.DTOs.AssignedTeamDto
     public class MentorAssignmentCreateDto
     {
         public int MentorId { get; set; }
-        public int ChapterId { get; set; }
+        public int HackathonId { get; set; }
         public int TeamId { get; set; }
     }
 
@@ -32,7 +30,7 @@ namespace Common.DTOs.AssignedTeamDto
     {
         public int AssignmentId { get; set; }
         public int MentorId { get; set; }
-        public int ChapterId { get; set; }
+        public int HackathonId { get; set; }
         public int TeamId { get; set; }
         public DateTime? AssignedAt { get; set; }
         public string Status { get; set; }

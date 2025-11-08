@@ -16,21 +16,25 @@ namespace Repositories.UnitOfWork
 
         public IRepository<User> Users { get; }
         public IRepository<Role> Roles { get; }
+        public IRepository<PartnerProfile> PartnerProfiles { get; }
         public IRepository<StudentVerification> StudentVerifications { get; }
 
 
         public IRepository<Chapter> Chapters { get; }
         public IRepository<Team> Teams { get; }
+        public IRepository<HackathonRegistration> HackathonRegistrations { get; }
         public IRepository<TeamMember> TeamMembers { get; }
         public IRepository<TeamInvitation> TeamInvitations { get; }
         public IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         public IRepository<MentorAssignment> MentorAssignments { get; }
 
 
+        public IRepository<JudgeAssignment> JudgeAssignments { get; }
         public IRepository<Submission> Submissions { get; }
         public IRepository<Score> Scores { get; }
         public IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
         public IRepository<Appeal> Appeals { get; }
+        public IRepository<Ranking> Rankings { get; }
 
 
         public IRepository<Criterion> Criteria { get; }
@@ -55,7 +59,7 @@ namespace Repositories.UnitOfWork
         public IRepository<TeamTrackSelection> TeamTrackSelections { get; }
         public IRepository<Group> Groups { get; }
         public IRepository<GroupTeam> GroupsTeams { get; }
-        
+
 
         public IRepository<FinalQualification> FinalQualifications { get; }
         public IRepository<ScheduleEvent> ScheduleEvents { get; }
@@ -83,10 +87,10 @@ namespace Repositories.UnitOfWork
             TeamInvitations = new GenericRepository<TeamInvitation>(_context);
             TeamJoinRequests = new GenericRepository<TeamJoinRequest>(_context);
             MentorAssignments = new GenericRepository<MentorAssignment>(_context);
-            
+
             Prizes = new GenericRepository<Prize>(_context);
             PrizeAllocations = new GenericRepository<PrizeAllocation>(_context);
-           
+
             AuditLogs = new GenericRepository<AuditLog>(_context);
             Notifications = new GenericRepository<Notification>(_context);
 
@@ -102,7 +106,7 @@ namespace Repositories.UnitOfWork
 
             Criteria = new GenericRepository<Criterion>(_context);
             CriterionDetail = new GenericRepository<CriterionDetail>(_context);
-            
+
             Tracks = new GenericRepository<Track>(_context);
             TeamTrackSelections = new GenericRepository<TeamTrackSelection>(_context);
             Groups = new GenericRepository<Group>(_context);
@@ -111,8 +115,8 @@ namespace Repositories.UnitOfWork
             FinalQualifications = new GenericRepository<FinalQualification>(_context);
             ScheduleEvents = new GenericRepository<ScheduleEvent>(_context);
 
-            
-            
+
+
 
             ChallengeRepository = new ChallengeRepository(_context);
 
@@ -121,11 +125,11 @@ namespace Repositories.UnitOfWork
             MentorAssignmentRepository = new MentorAssignmentRepository(_context);
 
             ScoreRepository = new ScoreRepository(_context);
-            
+
             CriterionDetailRepository = new CriterionDetailRepository(_context);
-            
+
             PrizeRepository = new PrizeRepository(_context);
-           
+
 
         }
 

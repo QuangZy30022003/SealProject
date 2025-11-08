@@ -5,17 +5,19 @@ using System.Collections.Generic;
 
 namespace Repositories.Models;
 
-public partial class Notification
+public partial class PartnerProfile
 {
-    public int NotificationId { get; set; }
+    public int PartnerProfileId { get; set; }
 
     public int UserId { get; set; }
 
-    public string Message { get; set; }
+    public string CompanyName { get; set; }
 
-    public DateTime SentAt { get; set; }
+    public string LogoUrl { get; set; }
 
-    public bool IsRead { get; set; }
+    public string Website { get; set; }
+
+    public string Description { get; set; }
 
     public virtual User User { get; set; }
 }

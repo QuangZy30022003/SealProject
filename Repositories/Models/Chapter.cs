@@ -17,7 +17,7 @@ public partial class Chapter
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
+    public virtual User ChapterLeader { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }
