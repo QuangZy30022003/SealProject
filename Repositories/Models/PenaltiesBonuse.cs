@@ -13,11 +13,11 @@ public partial class PenaltiesBonuse
 
     public string Type { get; set; }
 
-    public decimal? Points { get; set; }
+    public decimal Points { get; set; }
 
     public string Reason { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
 

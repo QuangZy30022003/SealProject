@@ -13,9 +13,9 @@ public partial class HackathonPhase
 
     public string PhaseName { get; set; }
 
-    public DateTime StartDate { get; set; }
+    public DateTime? StartDate { get; set; }
 
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     public virtual ICollection<Criterion> Criteria { get; set; } = new List<Criterion>();
 
@@ -23,7 +23,11 @@ public partial class HackathonPhase
 
     public virtual Hackathon Hackathon { get; set; }
 
+    public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();
+
     public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
+
+    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
     public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
 }

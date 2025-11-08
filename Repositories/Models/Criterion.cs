@@ -9,15 +9,19 @@ public partial class Criterion
 {
     public int CriteriaId { get; set; }
 
+    public int PhaseId { get; set; }
+
+    public int? TrackId { get; set; }
+
     public string Name { get; set; }
 
     public decimal Weight { get; set; }
-
-    public int PhaseId { get; set; }
 
     public virtual ICollection<CriterionDetail> CriterionDetails { get; set; } = new List<CriterionDetail>();
 
     public virtual HackathonPhase Phase { get; set; }
 
     public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
+
+    public virtual Track Track { get; set; }
 }

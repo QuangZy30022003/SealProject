@@ -15,11 +15,11 @@ public partial class TeamInvitation
 
     public int InvitedByUserId { get; set; }
 
-    public Guid InvitationCode { get; set; }
+    public Guid? InvitationCode { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
-    public DateTime ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 
     public string Status { get; set; }
 

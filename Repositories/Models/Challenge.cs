@@ -9,6 +9,10 @@ public partial class Challenge
 {
     public int ChallengeId { get; set; }
 
+    public int HackathonId { get; set; }
+
+    public int? UserId { get; set; }
+
     public string Title { get; set; }
 
     public string Description { get; set; }
@@ -17,9 +21,9 @@ public partial class Challenge
 
     public DateTime CreatedAt { get; set; }
 
-    public int UserId { get; set; }
-
     public string Status { get; set; }
+
+    public virtual Hackathon Hackathon { get; set; }
 
     public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
 

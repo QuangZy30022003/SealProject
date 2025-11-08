@@ -13,7 +13,7 @@ public partial class TeamTrackSelection
 
     public int TrackId { get; set; }
 
-    public DateTime? SelectedAt { get; set; }
+    public DateTime SelectedAt { get; set; }
 
     public virtual Team Team { get; set; }
 

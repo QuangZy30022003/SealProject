@@ -19,7 +19,13 @@ public partial class Track
 
     public virtual Challenge Challenge { get; set; }
 
+    public virtual ICollection<Criterion> Criteria { get; set; } = new List<Criterion>();
+
     public virtual ICollection<FinalQualification> FinalQualifications { get; set; } = new List<FinalQualification>();
+
+    public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+
+    public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();
 
     public virtual HackathonPhase Phase { get; set; }
 

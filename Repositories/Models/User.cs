@@ -17,7 +17,7 @@ public partial class User
 
     public int? RoleId { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public string Token { get; set; }
 
@@ -35,9 +35,17 @@ public partial class User
 
     public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
 
+    public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
+
+    public virtual ICollection<Hackathon> Hackathons { get; set; } = new List<Hackathon>();
+
+    public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();
+
     public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    public virtual ICollection<PartnerProfile> PartnerProfiles { get; set; } = new List<PartnerProfile>();
 
     public virtual ICollection<PrizeAllocation> PrizeAllocations { get; set; } = new List<PrizeAllocation>();
 

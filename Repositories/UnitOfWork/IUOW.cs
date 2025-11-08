@@ -13,11 +13,13 @@ namespace Repositories.UnitOfWork
     {
         IRepository<User> Users { get; }
         IRepository<Role> Roles { get; }
+        IRepository<PartnerProfile> PartnerProfiles { get; }
         IRepository<StudentVerification> StudentVerifications { get; }
 
 
         IRepository<Chapter> Chapters { get; }
         IRepository<Team> Teams { get; }
+        IRepository<HackathonRegistration> HackathonRegistrations { get; }
         IRepository<TeamMember> TeamMembers { get; }
         IRepository<TeamInvitation> TeamInvitations { get; }
         IRepository<TeamJoinRequest> TeamJoinRequests { get; }
@@ -27,15 +29,17 @@ namespace Repositories.UnitOfWork
         IRepository<Prize> Prizes { get; }
         IRepository<PrizeAllocation> PrizeAllocations { get; }
 
-        
+
         IRepository<AuditLog> AuditLogs { get; }
         IRepository<Notification> Notifications { get; }
 
 
+        IRepository<JudgeAssignment> JudgeAssignments { get; }
         IRepository<Submission> Submissions { get; }
         IRepository<Score> Scores { get; }
         IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
         IRepository<Appeal> Appeals { get; }
+        IRepository<Ranking> Rankings { get; }
 
 
         IRepository<Season> Seasons { get; }

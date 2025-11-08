@@ -63,7 +63,7 @@ namespace Service.Servicefolder
             {
                 Name = dto.Name,
                 SeasonId = dto.SeasonId,
-                Theme = dto.Theme,
+                Description = dto.Description,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 CreatedBy = userId,
@@ -105,7 +105,7 @@ namespace Service.Servicefolder
 
             hackathon.Name = dto.Name;
             hackathon.SeasonId = dto.SeasonId;
-            hackathon.Theme = dto.Theme;
+            hackathon.Description = dto.Description;
             hackathon.StartDate = dto.StartDate;
             hackathon.EndDate = dto.EndDate;
             hackathon.Status = dto.Status ?? hackathon.Status;

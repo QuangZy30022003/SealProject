@@ -11,7 +11,7 @@ public partial class PrizeAllocation
 
     public int PrizeId { get; set; }
 
-    public int TeamId { get; set; }
+    public int? TeamId { get; set; }
 
     public int? UserId { get; set; }
 

@@ -10,7 +10,7 @@ namespace Common.DTOs.HackathonDto
     {
         public string Name { get; set; } = null!;
         public string? Season { get; set; }
-        public string? Theme { get; set; }
+        public string? Description { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
         public int? CreatedBy { get; set; }
@@ -22,7 +22,7 @@ namespace Common.DTOs.HackathonDto
         public string Name { get; set; } = null!;
         public int? SeasonId { get; set; }           // mới: trả về ID để client dùng
         public string? SeasonName { get; set; }      // hiển thị tên Season (ex: "Summer 2025")
-        public string? Theme { get; set; }
+        public string? Description { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
         public string Status { get; set; }
@@ -32,7 +32,7 @@ namespace Common.DTOs.HackathonDto
     {
         public string Name { get; set; } = null!;
         public int SeasonId { get; set; }    // nhập ID từ client
-        public string? Theme { get; set; }
+        public string? Description { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
         public string Status { get; set; } = "Pending";
@@ -48,7 +48,7 @@ namespace Common.DTOs.HackathonDto
         public int HackathonId { get; set; }
         public string Name { get; set; } = null!;
         public string? Season { get; set; }
-        public string? Theme { get; set; }
+        public string? Description { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
         public string Status { get; set; } = null!;

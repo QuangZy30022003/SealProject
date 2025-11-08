@@ -13,8 +13,6 @@ public partial class FinalQualification
 
     public int GroupId { get; set; }
 
-    public string Name { get; set; }
-
     public int PhaseId { get; set; }
 
     public int TrackId { get; set; }

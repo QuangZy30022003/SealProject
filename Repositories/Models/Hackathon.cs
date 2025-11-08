@@ -13,21 +13,35 @@ public partial class Hackathon
 
     public int SeasonId { get; set; }
 
-    public string Theme { get; set; }
+    public string Description { get; set; }
 
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }
 
-    public int? CreatedBy { get; set; }
+    public int CreatedBy { get; set; }
 
     public string Status { get; set; }
 
+    public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
+
+    public virtual User CreatedByNavigation { get; set; }
+
     public virtual ICollection<HackathonPhase> HackathonPhases { get; set; } = new List<HackathonPhase>();
 
+    public virtual ICollection<HackathonRegistration> HackathonRegistrations { get; set; } = new List<HackathonRegistration>();
+
+    public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();
+
+    public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
+
     public virtual ICollection<Prize> Prizes { get; set; } = new List<Prize>();
+
+    public virtual ICollection<Ranking> Rankings { get; set; } = new List<Ranking>();
 
     public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
 
     public virtual Season Season { get; set; }
+
+    public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

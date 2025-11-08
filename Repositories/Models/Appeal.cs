@@ -19,9 +19,9 @@ public partial class Appeal
 
     public string Status { get; set; }
 
-    public string AdminResponse { get; set; }
-
     public int? ReviewedById { get; set; }
+
+    public string AdminResponse { get; set; }
 
     public DateTime? ReviewedAt { get; set; }
 

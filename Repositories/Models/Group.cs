@@ -18,4 +18,6 @@ public partial class Group
     public virtual ICollection<FinalQualification> FinalQualifications { get; set; } = new List<FinalQualification>();
 
     public virtual ICollection<GroupTeam> GroupTeams { get; set; } = new List<GroupTeam>();
+
+    public virtual Track Track { get; set; }
 }

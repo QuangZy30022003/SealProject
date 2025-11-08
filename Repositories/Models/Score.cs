@@ -11,15 +11,15 @@ public partial class Score
 
     public int SubmissionId { get; set; }
 
-    public int? JudgeId { get; set; }
+    public int JudgeId { get; set; }
 
-    public int? CriteriaId { get; set; }
+    public int CriteriaId { get; set; }
 
     public decimal Score1 { get; set; }
 
     public string Comment { get; set; }
 
-    public DateTime? ScoredAt { get; set; }
+    public DateTime ScoredAt { get; set; }
 
     public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
 

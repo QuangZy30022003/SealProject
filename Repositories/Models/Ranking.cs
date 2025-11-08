@@ -5,21 +5,21 @@ using System.Collections.Generic;
 
 namespace Repositories.Models;
 
-public partial class GroupTeam
+public partial class Ranking
 {
-    public int GroupTeamId { get; set; }
+    public int RankingId { get; set; }
 
-    public int GroupId { get; set; }
+    public int HackathonId { get; set; }
 
     public int TeamId { get; set; }
 
-    public decimal? AverageScore { get; set; }
+    public decimal TotalScore { get; set; }
 
     public int? Rank { get; set; }
 
-    public DateTime? JoinedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    public virtual Group Group { get; set; }
+    public virtual Hackathon Hackathon { get; set; }
 
     public virtual Team Team { get; set; }
 }
