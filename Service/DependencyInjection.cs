@@ -36,7 +36,7 @@ namespace Service
 
             service.AddScoped<ITeamJoinRequestService, TeamJoinRequestService>();
             service.AddScoped<IFileUploadService, FileUploadService>();
-
+            service.AddScoped<IHackathonRegistrationService, HackathonRegistrationService>();   
             return service;
 
         }
