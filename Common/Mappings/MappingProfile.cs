@@ -24,6 +24,7 @@ using Common.DTOs.ScoreDto;
 using Common.DTOs.PrizeDto;
 using Common.DTOs.TeamJoinRequestDto;
 using Common.DTOs.AuthDto;
+using Common.DTOs.RegisterHackathonDto;
 
 
 
@@ -40,7 +41,8 @@ namespace Common.Mappings
             CreateMap<Chapter, ChapterDto>();
 
             CreateMap<CreateTeamDto, Team>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            .ForMember(dest => dest.TeamLeaderId, opt => opt.MapFrom(src => src.LeaderId));
             CreateMap<UpdateTeamDto, Team>();
             CreateMap<Team, TeamDto>();
             // Seasaon
@@ -189,7 +191,12 @@ namespace Common.Mappings
             //user
             CreateMap<User, UserResponseDto>()
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.RoleName : null));
-
+            // HackathonRegis
+            CreateMap<RegisterHackathonRequest, HackathonRegistration>()
+               .ForMember(dest => dest.RegistrationId, opt => opt.Ignore()) // DB tự generate
+               .ForMember(dest => dest.RegisteredAt, opt => opt.Ignore())   // set trong service
+               .ForMember(dest => dest.Status, opt => opt.Ignore());        // set trong service
+            CreateMap<HackathonRegistration, HackathonRegistrationDto>();
         }
         }
     }

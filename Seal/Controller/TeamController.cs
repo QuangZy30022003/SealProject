@@ -20,6 +20,8 @@ namespace Seal.Controller
         [HttpPost]
         public async Task<IActionResult> CreateTeam([FromBody] CreateTeamDto dto)
         {
+            var userId = int.Parse(User.FindFirst("UserId").Value);
+            dto.LeaderId = userId;
             try
             {
                 var team = await _teamService.CreateTeamAsync(dto);

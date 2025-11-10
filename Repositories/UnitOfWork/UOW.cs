@@ -116,7 +116,7 @@ namespace Repositories.UnitOfWork
             ScheduleEvents = new GenericRepository<ScheduleEvent>(_context);
 
 
-
+            HackathonRegistrations = new GenericRepository<HackathonRegistration>(_context);
 
             ChallengeRepository = new ChallengeRepository(_context);
 
