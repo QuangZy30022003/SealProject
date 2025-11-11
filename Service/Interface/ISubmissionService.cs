@@ -9,9 +9,10 @@ namespace Service.Interface
 {
     public interface ISubmissionService
     {
-        //Task<SubmissionResponseDto> CreateDraftSubmissionAsync(SubmissionCreateDto dto, int userId);
-        //Task<SubmissionResponseDto> SetFinalSubmissionAsync(SubmissionSelectFinalDto dto, int userId);
-        //Task<IEnumerable<SubmissionResponseDto>> GetSubmissionsByTeamAndPhaseAsync(int? teamId, int? phaseId);
+        Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAsync(int teamId);
+        Task<SubmissionResponseDto?> SetFinalAsync(SubmissionFinalDto dto, int currentUserId);
+        Task<SubmissionResponseDto?> UpdateDraftAsync(int submissionId, SubmissionUpdateDto dto, int currentUserId);
+        Task<SubmissionResponseDto> CreateDraftAsync(SubmissionCreateDto dto, int currentUserId);
     }
 
 }

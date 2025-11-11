@@ -13,130 +13,104 @@ namespace Service.Servicefolder
 {
     public class SubmissionService : ISubmissionService
     {
-    //    private readonly IUOW _uow;
-    //    private readonly IMapper _mapper;
+        private readonly IUOW _uow;
+        private readonly IMapper _mapper;
 
-    //    public SubmissionService(IUOW uow, IMapper mapper)
-    //    {
-    //        _uow = uow;
-    //        _mapper = mapper;
-    //    }
+        public SubmissionService(IUOW uow, IMapper mapper)
+        {
+            _uow = uow;
+            _mapper = mapper;
+        }
 
-    //    // 🟢 1️⃣ Thành viên tạo submission (mặc định là draft)
-    //    public async Task<SubmissionResponseDto> CreateDraftSubmissionAsync(SubmissionCreateDto dto, int userId)
-    //    {
-            
-    //        // ✅ 3. Kiểm tra user có thuộc team không
-    //        var member = await _uow.TeamMembers.FirstOrDefaultAsync(m =>
-    //            m.TeamId == dto.TeamId && m.UserId == userId);
-    //        if (member == null)
-    //            throw new UnauthorizedAccessException("You are not a member of this team.");
+        // Tạo draft submission (mọi thành viên)
+        public async Task<SubmissionResponseDto> CreateDraftAsync(SubmissionCreateDto dto, int currentUserId)
+        {
+            // Check team tồn tại
+            var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
+            if (team == null)
+                throw new Exception("Team not found");
 
-    //        // ✅ 4. Kiểm tra đã có draft chưa
-    //        var existingDraft = await _uow.Submissions.FirstOrDefaultAsync(s =>
-    //            s.TeamId == dto.TeamId &&
-    //            s.IsFinal == false);
-    //        if (existingDraft != null)
-    //            throw new Exception("A draft submission already exists for this team in this phase.");
+            // Check phase tồn tại
+            var phase = await _uow.HackathonPhases.GetByIdAsync(dto.PhaseId);
+            if (phase == null)
+                throw new Exception("Phase not found");
 
-    //        // ✅ 5. Tạo submission mới
-    //        var submission = _mapper.Map<Submission>(dto);
-    //        submission.SubmittedBy = userId;
-    //        submission.SubmittedAt = DateTime.UtcNow;
-    //        submission.IsFinal = false;
+            var submission = new Submission
+            {
+                TeamId = dto.TeamId,
+                PhaseId = dto.PhaseId,
+                Title = dto.Title,
+                FilePath = dto.FilePath,
+                SubmittedAt = DateTime.UtcNow,
+                SubmittedBy = currentUserId,
+                IsFinal = false
+            };
 
-    //        await _uow.Submissions.AddAsync(submission);
-    //        await _uow.SaveAsync();
+            await _uow.Submissions.AddAsync(submission);
+            await _uow.SaveAsync();
 
-    //        // ✅ 6. Chuẩn bị dữ liệu trả về
-    //        var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
-    //        var user = await _uow.Users.GetByIdAsync(userId);
+            return _mapper.Map<SubmissionResponseDto>(submission);
+        }
 
-    //        return new SubmissionResponseDto
-    //        {
-    //            SubmissionId = submission.SubmissionId,
-    //            TeamName = team?.TeamName ?? "Unknown Team",
-    //            Title = submission.Title,
-    //            FilePath = submission.FilePath,
-    //            IsFinal = submission.IsFinal,
-    //            SubmittedAt = submission.SubmittedAt,
-    //            SubmittedByName = user?.FullName ?? "Unknown User"
-    //        };
-    //    }
+        // Update draft (chỉ người submit mới edit)
+        public async Task<SubmissionResponseDto?> UpdateDraftAsync(int submissionId, SubmissionUpdateDto dto, int currentUserId)
+        {
+            var submission = await _uow.Submissions.GetByIdAsync(submissionId);
+            if (submission == null)
+                throw new Exception("Submission not found");
 
-    //    // 🟢 2️⃣ Team leader chọn bài final
-    //    public async Task<SubmissionResponseDto> SetFinalSubmissionAsync(SubmissionSelectFinalDto dto, int userId)
-    //    {
-    //        // ✅ Kiểm tra team & leader
-    //        var finalSubmission = await _uow.Submissions.FirstOrDefaultAsync(s => s.SubmissionId == dto.SubmissionId);
-    //        if (finalSubmission == null)
-    //            throw new Exception("Submission not found.");
+            if (submission.IsFinal)
+                throw new Exception("Cannot edit final submission");
 
-    //        // ✅ Lấy team từ submission
-    //        var team = await _uow.Teams.GetByIdAsync(finalSubmission.TeamId);
-    //        if (team == null)
-    //            throw new Exception("Team not found.");
+            if (submission.SubmittedBy != currentUserId)
+                throw new Exception("Not authorized to edit this draft");
 
-    //        // ✅ Kiểm tra quyền (chỉ leader được phép)
-    //        if (team.TeamLeaderId != userId)
-    //            throw new UnauthorizedAccessException("Only the team leader can set the final submission.");
+            submission.Title = dto.Title;
+            submission.FilePath = dto.FilePath;
+            await _uow.SaveAsync();
 
-    //        // ✅ Lấy tất cả submissions cùng team và cùng phase challenge
-    //        var submissions = await _uow.Submissions.GetAllAsync(
-    //            s => s.TeamId == finalSubmission.TeamId 
-    //        );
+            return _mapper.Map<SubmissionResponseDto>(submission);
+        }
 
-    //        if (!submissions.Any())
-    //            throw new Exception("No submissions found for this PhaseChallenge.");
+        // Set submission final (chỉ team leader)
+        public async Task<SubmissionResponseDto?> SetFinalAsync(SubmissionFinalDto dto, int currentUserId)
+        {
+            var submission = await _uow.Submissions.GetByIdAsync(dto.SubmissionId);
+            if (submission == null)
+                throw new Exception("Submission not found");
 
-    //        // ✅ Đặt final
-    //        foreach (var sub in submissions)
-    //        {
-    //            sub.IsFinal = sub.SubmissionId == dto.SubmissionId;
-    //            _uow.Submissions.Update(sub);
-    //        }
+            var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
+            if (team == null)
+                throw new Exception("Team not found");
 
-    //        await _uow.SaveAsync();
+            if (team.TeamLeaderId != currentUserId)
+                throw new Exception("Not authorized to set final submission");
+
+            submission.IsFinal = true;
+            await _uow.SaveAsync();
+
+            return _mapper.Map<SubmissionResponseDto>(submission);
+        }
+
+        public async Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAsync(int teamId)
+        {
+            // Kiểm tra team có tồn tại
+            var teamExists = await _uow.Teams.ExistsAsync(t => t.TeamId == teamId);
+            if (!teamExists)
+                throw new Exception("Team not found");
+
+            // Lấy submission của team, include Team và TeamTrackSelections
+            var teamSubmissions = await _uow.Submissions.GetAllIncludingAsync(
+                s => s.TeamId == teamId,
+                s => s.Team,
+                s => s.Team.TeamTrackSelections
+            );
+
+            // AutoMapper sẽ map TrackId từ Team.TeamTrackSelections.First()
+            return _mapper.Map<List<SubmissionResponseDto>>(teamSubmissions);
+        }
 
 
-    //        var user = await _uow.Users.GetByIdAsync(finalSubmission.SubmittedBy);
-
-    //        return new SubmissionResponseDto
-    //        {
-    //            SubmissionId = finalSubmission.SubmissionId,
-    //            TeamName = team.TeamName,
-    //            PhaseName = phaseChallenge?.Phase?.PhaseName ?? "Unknown Phase",
-    //            Title = finalSubmission.Title,
-
-    //            IsFinal = finalSubmission.IsFinal,
-    //            SubmittedAt = finalSubmission.SubmittedAt,
-    //            SubmittedByName = user?.FullName ?? "Unknown"
-    //        };
-    //    }
-
-    //    // 🟢 3️⃣ Lấy danh sách submission của team trong PhaseChallenge
-    //    public async Task<IEnumerable<SubmissionResponseDto>> GetSubmissionsByTeamAndPhaseAsync(int? teamId, int? phaseChallengeId)
-    //    {
-    //        var submissions = await _uow.Submissions.GetAllIncludingAsync(
-    //            s =>
-    //                (!teamId.HasValue || s.TeamId == teamId.Value),
-    //            s => s.Team,
-    //            s => s.SubmittedByNavigation
-    //        );
-
-    //        return submissions.Select(s => new SubmissionResponseDto
-    //        {
-    //            SubmissionId = s.SubmissionId,
-    //            TeamName = s.Team?.TeamName ?? "Unknown",
-    //            Title = s.Title,
-    //            GitHubLink = s.GitHubLink,
-    //            DemoLink = s.DemoLink,
-    //            ReportLink = s.ReportLink,
-    //            IsFinal = s.IsFinal,
-    //            SubmittedAt = s.SubmittedAt,
-    //            SubmittedByName = s.SubmittedByNavigation?.FullName ?? "Unknown"
-    //        });
-    //    }
 
     }
 }

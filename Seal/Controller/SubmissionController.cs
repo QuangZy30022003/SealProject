@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
+using Service.Servicefolder;
 
 namespace Seal.Controller
 {
@@ -16,42 +17,76 @@ namespace Seal.Controller
         {
             _submissionService = submissionService;
         }
+        [Authorize]
+        [HttpPost("draft")]
+        public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
+        {
+            try
+            {
+                // Lấy UserId trực tiếp từ token JWT
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Invalid token");
 
-        //// 🟢 Thành viên tạo bản nháp
-        //[HttpPost("create-draft")]
-        //public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
-        //{
-        //    var userId = int.Parse(User.FindFirst("UserId")!.Value); // hoặc ClaimTypes.NameIdentifier
-        //    var result = await _submissionService.CreateDraftSubmissionAsync(dto, userId);
-        //    return Ok(new
-        //    {
-        //        success = true,
-        //        message = "Draft submission created successfully!",
-        //        data = result
-        //    });
-        //}
+                int userIdFromToken = int.Parse(userIdClaim);
 
-        //// 🟢 Leader chọn bản final
-        //[HttpPost("set-final")]
-        //public async Task<IActionResult> SetFinal([FromBody] SubmissionSelectFinalDto dto)
-        //{
-        //    var userId = int.Parse(User.FindFirst("UserId")!.Value);
-        //    var result = await _submissionService.SetFinalSubmissionAsync(dto, userId);
-        //    return Ok(new
-        //    {
-        //        success = true,
-        //        message = "Final submission selected successfully!",
-        //        data = result
-        //    });
-        //}
+                var result = await _submissionService.CreateDraftAsync(dto, userIdFromToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Authorize]
+        [HttpPut("draft/{submissionId}")]
+        public async Task<IActionResult> UpdateDraft(int submissionId, [FromBody] SubmissionUpdateDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Invalid token");
 
-        //// 🟢 Lấy tất cả submission của team trong phase
-        //[HttpGet("submissions/team-phase")]
-        //[Authorize(Roles = "Admin,Judge")]
-        //public async Task<IActionResult> GetByTeamAndPhase([FromQuery] int? teamId, [FromQuery] int? phaseChallengeId)
-        //{
-        //    var result = await _submissionService.GetSubmissionsByTeamAndPhaseAsync(teamId, phaseChallengeId);
-        //    return Ok(new { success = true, data = result });
-        //}
+                int userIdFromToken = int.Parse(userIdClaim);
+
+                var result = await _submissionService.UpdateDraftAsync(submissionId, dto, userIdFromToken);
+                if (result == null) return NotFound("Draft not found or is final");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("set-final")]
+        public async Task<IActionResult> SetFinal([FromBody] SubmissionFinalDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Invalid token");
+
+                int userIdFromToken = int.Parse(userIdClaim);
+
+                var result = await _submissionService.SetFinalAsync(dto, userIdFromToken);
+                if (result == null) return NotFound("Submission not found");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("team/{teamId}")]
+        public async Task<IActionResult> GetByTeam(int teamId)
+        {
+            var result = await _submissionService.GetSubmissionsByTeamAsync(teamId);
+            return Ok(result);
+        }
     }
 }

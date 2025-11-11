@@ -39,6 +39,7 @@ namespace Service
             service.AddScoped<IHackathonRegistrationService, HackathonRegistrationService>();   
 
             service.AddScoped<ITrackService, TrackService>();
+            service.AddScoped<ITeamTrackService, TeamTrackService>();
             return service;
 
         }
