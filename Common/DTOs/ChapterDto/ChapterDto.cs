@@ -10,8 +10,9 @@ namespace Common.DTOs.ChapterDto
     {
         public int ChapterId { get; set; }
         public string ChapterName { get; set; } = null!;
-        public string? Description { get; set; }
-        public int? LeaderId { get; set; }
+        public string Description { get; set; }
+        public int? ChapterLeaderId { get; set; }
+        public string ChapterLeaderName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
     }
 }

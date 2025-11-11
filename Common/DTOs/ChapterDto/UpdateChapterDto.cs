@@ -8,6 +8,7 @@ namespace Common.DTOs.ChapterDto
 {
     public class UpdateChapterDto
     {
-        public string ChapterName { get; set; } = string.Empty;
+        public string? ChapterName { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
     }
 }

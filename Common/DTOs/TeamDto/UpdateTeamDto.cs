@@ -8,7 +8,7 @@ namespace Common.DTOs.TeamDto
 {
     public class UpdateTeamDto
     {
-        public string TeamName { get; set; } = string.Empty;
-        public int ChapterId { get; set; }
+        public string? TeamName { get; set; } = string.Empty;
+        public int? ChapterId { get; set; }
     }
 }

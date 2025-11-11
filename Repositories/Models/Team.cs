@@ -9,7 +9,7 @@ public partial class Team
 {
     public int TeamId { get; set; }
 
-    public int HackathonId { get; set; }
+    public int? HackathonId { get; set; }
 
     public int ChapterId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Team
 
     public virtual ICollection<GroupTeam> GroupTeams { get; set; } = new List<GroupTeam>();
 
-    public virtual Hackathon Hackathon { get; set; }
+    public virtual Hackathon? Hackathon { get; set; }
 
     public virtual ICollection<HackathonRegistration> HackathonRegistrations { get; set; } = new List<HackathonRegistration>();
 
