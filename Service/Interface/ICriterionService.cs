@@ -9,10 +9,10 @@ namespace Service.Interface
 {
     public interface ICriterionService
     {
-        Task<CriterionReadDTO?> GetByIdAsync(int id);
-        Task<CriterionReadDTO> CreateAsync(CriterionCreateDTO dto);
-        Task<bool> UpdateAsync(CriterionUpdateDTO dto);
+        Task<List<CriterionResponseDto>> CreateAsync(CriterionCreateDto dto);
+        Task<List<CriterionResponseDto>> GetAllAsync(int? phaseId = null);
+        Task<CriterionResponseDto?> GetByIdAsync(int id);
+        Task<CriterionResponseDto?> UpdateAsync(int id, CriterionUpdateDto dto);
         Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<CriterionReadDTO>> GetAllAsync();
     }
 }

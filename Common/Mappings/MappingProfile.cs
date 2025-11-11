@@ -27,6 +27,7 @@ using Common.DTOs.AuthDto;
 using Common.DTOs.RegisterHackathonDto;
 using Common.DTOs.TrackDto;
 using Common.DTOs.TeamTrackDto;
+using Common.DTOs.JudgeAssignmentDto;
 
 
 
@@ -138,20 +139,11 @@ namespace Common.Mappings
             CreateMap<SubmissionCreateDto, Submission>();
             CreateMap<SubmissionUpdateDto, Submission>();
 
-            CreateMap<Criterion, CriterionReadDTO>()
-           .ForMember(dest => dest.Details,
-               opt => opt.MapFrom(src => src.CriterionDetails));
+            //Criterion
+            CreateMap<Criterion, CriterionResponseDto>();
+            CreateMap<CriterionCreateDto, Criterion>();
+            CreateMap<CriterionUpdateDto, Criterion>();
 
-            CreateMap<CriterionCreateDTO, Criterion>()
-                .ForMember(dest => dest.CriterionDetails,
-                    opt => opt.MapFrom(src => src.Details));
-
-            CreateMap<CriterionUpdateDTO, Criterion>()
-                .ForMember(dest => dest.CriterionDetails,
-                    opt => opt.MapFrom(src => src.Details));
-
-            CreateMap<CriterionDetail, CriterionDetailDTO>().ReverseMap();
-            CreateMap<CriterionDetailCreateDTO, CriterionDetail>();
             // Score
             // Map từ entity Score → DTO đọc ra
             CreateMap<Score, ScoreReadDto>()
@@ -208,6 +200,26 @@ namespace Common.Mappings
             //TeamTrackSelection
             CreateMap<TeamTrackSelection, TeamSelectTrackResponse>();
             CreateMap<TeamSelectTrackRequest, TeamTrackSelection>();
+            //jugdeAssign
+            CreateMap<JudgeAssignment, JudgeAssignmentResponseDto>()
+    .ForMember(dest => dest.JudgeName,
+        opt => opt.MapFrom(src => src.Judge != null ? src.Judge.FullName : null))
+    .ForMember(dest => dest.TrackName,
+        opt => opt.MapFrom(src => src.Track != null ? src.Track.Name : null))
+    .ForMember(dest => dest.HackathonName,
+        opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null))
+    .ForMember(dest => dest.Status,
+        opt => opt.MapFrom(src => src.Status))
+    .ForMember(dest => dest.AssignedAt,
+        opt => opt.MapFrom(src => src.AssignedAt))
+    .ForMember(dest => dest.AssignmentId,
+        opt => opt.MapFrom(src => src.AssignmentId))
+    .ForMember(dest => dest.JudgeId,
+        opt => opt.MapFrom(src => src.JudgeId))
+    .ForMember(dest => dest.HackathonId,
+        opt => opt.MapFrom(src => src.HackathonId))
+    .ForMember(dest => dest.TrackId,
+        opt => opt.MapFrom(src => src.TrackId));
 
         }
     }
