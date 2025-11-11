@@ -26,6 +26,7 @@ using Common.DTOs.TeamJoinRequestDto;
 using Common.DTOs.AuthDto;
 using Common.DTOs.RegisterHackathonDto;
 using Common.DTOs.TrackDto;
+using Common.DTOs.TeamTrackDto;
 
 
 
@@ -131,11 +132,11 @@ namespace Common.Mappings
 
             //Submission
 
-            CreateMap<SubmissionCreateDto, Submission>()
-               .ForMember(dest => dest.SubmissionId, opt => opt.Ignore()) // ID tự sinh
-               .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())  // gán thủ công trong service
-               .ForMember(dest => dest.IsFinal, opt => opt.Ignore())      // gán mặc định
-               .ForMember(dest => dest.SubmittedAt, opt => opt.Ignore()); // gán DateTime.UtcNow
+            CreateMap<Submission, SubmissionResponseDto>()
+                .ForMember(dest => dest.TrackId,
+                           opt => opt.MapFrom(src => src.Team.TeamTrackSelections.FirstOrDefault().TrackId));
+            CreateMap<SubmissionCreateDto, Submission>();
+            CreateMap<SubmissionUpdateDto, Submission>();
 
             CreateMap<Criterion, CriterionReadDTO>()
            .ForMember(dest => dest.Details,
@@ -202,7 +203,12 @@ namespace Common.Mappings
             //Track
             CreateMap<Track, TrackRespone>();
             CreateMap<CreateTrackDto, Track>();
-            CreateMap<UpdateTrackDto, Track>(); 
+            CreateMap<UpdateTrackDto, Track>();
+
+            //TeamTrackSelection
+            CreateMap<TeamTrackSelection, TeamSelectTrackResponse>();
+            CreateMap<TeamSelectTrackRequest, TeamTrackSelection>();
+
         }
-        }
+    }
     }
