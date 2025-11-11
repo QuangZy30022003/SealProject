@@ -48,5 +48,24 @@ namespace Common.DTOs.ChallengeDto
         public IFormFile? File { get; set; }
     }
 
+    public class ChallengeViewDto
+    {
+        public int ChallengeId { get; set; }
+        public string Title { get; set; }
+        public string Status { get; set; }
+        public int HackathonId { get; set; }
+    }
 
+    public class RandomChallengeTrackRequest
+    {
+        public int TrackId { get; set; }
+        public List<int> ChallengeIds { get; set; }
+        public int Quantity { get; set; } = 1; // mặc định lấy 1 challenge
+    }
+
+    public class RandomChallengeTrackResponse
+    {
+        public int TrackId { get; set; }
+        public List<int> SelectedChallengeIds { get; set; }
+    }
 }

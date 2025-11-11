@@ -25,6 +25,7 @@ using Common.DTOs.PrizeDto;
 using Common.DTOs.TeamJoinRequestDto;
 using Common.DTOs.AuthDto;
 using Common.DTOs.RegisterHackathonDto;
+using Common.DTOs.TrackDto;
 
 
 
@@ -64,7 +65,7 @@ namespace Common.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             CreateMap<ChallengePartnerUpdateDto, Challenge>();
-
+            CreateMap<Challenge, ChallengeViewDto>();
 
             //  TeamInvitation 
             CreateMap<TeamInvitation, InvitationStatusDto>()
@@ -197,6 +198,11 @@ namespace Common.Mappings
                .ForMember(dest => dest.RegisteredAt, opt => opt.Ignore())   // set trong service
                .ForMember(dest => dest.Status, opt => opt.Ignore());        // set trong service
             CreateMap<HackathonRegistration, HackathonRegistrationDto>();
+
+            //Track
+            CreateMap<Track, TrackRespone>();
+            CreateMap<CreateTrackDto, Track>();
+            CreateMap<UpdateTrackDto, Track>(); 
         }
         }
     }

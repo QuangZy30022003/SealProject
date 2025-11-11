@@ -18,6 +18,7 @@ namespace Service.Interface
         Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto);
 
         Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto);
+        Task<List<ChallengeDto>> GetCompletedChallengesByHackathonAsync(int hackathonId);
 
     }
 }

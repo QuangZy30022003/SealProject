@@ -18,23 +18,13 @@ namespace Repositories.Repos
             _context = context;
         }
 
-        //public async Task<IEnumerable<Challenge>> GetChallengesWithSeasonAndUserAsync()
-        //{
-        //    return await _context.Challenges
-        //        .Include(c => c.Season)
-        //        .Include(c => c.User)
-        //        .ToListAsync();
-        //}
+        public async Task<List<Challenge>> GetCompletedChallengesByHackathonIdAsync(int hackathonId)
+        {
+            return await _context.Challenges
+                .Include(c => c.Hackathon) // nếu cần thông tin hackathon
+                .Where(c => c.HackathonId == hackathonId && c.Status == "Complete")
+                .ToListAsync();
+        }
 
-        //public async Task<List<Challenge>> GetApprovedChallengesByHackathonAsync(int hackathonId)
-        //{
-        //    var hackathon = await _context.Hackathons.FindAsync(hackathonId);
-        //    if (hackathon == null) return new List<Challenge>();
-
-        //    return await _context.Challenges
-        //        .Include(c => c.Season)
-        //        .Where(c => c.Season.Code == hackathon.Season && c.Status == "Approved")
-        //        .ToListAsync();
-        //}
     }
 }
