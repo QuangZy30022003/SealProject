@@ -13,7 +13,6 @@ using Common.DTOs.TeamInvitationDto;
 using Common.DTOs.HackathonPhaseDto;
 using Common.DTOs.HackathonDto;
 using Common.DTOs.AssignedTeamDto;
-using Common.DTOs.TeamChallengeDto;
 using Common.DTOs.TeamMemberDto;
 using Common.DTOs.StudentVerification;
 using Common.DTOs.AppealDto;
@@ -39,22 +38,45 @@ namespace Common.Mappings
         {
             // Chapter
             CreateMap<CreateChapterDto, Chapter>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
-            CreateMap<UpdateChapterDto, Chapter>();
-            CreateMap<Chapter, ChapterDto>();
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.ChapterLeaderId, opt => opt.Ignore())
+                .ForMember(dest => dest.Teams, opt => opt.Ignore())
+                .ForMember(dest => dest.ChapterLeader, opt => opt.Ignore());
+            CreateMap<UpdateChapterDto, Chapter>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Teams, opt => opt.Ignore())
+                .ForMember(dest => dest.ChapterLeader, opt => opt.Ignore());
+            CreateMap<Chapter, ChapterDto>()
+            .ForMember(dest => dest.ChapterLeaderName,
+                opt => opt.MapFrom(src => src.ChapterLeader != null
+                    ? src.ChapterLeader.FullName
+                    : "(No leader)"));
 
+            // team
             CreateMap<CreateTeamDto, Team>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
-            .ForMember(dest => dest.TeamLeaderId, opt => opt.MapFrom(src => src.LeaderId));
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+
             CreateMap<UpdateTeamDto, Team>();
-            CreateMap<Team, TeamDto>();
+
+            CreateMap<Team, TeamDto>()
+                // Map basic info
+                .ForMember(dest => dest.TeamLeaderName,
+                    opt => opt.MapFrom(src => src.TeamLeader != null ? src.TeamLeader.FullName : "(No leader)"))
+
+                // Map Chapter name (if Chapter navigation is loaded)
+                .ForMember(dest => dest.ChapterName,
+                    opt => opt.MapFrom(src => src.Chapter != null ? src.Chapter.ChapterName : "(No chapter)"))
+
+                // Map Hackathon name (if Hackathon navigation is loaded)
+                .ForMember(dest => dest.HackathonName,
+                    opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : "(No hackathon)"));
             // Seasaon
             CreateMap<Season, SeasonResponse>();
             CreateMap<SeasonRequest, Season>()
       .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SeasonCode));
             CreateMap<SeasonUpdateDto, Season>();
             CreateMap<Season, SeasonResponse>()
-    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code)); // ✅ sửa lỗi null
+    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code)); 
 
             // Challenge
 

@@ -1,4 +1,6 @@
-﻿using Common.DTOs.ChapterDto;
+﻿using Common;
+using Common.DTOs.ChapterDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
@@ -11,12 +13,15 @@ namespace Seal.Controller
     public class ChapterController : ControllerBase
     {
         private readonly IChapterService _chapterService;
+        private readonly IUserContextService _userContext;
 
-        public ChapterController(IChapterService chapterService)
+        public ChapterController(IChapterService chapterService, IUserContextService userContext)
         {
             _chapterService = chapterService;
+            _userContext = userContext;
         }
 
+        [Authorize(Roles = "ChapterLeader")]
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] CreateChapterDto dto)
         {
@@ -24,7 +29,8 @@ namespace Seal.Controller
 
             try
             {
-                var result = await _chapterService.CreateChapterAsync(dto);
+                var userId = _userContext.GetCurrentUserId();
+                var result = await _chapterService.CreateChapterAsync(dto, userId);
                 return CreatedAtAction(nameof(GetById), new { id = result.ChapterId }, result);
             }
             catch (InvalidOperationException ex)
@@ -37,7 +43,7 @@ namespace Seal.Controller
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
             var result = await _chapterService.GetByIdAsync(id);
-            return result is null ? NotFound() : Ok(result);
+            return result is null ? NotFound(new { message = "Chapter not found" }) : Ok(result);
         }
 
         [HttpGet]
@@ -46,19 +52,36 @@ namespace Seal.Controller
             var result = await _chapterService.GetAllAsync();
             return Ok(result);
         }
-
+        [Authorize(Roles = "ChapterLeader")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateChapterDto dto)
         {
-            var result = await _chapterService.UpdateAsync(id, dto);
-            return result == null ? NotFound() : Ok(result);
-        }
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
+            var result = await _chapterService.UpdateAsync(id, dto);
+            if (result == null)
+                return NotFound(new { message = "Chapter not found" });
+
+            return Ok(result);
+        }
+        [Authorize(Roles = "ChapterLeader")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _chapterService.DeleteAsync(id);
-            return success ? Ok() : NotFound();
+            var userId = _userContext.GetCurrentUserId();
+
+            try
+            {
+                var success = await _chapterService.DeleteAsync(id, userId);
+                return success
+                    ? Ok(new { message = "Chapter deleted successfully" })
+                    : NotFound(new { message = "Chapter not found" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
         }
     }
 }

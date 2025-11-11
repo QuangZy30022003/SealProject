@@ -1,4 +1,6 @@
-﻿using Common.DTOs.TeamDto;
+﻿using Common;
+using Common.DTOs.TeamDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
@@ -11,21 +13,32 @@ namespace Seal.Controller
     public class TeamController : ControllerBase
     {
         private readonly ITeamService _teamService;
+        private readonly IUserContextService _userContext;
 
-        public TeamController(ITeamService teamService)
+        public TeamController(ITeamService teamService, IUserContextService userContext)
         {
             _teamService = teamService;
+            _userContext = userContext;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateTeam([FromBody] CreateTeamDto dto)
         {
-            var userId = int.Parse(User.FindFirst("UserId").Value);
-            dto.LeaderId = userId;
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var userId = _userContext.GetCurrentUserId();
+            dto.TeamLeaderId = userId;
+
             try
             {
                 var team = await _teamService.CreateTeamAsync(dto);
-                return Ok(team);
+                return CreatedAtAction(nameof(GetById), new { id = team.TeamId }, team);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -36,7 +49,9 @@ namespace Seal.Controller
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
             var result = await _teamService.GetByIdAsync(id);
-            return result is null ? NotFound() : Ok(result);
+            return result is null
+                ? NotFound(new { message = "Team not found" })
+                : Ok(result);
         }
 
         [HttpGet]
@@ -46,18 +61,47 @@ namespace Seal.Controller
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTeamDto dto)
         {
-            var result = await _teamService.UpdateAsync(id, dto);
-            return result == null ? NotFound() : Ok(result);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            try
+            {
+                var result = await _teamService.UpdateAsync(id, dto);
+                return result == null
+                    ? NotFound(new { message = "Team not found" })
+                    : Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _teamService.DeleteAsync(id);
-            return success ? Ok() : NotFound();
+            var userId = _userContext.GetCurrentUserId();
+
+            try
+            {
+                var success = await _teamService.DeleteAsync(id, userId);
+                return success
+                    ? Ok(new { message = "Team deleted successfully" })
+                    : NotFound(new { message = "Team not found" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
         }
     }
 }

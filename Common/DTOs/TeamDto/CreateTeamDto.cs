@@ -10,7 +10,6 @@ namespace Common.DTOs.TeamDto
     {
         public string TeamName { get; set; } = null!;
         public int? ChapterId { get; set; }
-        public int LeaderId { get; set; }
-        public int HackathonId { get; set; }
+        public int TeamLeaderId { get; set; }
     }
 }

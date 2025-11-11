@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.DTOs.ChapterDto;
+using Common.DTOs.TeamDto;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -21,52 +22,124 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        public async Task<ChapterDto> CreateChapterAsync(CreateChapterDto dto)
+        public async Task<TeamDto> CreateTeamAsync(CreateTeamDto dto)
         {
-            // check trùng tên
-            var exists = await _uow.Chapters.ExistsAsync(c => c.ChapterName == dto.ChapterName);
+            // 1. Check chapter existence
+            if (!dto.ChapterId.HasValue)
+                throw new InvalidOperationException("ChapterId is required");
+
+            var chapterExists = await _uow.Chapters.ExistsAsync(c => c.ChapterId == dto.ChapterId.Value);
+            if (!chapterExists)
+                throw new InvalidOperationException("Chapter does not exist. Please create a chapter first.");
+
+            // 2. Check duplicate name within same chapter
+            var exists = await _uow.Teams.ExistsAsync(t =>
+               t.TeamName == dto.TeamName &&
+               t.ChapterId == dto.ChapterId);
             if (exists)
+                throw new InvalidOperationException("Team name already exists in this chapter.");
+
+            // 3 Check student verification
+            var verification = await _uow.StudentVerifications
+                .FirstOrDefaultAsync(v => v.UserId == dto.TeamLeaderId);
+
+            if (verification == null || !string.Equals(verification.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Student has not been approved for verification. Cannot create team.");
+
+            // 4 Map & create team
+            var entity = _mapper.Map<Team>(dto);
+            entity.HackathonId = null;
+
+            await _uow.Teams.AddAsync(entity);
+            await _uow.SaveAsync();
+
+            // 5. Reload with includes
+            var created = await _uow.Teams.GetByIdIncludingAsync(
+                t => t.TeamId == entity.TeamId,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+
+            return _mapper.Map<TeamDto>(created);
+        }
+
+        public async Task<TeamDto?> GetByIdAsync(int id)
+        {
+            var entity = await _uow.Teams.GetByIdIncludingAsync(
+                t => t.TeamId == id,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+            return entity == null ? null : _mapper.Map<TeamDto>(entity);
+        }
+
+        public async Task<IEnumerable<TeamDto>> GetAllAsync()
+        {
+            var teams = await _uow.Teams.GetAllIncludingAsync(
+                null,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+            return _mapper.Map<IEnumerable<TeamDto>>(teams);
+        }
+
+        public async Task<TeamDto?> UpdateAsync(int id, UpdateTeamDto dto)
+        {
+            var team = await _uow.Teams.GetByIdAsync(id);
+            if (team == null) return null;
+
+            // Normalize 0 → null
+            if (dto.ChapterId == 0) dto.ChapterId = null;
+
+            // Change chapter if provided
+            if (dto.ChapterId.HasValue && dto.ChapterId.Value != team.ChapterId)
             {
-                throw new Exception("Chapter name already exists");
+                var chapterExists = await _uow.Chapters.ExistsAsync(c => c.ChapterId == dto.ChapterId.Value);
+                if (!chapterExists)
+                    throw new InvalidOperationException("Chapter does not exist.");
+                team.ChapterId = dto.ChapterId.Value;
             }
 
-            var entity = _mapper.Map<Chapter>(dto);
+            // Change name if provided
+            if (!string.IsNullOrWhiteSpace(dto.TeamName) &&
+                !string.Equals(team.TeamName, dto.TeamName, StringComparison.OrdinalIgnoreCase))
+            {
+                var exists = await _uow.Teams.ExistsAsync(t =>
+                    t.TeamName == dto.TeamName &&
+                    t.ChapterId == team.ChapterId &&
+                    t.TeamId != id);
+                if (exists)
+                    throw new InvalidOperationException("Team name already exists in this chapter.");
 
-            await _uow.Chapters.AddAsync(entity);
+                team.TeamName = dto.TeamName;
+            }
+
+            _uow.Teams.Update(team);
             await _uow.SaveAsync();
 
-            return _mapper.Map<ChapterDto>(entity);
-        }
-        public async Task<ChapterDto?> GetByIdAsync(int id)
-        {
-            var entity = await _uow.Chapters.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ChapterDto>(entity);
-        }
+            // Reload with include for return DTO
+            var updated = await _uow.Teams.GetByIdIncludingAsync(
+                t => t.TeamId == id,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
 
-        public async Task<IEnumerable<ChapterDto>> GetAllAsync()
-        {
-            var entities = await _uow.Chapters.GetAllAsync();
-            return _mapper.Map<IEnumerable<ChapterDto>>(entities);
+            return _mapper.Map<TeamDto>(updated);
         }
 
-        public async Task<ChapterDto?> UpdateAsync(int id, UpdateChapterDto dto)
+        public async Task<bool> DeleteAsync(int id, int userId)
         {
-            var chapter = await _uow.Chapters.GetByIdAsync(id);
-            if (chapter == null) return null;
+            var team = await _uow.Teams.GetByIdAsync(id);
+            if (team == null) return false;
 
-            chapter.ChapterName = dto.ChapterName;
-            _uow.Chapters.Update(chapter);
-            await _uow.SaveAsync();
+            if (team.TeamLeaderId != userId)
+                throw new UnauthorizedAccessException("You are not the leader of this team.");
 
-            return _mapper.Map<ChapterDto>(chapter);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var chapter = await _uow.Chapters.GetByIdAsync(id);
-            if (chapter == null) return false;
-
-            _uow.Chapters.Remove(chapter);
+            _uow.Teams.Remove(team);
             await _uow.SaveAsync();
             return true;
         }

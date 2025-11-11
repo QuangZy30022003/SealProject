@@ -10,10 +10,10 @@ namespace Service.Interface
 {
     public interface IChapterService
     {
-        Task<ChapterDto> CreateChapterAsync(CreateChapterDto dto);
+        Task<ChapterDto> CreateChapterAsync(CreateChapterDto dto, int userId);
         Task<ChapterDto?> GetByIdAsync(int id);
         Task<IEnumerable<ChapterDto>> GetAllAsync();
         Task<ChapterDto?> UpdateAsync(int id, UpdateChapterDto dto);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id, int userId);
     }
 }
