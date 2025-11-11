@@ -129,5 +129,14 @@ namespace Service.Servicefolder
             return null;
         }
 
+        public async Task<List<ChallengeDto>> GetCompletedChallengesByHackathonAsync(int hackathonId)
+        {
+            var challenges = await _uow.ChallengeRepository.GetCompletedChallengesByHackathonIdAsync(hackathonId);
+
+            if (challenges == null || !challenges.Any())
+                return new List<ChallengeDto>();
+
+            return _mapper.Map<List<ChallengeDto>>(challenges);
+        }
     }
 }

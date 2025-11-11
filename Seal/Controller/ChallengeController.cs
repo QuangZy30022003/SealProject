@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
+using Service.Servicefolder;
 
 namespace Seal.Controller
 {
@@ -31,7 +32,7 @@ namespace Seal.Controller
             return Ok(challenge);
         }
 
-        [Authorize(Roles = "Partner")]
+        [Authorize(Roles = "Partner, Admin")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] ChallengeCreateUnifiedDto dto)
         {
@@ -42,7 +43,7 @@ namespace Seal.Controller
             return Ok(result);
         }
 
-        [Authorize(Roles = "Partner")]
+        [Authorize(Roles = "Partner, Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -62,7 +63,7 @@ namespace Seal.Controller
             if (!success) return NotFound();
             return NoContent();
         }
-        [Authorize(Roles = "Partner")]
+        [Authorize(Roles = "Partner, Admin")]
         [HttpPut("{id}/partner")]
         public async Task<IActionResult> PartnerUpdate(int id, [FromForm] ChallengePartnerUpdateDto dto)
         {
@@ -77,6 +78,18 @@ namespace Seal.Controller
                 return BadRequest(new { message = errorMessage });
 
             return NoContent();
+        }
+        [Authorize(Roles = "Admin")]
+
+        [HttpGet("completed/{hackathonId}")]
+        public async Task<IActionResult> GetCompletedChallengesByHackathon(int hackathonId)
+        {
+            var result = await _service.GetCompletedChallengesByHackathonAsync(hackathonId);
+
+            if (result == null || result.Count == 0)
+                return NotFound("No completed challenges found for this hackathon.");
+
+            return Ok(result);
         }
     }
 }
