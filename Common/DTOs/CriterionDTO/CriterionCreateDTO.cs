@@ -6,42 +6,37 @@ using System.Threading.Tasks;
 
 namespace Common.DTOs.CriterionDTO
 {
-    public class CriterionDetailDTO
+    // CriterionCreateDto.cs
+    public class CriterionCreateDto
     {
-        public int CriterionDetailId { get; set; }
-        public string Description { get; set; } = null!;
-        public int MaxScore { get; set; }
+        public int PhaseId { get; set; }
+        public int? TrackId { get; set; }
+
+        public List<CriterionItemDto> Criteria { get; set; } = new List<CriterionItemDto>();
     }
 
-    public class CriterionDetailCreateDTO
+    public class CriterionItemDto
     {
-        public string Description { get; set; } = null!;
-        public int MaxScore { get; set; }
-    }
-
-    public class CriterionCreateDTO
-    {
-        public int PhaseChallengeId { get; set; }
-        public string Name { get; set; } = null!;
+        public string Name { get; set; }
         public decimal Weight { get; set; }
-        public List<CriterionDetailCreateDTO>? Details { get; set; }
     }
 
-    public class CriterionUpdateDTO
+    // CriterionUpdateDto.cs
+    public class CriterionUpdateDto
+    {
+        public int? TrackId { get; set; }
+        public string Name { get; set; }
+        public decimal Weight { get; set; }
+    }
+
+    // CriterionResponseDto.cs
+    public class CriterionResponseDto
     {
         public int CriteriaId { get; set; }
-        public string Name { get; set; } = null!;
+        public int PhaseId { get; set; }
+        public int? TrackId { get; set; }
+        public string Name { get; set; }
         public decimal Weight { get; set; }
-        public List<CriterionDetailCreateDTO>? Details { get; set; }
     }
 
-    public class CriterionReadDTO
-    {
-        public int CriteriaId { get; set; }
-        public string Name { get; set; } = null!;
-        public decimal Weight { get; set; }
-        public int PhaseChallengeId { get; set; }
-        public string? PhaseChallengeName { get; set; }
-        public List<CriterionDetailDTO>? Details { get; set; }
-    }
 }

@@ -22,90 +22,118 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-    
-        public async Task<CriterionReadDTO?> GetByIdAsync(int id)
+
+        // Create
+
+        public async Task<List<CriterionResponseDto>> CreateAsync(CriterionCreateDto dto)
         {
-            var entity = await _uow.Criteria.GetAllIncludingAsync(
-                c => c.CriteriaId == id,
-                c => c.CriterionDetails);
+            // ✅ Kiểm tra Phase
+            var phaseExists = await _uow.HackathonPhases.ExistsAsync(p => p.PhaseId == dto.PhaseId);
+            if (!phaseExists)
+                throw new Exception("Phase not found");
 
-            var criterion = entity.FirstOrDefault();
-            return criterion == null ? null : _mapper.Map<CriterionReadDTO>(criterion);
-        }
-
-
-        public async Task<CriterionReadDTO> CreateAsync(CriterionCreateDTO dto)
-        {
-            var entity = _mapper.Map<Criterion>(dto);
-
-            if (dto.Details != null && dto.Details.Any())
+            // ✅ Kiểm tra Track (nếu có)
+            if (dto.TrackId.HasValue)
             {
-                entity.CriterionDetails = dto.Details.Select(d => new CriterionDetail
-                {
-                    Description = d.Description,
-                    MaxScore = d.MaxScore
-                }).ToList();
+                var trackExists = await _uow.Tracks.ExistsAsync(t => t.TrackId == dto.TrackId.Value && t.PhaseId == dto.PhaseId);
+                if (!trackExists)
+                    throw new Exception("Track not found for this phase");
             }
 
-            await _uow.Criteria.AddAsync(entity);
+            // ✅ Validate danh sách
+            if (dto.Criteria == null || dto.Criteria.Count == 0)
+                throw new Exception("At least one criterion is required");
+
+            // ✅ Validate từng item
+            foreach (var item in dto.Criteria)
+            {
+                if (string.IsNullOrWhiteSpace(item.Name))
+                    throw new Exception("Criterion name cannot be empty");
+
+                if (item.Weight <= 0)
+                    throw new Exception("Weight must be greater than 0");
+            }
+
+            // ✅ Tạo danh sách Criterion
+            var createdCriteria = new List<Criterion>();
+
+            foreach (var item in dto.Criteria)
+            {
+                var criterion = new Criterion
+                {
+                    PhaseId = dto.PhaseId,
+                    TrackId = dto.TrackId,
+                    Name = item.Name,
+                    Weight = item.Weight
+                };
+                await _uow.Criteria.AddAsync(criterion);
+                createdCriteria.Add(criterion);
+            }
+
             await _uow.SaveAsync();
 
-            var created = await _uow.Criteria.GetAllIncludingAsync(
-                c => c.CriteriaId == entity.CriteriaId,
-                c => c.CriterionDetails);
-
-            return _mapper.Map<CriterionReadDTO>(created.First());
+            return _mapper.Map<List<CriterionResponseDto>>(createdCriteria);
         }
 
-        public async Task<bool> UpdateAsync(CriterionUpdateDTO dto)
+
+        // Get all
+        public async Task<List<CriterionResponseDto>> GetAllAsync(int? phaseId = null)
         {
-            var entity = await _uow.Criteria.GetAllIncludingAsync(
-                c => c.CriteriaId == dto.CriteriaId,
-                c => c.CriterionDetails);
+            var criteria = await _uow.Criteria.GetAllIncludingAsync(
+                c => !phaseId.HasValue || c.PhaseId == phaseId.Value,
+                c => c.Phase,
+                c => c.Track
+            );
 
-            var criterion = entity.FirstOrDefault();
-            if (criterion == null) return false;
+            return _mapper.Map<List<CriterionResponseDto>>(criteria);
+        }
 
-            // Update main fields
+        // Get by Id
+        public async Task<CriterionResponseDto?> GetByIdAsync(int id)
+        {
+            var criterion = await _uow.Criteria.GetByIdIncludingAsync(
+                c => c.CriteriaId == id,
+                c => c.Phase,
+                c => c.Track
+            );
+
+            if (criterion == null) return null;
+            return _mapper.Map<CriterionResponseDto>(criterion);
+        }
+
+        // Update
+        public async Task<CriterionResponseDto?> UpdateAsync(int id, CriterionUpdateDto dto)
+        {
+            var criterion = await _uow.Criteria.GetByIdAsync(id);
+            if (criterion == null) return null;
+
+            // Validate Track nếu TrackId != null
+            if (dto.TrackId.HasValue)
+            {
+                var trackExists = await _uow.Tracks.ExistsAsync(t => t.TrackId == dto.TrackId.Value && t.PhaseId == criterion.PhaseId);
+                if (!trackExists)
+                    throw new Exception("Track not found for this phase");
+            }
+
             criterion.Name = dto.Name;
             criterion.Weight = dto.Weight;
-
-            // Replace old details with new
-            if (dto.Details != null)
-            {
-                criterion.CriterionDetails.Clear();
-                foreach (var detail in dto.Details)
-                {
-                    criterion.CriterionDetails.Add(new CriterionDetail
-                    {
-                        Description = detail.Description,
-                        MaxScore = detail.MaxScore
-                    });
-                }
-            }
+            criterion.TrackId = dto.TrackId;
 
             _uow.Criteria.Update(criterion);
             await _uow.SaveAsync();
-            return true;
+
+            return _mapper.Map<CriterionResponseDto>(criterion);
         }
 
+        // Delete
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _uow.Criteria.GetByIdAsync(id);
-            if (entity == null) return false;
+            var criterion = await _uow.Criteria.GetByIdAsync(id);
+            if (criterion == null) return false;
 
-            _uow.Criteria.Remove(entity);
+            _uow.Criteria.Remove(criterion);
             await _uow.SaveAsync();
             return true;
-        }
-
-        public async Task<IEnumerable<CriterionReadDTO>> GetAllAsync()
-        {
-            var entities = await _uow.Criteria.GetAllIncludingAsync(
-                c => true,
-                c => c.CriterionDetails);
-
-            return _mapper.Map<IEnumerable<CriterionReadDTO>>(entities);
         }
     }
 }

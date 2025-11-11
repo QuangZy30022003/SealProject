@@ -9,54 +9,64 @@ namespace Seal.Controller
     [ApiController]
     public class CriterionController : ControllerBase
     {
-        private readonly ICriterionService _criterionService;
+        private readonly ICriterionService _service;
 
-        public CriterionController(ICriterionService criterionService)
+        public CriterionController(ICriterionService service)
         {
-            _criterionService = criterionService;
-        }
-        [HttpGet("{id}")]
-        [Authorize]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var result = await _criterionService.GetByIdAsync(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            _service = service;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CriterionCreateDTO dto)
+        public async Task<IActionResult> Create([FromBody] CriterionCreateDto dto)
         {
-            var result = await _criterionService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.CriteriaId }, result);
-        }
-
-        [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, [FromBody] CriterionUpdateDTO dto)
-        {
-            dto.CriteriaId = id;
-            var success = await _criterionService.UpdateAsync(dto);
-            if (!success) return NotFound();
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success = await _criterionService.DeleteAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
+            try
+            {
+                var result = await _service.CreateAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? phaseId)
         {
-            var result = await _criterionService.GetAllAsync();
+            var result = await _service.GetAllAsync(phaseId);
             return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CriterionUpdateDto dto)
+        {
+            try
+            {
+                var result = await _service.UpdateAsync(id, dto);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound();
+            return Ok();
         }
     }
 }
