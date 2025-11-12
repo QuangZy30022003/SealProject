@@ -41,6 +41,7 @@ namespace Service
             service.AddScoped<ITrackService, TrackService>();
             service.AddScoped<ITeamTrackService, TeamTrackService>();
             service.AddScoped<IJudgeAssignmentService, JudgeAssignmentService>();
+            service.AddScoped<IGroupService, GroupService>();
             return service;
 
         }
