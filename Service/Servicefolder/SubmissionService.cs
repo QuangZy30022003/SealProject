@@ -110,7 +110,40 @@ namespace Service.Servicefolder
             return _mapper.Map<List<SubmissionResponseDto>>(teamSubmissions);
         }
 
+         public async Task<List<SubmissionResponseDto>> GetFinalSubmissionsByPhaseAsync(int phaseId, int userId, string role)
+        {
+            IEnumerable<Submission> submissions;
 
+            if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                role.Equals("SystemAdministrator", StringComparison.OrdinalIgnoreCase))
+            {
+                submissions = await _uow.Submissions.GetAllIncludingAsync(
+                    s => s.IsFinal && s.PhaseId == phaseId,
+                    s => s.Team,
+                    s => s.Team.TeamTrackSelections
+                );
+            }
+            else if (role.Equals("Judge", StringComparison.OrdinalIgnoreCase))
+            {
+                var assigned = await _uow.JudgeAssignments.ExistsAsync(
+                    j => j.JudgeId == userId && j.PhaseId == phaseId
+                );
 
+                if (!assigned)
+                    throw new Exception("You are not assigned to this phase.");
+
+                submissions = await _uow.Submissions.GetAllIncludingAsync(
+                    s => s.IsFinal && s.PhaseId == phaseId,
+                    s => s.Team,
+                    s => s.Team.TeamTrackSelections
+                );
+            }
+            else
+            {
+                throw new Exception("You are not authorized to view submissions.");
+            }
+
+            return _mapper.Map<List<SubmissionResponseDto>>(submissions);
+        }
     }
 }

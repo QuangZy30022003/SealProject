@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common.DTOs.GroupDto
+{
+    public class CreateGroupsRequestDto
+    {
+        public int TeamsPerGroup { get; set; }
+    }
+    public class GroupDto
+    {
+        public int GroupId { get; set; }         // ID của group
+        public string GroupName { get; set; }    // Tên group (A, B, C...)
+        public int TrackId { get; set; }         // Track mà group thuộc về
+        public List<int> TeamIds { get; set; } = new List<int>(); // Danh sách TeamId trong group
+        public DateTime CreatedAt { get; set; }  // Thời gian tạo group (nếu muốn trả về)
+    }
+}
