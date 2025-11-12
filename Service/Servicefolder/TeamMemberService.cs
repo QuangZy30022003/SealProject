@@ -25,16 +25,16 @@ namespace Service.Servicefolder
         public async Task<string> KickMemberAsync(int teamId, int memberId, int currentUserId)
         {
             var team = await _uow.Teams.GetByIdAsync(teamId);
-            if (team == null) throw new Exception("Team not found");
+            if (team == null) throw new Exception("Team not found.");
 
             if (team.TeamLeaderId != currentUserId)
-                throw new UnauthorizedAccessException("Only leader can kick members");
+                throw new UnauthorizedAccessException("Only leader can kick members.");
 
             var member = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == memberId);
-            if (member == null) throw new Exception("Member not found in team");
+            if (member == null) throw new Exception("Member not found in team.");
 
             if (member.UserId == team.TeamLeaderId)
-                throw new Exception("Leader cannot be kicked");
+                throw new Exception("Leader cannot be kicked.");
 
             _uow.TeamMembers.Remove(member);
             await _uow.SaveAsync();
@@ -45,7 +45,7 @@ namespace Service.Servicefolder
         public async Task<string> LeaveTeamAsync(int teamId, int userId)
         {
             var member = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
-            if (member == null) throw new Exception("You are not in this team");
+            if (member == null) throw new Exception("You are not in this team.");
 
             var team = await _uow.Teams.GetByIdAsync(teamId);
             if (team.TeamLeaderId == userId)
@@ -57,23 +57,41 @@ namespace Service.Servicefolder
             return "You have left the team.";
         }
 
-        //public async Task<string> ChangeRoleAsync(int teamId, int memberId, string newRole, int currentUserId)
-        //{
-        //    var team = await _uow.Teams.GetByIdAsync(teamId);
-        //    if (team == null) throw new Exception("Team not found");
+        public async Task<string> ChangeLeaderAsync(int teamId, int newLeaderId, int currentLeaderId)
+        {
+            var team = await _uow.Teams.GetByIdAsync(teamId);
+            if (team == null)
+                throw new Exception("Team not found.");
 
-        //    if (team.LeaderId != currentUserId)
-        //        throw new UnauthorizedAccessException("Only leader can change roles");
+            if (team.TeamLeaderId != currentLeaderId)
+                throw new UnauthorizedAccessException("Only the current leader can transfer leadership.");
 
-        //    var member = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == memberId);
-        //    if (member == null) throw new Exception("Member not found");
+            // 🚫 Không cho chuyển cho chính mình
+            if (newLeaderId == currentLeaderId)
+                throw new Exception("Cannot transfer leadership to yourself.");
 
-        //    member.RoleInTeam = newRole;
-        //    _uow.TeamMembers.Update(member);
-        //    await _uow.SaveAsync();
+            var newLeader = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == newLeaderId);
+            if (newLeader == null)
+                throw new Exception("The specified user is not a member of this team.");
 
-        //    return $"Role of user {memberId} changed to {newRole}";
-        //}
+            // Cập nhật role trong TeamMembers
+            var oldLeader = await _uow.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == currentLeaderId);
+            if (oldLeader != null)
+            {
+                oldLeader.RoleInTeam = "Member";
+                _uow.TeamMembers.Update(oldLeader);
+            }
+
+            newLeader.RoleInTeam = "Leader";
+            _uow.TeamMembers.Update(newLeader);
+
+            // Cập nhật Team.TeamLeaderId
+            team.TeamLeaderId = newLeaderId;
+            _uow.Teams.Update(team);
+
+            await _uow.SaveAsync();
+            return $"Leadership has been successfully transferred to user ID {newLeaderId}.";
+        }
 
         public async Task<IEnumerable<TeamMemberDto>> GetTeamMembersAsync(int teamId)
         {
@@ -81,7 +99,6 @@ namespace Service.Servicefolder
                 m => m.TeamId == teamId,
                 m => m.User
             );
-
 
             return _mapper.Map<IEnumerable<TeamMemberDto>>(members);
         }

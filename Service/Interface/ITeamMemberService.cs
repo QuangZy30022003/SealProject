@@ -11,7 +11,7 @@ namespace Service.Interface
     {
         Task<string> KickMemberAsync(int teamId, int memberId, int currentUserId);
         Task<string> LeaveTeamAsync(int teamId, int userId);
-        //Task<string> ChangeRoleAsync(int teamId, int memberId, string newRole, int currentUserId);
+        Task<string> ChangeLeaderAsync(int teamId, int newLeaderId, int currentLeaderId);
         Task<IEnumerable<TeamMemberDto>> GetTeamMembersAsync(int teamId);
     }
 }

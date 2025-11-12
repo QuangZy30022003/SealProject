@@ -35,23 +35,49 @@ namespace Service.Servicefolder
             if (user == null)
                 throw new Exception("User not found.");
 
-            // 3. Check user đã là member của team khác chưa
-            var existingMember = await _uow.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == userId);
-            if (existingMember != null)
-                throw new Exception("You are already a member of another team.");
+            // 3. Check user đã ở team khác chưa
+            if (team.HackathonId == null)
+            {
+                // 🧩 Team chưa có hackathon — check xem user đã trong team khác cũng chưa đăng ký chưa
+                bool alreadyInUnregisteredTeam = await _uow.Teams.ExistsAsync(t =>
+                    t.HackathonId == null &&
+                    (t.TeamLeaderId == userId || t.TeamMembers.Any(tm => tm.UserId == userId)) &&
+                    t.TeamId != team.TeamId);
 
-            // 4. Check đã có request pending chưa
+                if (alreadyInUnregisteredTeam)
+                    throw new InvalidOperationException("You are already in another team that hasn't registered for any hackathon.");
+            }
+            else
+            {
+                // 🧩 Team có hackathon — check cùng hackathon
+                bool alreadyInTeamSameHackathon = await _uow.Teams.ExistsAsync(t =>
+                    t.HackathonId == team.HackathonId &&
+                    (t.TeamLeaderId == userId || t.TeamMembers.Any(tm => tm.UserId == userId)) &&
+                    t.TeamId != team.TeamId);
+
+                if (alreadyInTeamSameHackathon)
+                    throw new InvalidOperationException("You are already a member of another team in this hackathon.");
+            }
+
+            // 4. check lời mời pending
+            var pendingInvite = await _uow.TeamInvitations.FirstOrDefaultAsync(i =>
+                i.InvitedEmail.ToLower() == user.Email.ToLower() &&
+                i.Status == "Pending");
+            if (pendingInvite != null)
+                throw new Exception("You already have a pending invitation.");
+
+            // 5. Check đã có request pending chưa
             var existingRequest = await _uow.TeamJoinRequests.FirstOrDefaultAsync(r =>
                 r.TeamId == dto.TeamId && r.UserId == userId && r.Status == JoinRequestStatus.Pending);
             if (existingRequest != null)
                 throw new Exception("You already have a pending request for this team.");
 
-            // 5. Check team đã đủ member chưa (giả sử max 5 members)
+            // 6. Check team đã đủ member chưa
             var memberCount = await _uow.TeamMembers.CountAsync(tm => tm.TeamId == dto.TeamId);
             if (memberCount >= 5)
                 throw new Exception("This team is full.");
 
-            // 6. Tạo request mới
+            // 7. Tạo request
             var request = new TeamJoinRequest
             {
                 TeamId = dto.TeamId,
@@ -89,56 +115,105 @@ namespace Service.Servicefolder
 
         public async Task<JoinRequestResponseDto?> RespondToJoinRequestAsync(int requestId, RespondToJoinRequestDto dto, int leaderId)
         {
+            // 1️ Load request
             var request = await _uow.TeamJoinRequests.GetByIdAsync(requestId);
             if (request == null)
                 return null;
 
-            // Check leader có quyền duyệt không
+            // 2️ Xác minh quyền xử lý
             var team = await _uow.Teams.GetByIdAsync(request.TeamId);
-            if (team?.TeamLeaderId != leaderId)
-                throw new UnauthorizedAccessException("Only team leader can respond to join requests.");
+            if (team == null)
+                throw new Exception("Team not found.");
+            if (team.TeamLeaderId != leaderId)
+                throw new UnauthorizedAccessException("Only the team leader can respond to join requests.");
 
-            // Check request chưa được xử lý
+            // 3️ Kiểm tra trạng thái hiện tại
             if (request.Status != JoinRequestStatus.Pending)
                 throw new Exception("This request has already been processed.");
 
+            string? rejectReason = null; // nếu có lỗi, sẽ dùng để reject
+
+            // 2️ Kiểm tra điều kiện trước khi xét duyệt
+            // 2.1️ Check team đã đủ chưa
+            var memberCount = await _uow.TeamMembers.CountAsync(tm => tm.TeamId == request.TeamId);
+            if (memberCount >= 5)
+                rejectReason = "Team is full (maximum 5 members).";
+
+            // 2.2️ Check user đã ở team khác chưa
+            var existingMember = await _uow.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == request.UserId);
+            if (existingMember != null)
+                rejectReason = "User is already a member of another team.";
+
+            // 2.3️ Check hackathon consistency
+            var userOtherTeam = await _uow.Teams.FirstOrDefaultAsync(t =>
+                (t.TeamLeaderId == request.UserId || t.TeamMembers.Any(tm => tm.UserId == request.UserId)) &&
+                t.TeamId != request.TeamId);
+
+            if (userOtherTeam != null)
+            {
+                if (userOtherTeam.HackathonId != null && team.HackathonId == userOtherTeam.HackathonId)
+                    rejectReason = "User is already in another team for the same hackathon.";
+
+                if (userOtherTeam.HackathonId == null && team.HackathonId == null)
+                    rejectReason = "User is already in another unregistered team.";
+            }
+
+            // 3️ Nếu có lỗi → auto reject
+            if (rejectReason != null)
+            {
+                request.Status = JoinRequestStatus.Rejected;
+                request.LeaderResponse = rejectReason;
+                request.RespondedAt = DateTime.UtcNow;
+
+                _uow.TeamJoinRequests.Update(request);
+                await _uow.SaveAsync();
+
+                var rejected = await _uow.TeamJoinRequests.GetByIdIncludingAsync(
+                    r => r.RequestId == requestId,
+                    r => r.User,
+                    r => r.Team
+                );
+
+                return _mapper.Map<JoinRequestResponseDto>(rejected);
+            }
+
+            // 4️ Không có lỗi → xử lý theo DTO
             request.Status = dto.Status;
             request.LeaderResponse = dto.LeaderResponse;
             request.RespondedAt = DateTime.UtcNow;
 
-            // Nếu approved, thêm user vào team
+            // 5️ Nếu leader Approve → thêm vào team
             if (dto.Status == JoinRequestStatus.Approved)
             {
-                // Check team chưa đủ member
-                var memberCount = await _uow.TeamMembers.CountAsync(tm => tm.TeamId == request.TeamId);
-                if (memberCount >= 5)
-                    throw new Exception("Team is full, cannot add more members.");
-
-                // Check user chưa là member của team khác
-                var existingMember = await _uow.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == request.UserId);
-                if (existingMember != null)
-                    throw new Exception("User is already a member of another team.");
-
-                // Thêm user vào team
-                var teamMember = new TeamMember
+                await _uow.TeamMembers.AddAsync(new TeamMember
                 {
                     TeamId = request.TeamId,
                     UserId = request.UserId,
                     RoleInTeam = "Member"
-                };
-
-                await _uow.TeamMembers.AddAsync(teamMember);
+                });
             }
 
+            // 6️ Lưu thay đổi
             _uow.TeamJoinRequests.Update(request);
             await _uow.SaveAsync();
 
-            return _mapper.Map<JoinRequestResponseDto>(request);
+            // 7️ Load lại request có Include để map đầy đủ
+            var updatedRequest = await _uow.TeamJoinRequests.GetByIdIncludingAsync(
+                r => r.RequestId == requestId,
+                r => r.User,
+                r => r.Team
+            );
+
+            return _mapper.Map<JoinRequestResponseDto>(updatedRequest);
         }
 
         public async Task<JoinRequestResponseDto?> GetJoinRequestByIdAsync(int requestId)
         {
-            var request = await _uow.TeamJoinRequests.GetByIdAsync(requestId);
+            var request = await _uow.TeamJoinRequests.GetByIdIncludingAsync(
+                r => r.RequestId == requestId,
+                r => r.User,
+                r => r.Team
+            );
             return request == null ? null : _mapper.Map<JoinRequestResponseDto>(request);
         }
     }

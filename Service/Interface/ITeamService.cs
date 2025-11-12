@@ -10,7 +10,7 @@ namespace Service.Interface
 {
     public interface ITeamService
     {
-        Task<TeamDto> CreateTeamAsync(CreateTeamDto dto);
+        Task<TeamDto> CreateTeamAsync(CreateTeamDto dto, int userId);
         Task<TeamDto?> GetByIdAsync(int id);
         Task<IEnumerable<TeamDto>> GetAllAsync();
         Task<TeamDto?> UpdateAsync(int id, UpdateTeamDto dto);
