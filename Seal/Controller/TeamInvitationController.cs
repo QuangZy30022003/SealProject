@@ -21,44 +21,98 @@ namespace Seal.Controller
             _userContext = userContext;
         }
 
-        // POST: api/TeamInvitation/accept?code=guid
         [Authorize]
         [HttpPost("{teamId}/invite")]
-        public async Task<IActionResult> Invite(int teamId, [FromBody] InviteMemberRequest request)
+        public async Task<IActionResult> InviteMember(int teamId, [FromBody] InviteMemberRequest request)
         {
-            var userId = _userContext.GetCurrentUserId();
-            var link = await _invitationService.InviteMemberAsync(teamId, request.Email, userId);
-            return Ok(new { message = "Invitation sent.", link });
+            try
+            {
+                var userId = _userContext.GetCurrentUserId();
+                var link = await _invitationService.InviteMemberAsync(teamId, request.Email, userId);
+
+                return Ok(ApiResponse<object>.Ok(new { link }, "Invitation sent successfully."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
         }
 
         // POST: api/TeamInvitation/accept?code=guid
         [Authorize]
         [HttpPost("accept")]
-        public async Task<IActionResult> Accept([FromQuery] Guid code)
+        public async Task<IActionResult> AcceptInvitation([FromQuery] Guid code)
         {
-            var userId = _userContext.GetCurrentUserId();
-            var result = await _invitationService.AcceptInvitationAsync(code, userId);
+            try
+            {
+                var userId = _userContext.GetCurrentUserId();
+                var result = await _invitationService.AcceptInvitationAsync(code, userId);
 
-            return Ok(ApiResponse<AcceptInvitationResult>.Ok(result, result.Message));
+                // ✅ Nếu thất bại (nghiệp vụ) thì trả về 409 Conflict (hoặc 400 tùy chính sách)
+                if (result.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase))
+                    return Conflict(ApiResponse<InvitationResult>.Ok(result, result.Message));
+
+
+                // ✅ Thành công hoàn toàn
+                return Ok(ApiResponse<InvitationResult>.Ok(result, result.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Nếu người khác dùng link invite không phải của họ
+                return Unauthorized(ApiResponse<object>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                // Bắt các lỗi hệ thống (invalid code, expired,...)
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
         }
 
 
         // POST: api/TeamInvitation/reject?code=guid
         [Authorize]
         [HttpPost("reject")]
-        public async Task<IActionResult> Reject([FromQuery] Guid code)
+        public async Task<IActionResult> RejectInvitation([FromQuery] Guid code)
         {
-            var userId = _userContext.GetCurrentUserId();
-            var result = await _invitationService.RejectInvitationAsync(code, userId);
-            return Ok(new { message = result });
+            try
+            {
+                var userId = _userContext.GetCurrentUserId();
+                var result = await _invitationService.RejectInvitationAsync(code, userId);
+
+                // ✅ Nếu thất bại (nghiệp vụ) thì trả về 409 Conflict (hoặc 400 tùy chính sách)
+                if (result.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase))
+                    return Conflict(ApiResponse<InvitationResult>.Ok(result, result.Message));
+
+
+                // ✅ Thành công hoàn toàn
+                return Ok(ApiResponse<InvitationResult>.Ok(result, result.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Nếu người khác dùng link invite không phải của họ
+                return Unauthorized(ApiResponse<object>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                // Bắt các lỗi hệ thống (invalid code, expired,...)
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
         }
+
         // GET: api/TeamInvitation/status?code=guid
         [Authorize]
         [HttpGet("status")]
-        public async Task<IActionResult> GetStatus([FromQuery] Guid code)
+        public async Task<IActionResult> GetInvitationStatus([FromQuery] Guid code)
         {
-            var result = await _invitationService.GetInvitationStatusAsync(code);
-            return Ok(result);
+            try
+            {
+                var result = await _invitationService.GetInvitationStatusAsync(code);
+                return Ok(ApiResponse<InvitationStatusDto>.Ok(result, "Invitation status retrieved successfully."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
         }
 
     }

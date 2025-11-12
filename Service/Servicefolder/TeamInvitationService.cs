@@ -27,22 +27,57 @@ namespace Service.Servicefolder
         {
             var team = await _uow.Teams.GetByIdAsync(teamId);
             if (team == null)
-                throw new Exception("Team not found");
+                throw new Exception("Team not found.");
 
             if (team.TeamLeaderId != inviterUserId)
-                throw new UnauthorizedAccessException("Only team leader can invite");
+                throw new UnauthorizedAccessException("Only team leader can invite members.");
 
-            // Dùng ExistsAsync thay cho IsEmailInvitedAsync
+            // Check member count (max 5)
+            var memberCount = await _uow.TeamMembers.CountAsync(m => m.TeamId == teamId);
+            if (memberCount >= 5)
+                throw new Exception("Team already has maximum number of members (5).");
+
+            // Check nếu user đã ở team khác
+            var invitedUser = await _uow.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            if (invitedUser != null)
+            {
+                if (team.HackathonId == null)
+                {
+                    // 🧩 Trường hợp team chưa có hackathon — user chỉ được ở 1 team "chưa đăng ký hackathon"
+                    bool alreadyInUnregisteredTeam = await _uow.Teams.ExistsAsync(t =>
+                        t.HackathonId == null &&
+                        (t.TeamLeaderId == invitedUser.UserId || t.TeamMembers.Any(tm => tm.UserId == invitedUser.UserId)) &&
+                        t.TeamId != team.TeamId);
+
+                    if (alreadyInUnregisteredTeam)
+                        throw new InvalidOperationException("User is already in another team that hasn't registered for any hackathon.");
+                }
+                else
+                {
+                    // 🧩 Trường hợp team đã thuộc hackathon — check cùng hackathon
+                    bool alreadyInTeamSameHackathon = await _uow.Teams.ExistsAsync(t =>
+                        t.HackathonId == team.HackathonId &&
+                        (t.TeamLeaderId == invitedUser.UserId || t.TeamMembers.Any(tm => tm.UserId == invitedUser.UserId)) &&
+                        t.TeamId != team.TeamId);
+
+                    if (alreadyInTeamSameHackathon)
+                        throw new InvalidOperationException("User is already in another team in this hackathon.");
+                }
+            }
+
+            // Check đã có lời mời pending chưa
             var alreadyInvited = await _uow.TeamInvitations.ExistsAsync(i =>
                 i.TeamId == teamId &&
                 i.InvitedEmail.ToLower() == email.ToLower() &&
                 i.Status == InvitationStatus.Pending);
 
             if (alreadyInvited)
-                throw new Exception("This email has already been invited");
+                throw new Exception("This email has already been invited.");
 
             var invitation = new TeamInvitation
             {
+                InvitationId = Guid.NewGuid(),
+                InvitationCode = Guid.NewGuid(),
                 TeamId = teamId,
                 InvitedEmail = email,
                 InvitedByUserId = inviterUserId,
@@ -56,113 +91,156 @@ namespace Service.Servicefolder
             var inviteLink = $"https://sealfall25.somee.com/api/TeamInvitation/accept-link?code={invitation.InvitationCode}";
             var subject = $"Lời mời tham gia nhóm: {team.TeamName}";
             var body = $@"
-        <p>Xin chào,</p>
-        <p>Bạn đã được mời tham gia nhóm <strong>{team.TeamName}</strong> trên hệ thống SEAL.</p>
-        <p>Nhấn vào nút bên dưới để chấp nhận lời mời:</p>
-        <p><a href='{inviteLink}' style='padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none;'>Chấp nhận lời mời</a></p>
-        <p>Hoặc bạn có thể dán link này vào trình duyệt: <br /><a href='{inviteLink}'>{inviteLink}</a></p>
-        <br />
-        <p><i>Lưu ý: Lời mời sẽ hết hạn sau 7 ngày.</i></p>
-    ";
+                <p>Xin chào,</p>
+                <p>Bạn đã được mời tham gia nhóm <strong>{team.TeamName}</strong> trên hệ thống SEAL.</p>
+                <p><a href='{inviteLink}' style='padding:10px 15px;background:#28a745;color:white;text-decoration:none;'>Chấp nhận lời mời</a></p>
+                <p>Hoặc dán link này vào trình duyệt: <a href='{inviteLink}'>{inviteLink}</a></p>
+                <p><i>Lưu ý: Lời mời hết hạn sau 7 ngày.</i></p>";
 
             await _emailService.SendEmailAsync(email, subject, body);
-            Console.WriteLine($"[Invitation Link]: {inviteLink}");
-
             return inviteLink;
         }
 
-        public async Task<AcceptInvitationResult> AcceptInvitationAsync(Guid code, int userId)
+        public async Task<InvitationResult> AcceptInvitationAsync(Guid code, int userId)
         {
+            // 1️ Kiểm tra invitation hợp lệ
             var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(i => i.InvitationCode == code);
-            if (invitation == null || invitation.Status != "Pending" || invitation.ExpiresAt < DateTime.UtcNow)
-                throw new Exception("Invitation is invalid or expired.");
+            if (invitation == null || invitation.Status != InvitationStatus.Pending || invitation.ExpiresAt < DateTime.UtcNow)
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "Invitation is invalid or expired."
+                };
 
             var user = await _uow.Users.GetByIdAsync(userId);
             if (user == null)
-                throw new UnauthorizedAccessException("User not found");
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "User not found."
+                };
 
             if (!string.Equals(user.Email, invitation.InvitedEmail, StringComparison.OrdinalIgnoreCase))
-                throw new UnauthorizedAccessException("This invitation is not for your account");
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "This invitation is not for your account."
+                };
 
-            // Đánh dấu accepted
-            invitation.Status = "Accepted";
-            _uow.TeamInvitations.Update(invitation);
-            await _uow.SaveAsync();
-
-            // Lấy các lời mời đã accept
-            var acceptedInvitations = await _uow.TeamInvitations.GetAllAsync(i => i.TeamId == invitation.TeamId && i.Status == "Accepted");
-
+            // 2️ Lấy thông tin team & hackathon
             var team = await _uow.Teams.GetByIdAsync(invitation.TeamId);
-            if (team == null) throw new Exception("Team not found");
+            if (team == null)
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "Team not found."
+                };
 
-            int memberCount = acceptedInvitations.Count() + 1; // +1 leader
-            bool teamCreated = false;
+            var hackathonId = team.HackathonId;
 
-            if (memberCount >= 3)
+            // 3️ Kiểm tra nếu team đã full (trước khi accept)
+            var memberCount = await _uow.TeamMembers.CountAsync(m => m.TeamId == team.TeamId);
+            if (memberCount >= 5)
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "Team already has maximum number of members (5).",
+                    TeamId = team.TeamId,
+                    TeamName = team.TeamName
+                };
+
+
+            // 4️ Kiểm tra xem user đã ở team khác (cùng hackathon hoặc chưa có hackathon)
+            if (hackathonId == null)
             {
-                // Thêm leader
-                if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == team.TeamLeaderId))
-                {
-                    await _uow.TeamMembers.AddAsync(new TeamMember
+                // 🔸 Nếu team chưa có hackathon → user chỉ được ở 1 team "chưa đăng ký hackathon"
+                bool alreadyInUnregisteredTeam = await _uow.Teams.ExistsAsync(t =>
+                    t.HackathonId == null &&
+                    (t.TeamLeaderId == userId || t.TeamMembers.Any(tm => tm.UserId == userId)) &&
+                    t.TeamId != team.TeamId);
+
+                if (alreadyInUnregisteredTeam)
+                    return new InvitationResult
                     {
-                        TeamId = team.TeamId,
-                        UserId = team.TeamLeaderId,
-                        RoleInTeam = "Leader"
-                    });
-                }
+                        Status = "Failed",
+                        Message = "You are already in another team that hasn't registered for any hackathon."
+                    };
+            }
+            else
+            {
+                // 🔸 Nếu team có hackathon → user không thể ở team khác cùng hackathon
+                bool alreadyInTeamSameHackathon = await _uow.Teams.ExistsAsync(t =>
+                    t.HackathonId == hackathonId &&
+                    (t.TeamLeaderId == userId || t.TeamMembers.Any(tm => tm.UserId == userId)) &&
+                    t.TeamId != team.TeamId);
 
-                // Thêm các member
-                foreach (var inv in acceptedInvitations)
-                {
-                    var invitedUser = await _uow.Users.FirstOrDefaultAsync(u => u.Email == inv.InvitedEmail);
-                    if (invitedUser == null) continue;
-
-                    if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == team.TeamId && m.UserId == invitedUser.UserId))
+                if (alreadyInTeamSameHackathon)
+                    return new InvitationResult
                     {
-                        await _uow.TeamMembers.AddAsync(new TeamMember
-                        {
-                            TeamId = team.TeamId,
-                            UserId = invitedUser.UserId,
-                            RoleInTeam = "Member"
-                        });
-                    }
-                }
-
-                await _uow.SaveAsync();
-                teamCreated = true;
+                        Status = "Failed",
+                        Message = "You are already a member of another team in this hackathon."
+                    };
             }
 
-            return new AcceptInvitationResult
+            // 5️ Cập nhật invitation
+            invitation.Status = InvitationStatus.Accepted;
+            _uow.TeamInvitations.Update(invitation);
+
+            // 6️ Thêm user vào team
+            await _uow.TeamMembers.AddAsync(new TeamMember
             {
-                Message = teamCreated
-            ? "Invitation accepted successfully, team members created."
-            : "Invitation accepted successfully, waiting for more members.",
-                TeamCreated = teamCreated
+                TeamId = team.TeamId,
+                UserId = userId,
+                RoleInTeam = "Member"
+            });
+            await _uow.SaveAsync();
+
+            // 7️ Kết quả trả về
+            return new InvitationResult
+            {
+                Status = "Success",
+                Message = "You have successfully joined the team.",
+                TeamId = team.TeamId,
+                TeamName = team.TeamName,
             };
         }
 
-
-
-
-
-        public async Task<string> RejectInvitationAsync(Guid invitationCode, int userId)
+        public async Task<InvitationResult> RejectInvitationAsync(Guid invitationCode, int userId)
         {
-            var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(x => x.InvitationCode == invitationCode);
-            if (invitation == null)
-                throw new Exception("Invitation not found.");
-
-            if (invitation.Status != InvitationStatus.Pending || invitation.ExpiresAt < DateTime.UtcNow)
-                throw new Exception("Invitation is invalid or expired.");
+            // 1️ Kiểm tra invitation hợp lệ
+            var invitation = await _uow.TeamInvitations.FirstOrDefaultAsync(i => i.InvitationCode == invitationCode);
+            if (invitation == null || invitation.Status != InvitationStatus.Pending || invitation.ExpiresAt < DateTime.UtcNow)
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "Invitation is invalid or expired."
+                };
 
             var user = await _uow.Users.GetByIdAsync(userId);
-            if (user == null || !string.Equals(user.Email, invitation.InvitedEmail, StringComparison.OrdinalIgnoreCase))
-                throw new UnauthorizedAccessException("This invitation is not for your account");
+            if (user == null)
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "User not found."
+                };
 
+            if (!string.Equals(user.Email, invitation.InvitedEmail, StringComparison.OrdinalIgnoreCase))
+                return new InvitationResult
+                {
+                    Status = "Failed",
+                    Message = "This invitation is not for your account."
+                };
+
+            // 2️ Cập nhật trạng thái từ chối
             invitation.Status = InvitationStatus.Rejected;
             _uow.TeamInvitations.Update(invitation);
             await _uow.SaveAsync();
 
-            return "You have rejected the invitation.";
+            return new InvitationResult
+            {
+                Status = "Success",
+                Message = "You have rejected the invitation."
+            };
         }
 
         public async Task<InvitationStatusDto> GetInvitationStatusAsync(Guid invitationCode)
@@ -176,61 +254,5 @@ namespace Service.Servicefolder
 
             return dto;
         }
-
-        public async Task<string> ConfirmTeamAsync(int teamId)
-        {
-            var team = await _uow.Teams.GetByIdAsync(teamId);
-            if (team == null) throw new Exception("Team not found");
-
-            // get leader
-            var leader = await _uow.Users.GetByIdAsync(team.TeamLeaderId);
-
-            // get list invitation accepted
-            var acceptedInvitations = await _uow.TeamInvitations
-                .GetAllAsync(i => i.TeamId == teamId && i.Status == InvitationStatus.Accepted);
-
-            var memberCount = acceptedInvitations.Count() + 1; 
-
-            if (memberCount < 3)
-                throw new Exception("Not enough members to form a team. Minimum is 3.");
-
-            if (memberCount > 5)
-                throw new Exception("Too many accepted members. Maximum is 5.");
-
-            // add leader
-            if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == teamId && m.UserId == leader.UserId))
-            {
-                await _uow.TeamMembers.AddAsync(new TeamMember
-                {
-                    TeamId = teamId,
-                    UserId = leader.UserId,
-                    RoleInTeam = "Leader"
-                });
-            }
-
-            // add accepted members
-            foreach (var inv in acceptedInvitations)
-            {
-                var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == inv.InvitedEmail);
-                if (user == null) continue;
-
-                if (!await _uow.TeamMembers.ExistsAsync(m => m.TeamId == teamId && m.UserId == user.UserId))
-                {
-                    await _uow.TeamMembers.AddAsync(new TeamMember
-                    {
-                        TeamId = teamId,
-                        UserId = user.UserId,
-                        RoleInTeam = "Member"
-                    });
-                }
-            }
-
-
-            await _uow.SaveAsync();
-
-            return "Team has been officially created with " + memberCount + " members.";
-        }
-
-
     }
 }

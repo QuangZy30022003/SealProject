@@ -23,7 +23,7 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        public async Task<TeamDto> CreateTeamAsync(CreateTeamDto dto)
+        public async Task<TeamDto> CreateTeamAsync(CreateTeamDto dto, int userId)
         {
             // 1. Check chapter existence
             if (!dto.ChapterId.HasValue)
@@ -42,7 +42,7 @@ namespace Service.Servicefolder
 
             // 3 Check student verification
             var verification = await _uow.StudentVerifications
-                .FirstOrDefaultAsync(v => v.UserId == dto.TeamLeaderId);
+                .FirstOrDefaultAsync(v => v.UserId == userId);
 
             if (verification == null || !string.Equals(verification.Status, "Approved", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Student has not been approved for verification. Cannot create team.");
@@ -50,11 +50,22 @@ namespace Service.Servicefolder
             // 4 Map & create team
             var entity = _mapper.Map<Team>(dto);
             entity.HackathonId = null;
+            entity.TeamLeaderId = userId;
 
             await _uow.Teams.AddAsync(entity);
             await _uow.SaveAsync();
 
-            // 5. Reload with includes
+            // 5️ Add leader in TeamMembers after create team
+            var leaderMember = new TeamMember
+            {
+                TeamId = entity.TeamId,
+                UserId = userId,
+                RoleInTeam = "Leader"
+            };
+            await _uow.TeamMembers.AddAsync(leaderMember);
+            await _uow.SaveAsync();
+
+            // 6. Reload with includes
             var created = await _uow.Teams.GetByIdIncludingAsync(
                 t => t.TeamId == entity.TeamId,
                 t => t.TeamLeader,

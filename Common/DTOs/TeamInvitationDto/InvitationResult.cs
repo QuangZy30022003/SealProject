@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace Common.DTOs.TeamInvitationDto
 {
-    public class AcceptInvitationResult
+    public class InvitationResult
     {
+        public string Status { get; set; } = "Failed";
         public string Message { get; set; } = string.Empty;
-        public bool TeamCreated { get; set; }
+        public int? TeamId { get; set; }
+        public string? TeamName { get; set; }
     }
 }

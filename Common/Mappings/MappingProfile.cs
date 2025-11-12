@@ -212,7 +212,9 @@ namespace Common.Mappings
                .ForMember(dest => dest.RegistrationId, opt => opt.Ignore()) // DB tự generate
                .ForMember(dest => dest.RegisteredAt, opt => opt.Ignore())   // set trong service
                .ForMember(dest => dest.Status, opt => opt.Ignore());        // set trong service
-            CreateMap<HackathonRegistration, HackathonRegistrationDto>();
+            CreateMap<HackathonRegistration, HackathonRegistrationDto>()
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+                .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
             //Track
             CreateMap<Track, TrackRespone>();

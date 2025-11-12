@@ -29,11 +29,10 @@ namespace Seal.Controller
                 return ValidationProblem(ModelState);
 
             var userId = _userContext.GetCurrentUserId();
-            dto.TeamLeaderId = userId;
 
             try
             {
-                var team = await _teamService.CreateTeamAsync(dto);
+                var team = await _teamService.CreateTeamAsync(dto, userId);
                 return CreatedAtAction(nameof(GetById), new { id = team.TeamId }, team);
             }
             catch (InvalidOperationException ex)
@@ -45,6 +44,7 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult> GetById([FromRoute] int id)
         {

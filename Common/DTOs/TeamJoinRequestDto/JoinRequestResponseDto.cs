@@ -15,7 +15,7 @@ namespace Common.DTOs.TeamJoinRequestDto
         public string? UserName { get; set; }
         public string? UserEmail { get; set; }
         public string Message { get; set; } = string.Empty;
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = string.Empty;
         public string? LeaderResponse { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? RespondedAt { get; set; }

@@ -9,13 +9,13 @@ namespace Common.DTOs.RegisterHackathonDto
     public class RegisterHackathonRequest
     {
         public int HackathonId { get; set; }
-        public string Link { get; set; }
+        public string Link { get; set; } = string.Empty;
     }
 
     public class CancelHackathonRegistrationRequest
     {
         public int HackathonId { get; set; }
-        public string CancelReason { get; set; }
+        public string CancelReason { get; set; } = string.Empty;
     }
     public class RestoreHackathonRegistrationRequest
     {
@@ -31,16 +31,21 @@ namespace Common.DTOs.RegisterHackathonDto
     {
         public int HackathonId { get; set; }
         public int TeamId { get; set; }
-        public string CancelReason { get; set; } // optional
+        public string CancelReason { get; set; } = string.Empty;
     }
 
     public class HackathonRegistrationDto
     {
         public int RegistrationId { get; set; }
-        public string Status { get; set; }
-        public string CancelReason { get; set; }
-        public DateTime? CancelledAt { get; set; }
+        public int HackathonId { get; set; }
+        public string HackathonName { get; set; } = string.Empty;
         public int TeamId { get; set; }
+        public string TeamName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+        public DateTime? CancelledAt { get; set; }
+        public string? CancelReason { get; set; }
     }
 
 
