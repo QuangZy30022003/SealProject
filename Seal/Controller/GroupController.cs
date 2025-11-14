@@ -18,7 +18,7 @@ namespace Seal.Controller
         }
 
         [HttpPost("auto-create")]
-        [Authorize(Roles = "Admin")] // Chỉ Admin mới được phép
+        [Authorize(Roles = "Admin, Judge")] // Chỉ Admin mới được phép
         public async Task<IActionResult> AutoCreateGroups([FromBody] CreateGroupsRequestDto dto)
         {
             try
@@ -48,5 +48,42 @@ namespace Seal.Controller
                 return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
             }
         }
+        [HttpGet("Group/{hackathonId}")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupsByHackathon(int hackathonId)
+        {
+            try
+            {
+                var result = await _groupService.GetGroupsByHackathonAsync(hackathonId);
+
+                if (result == null || result.Count == 0)
+                    return NotFound(new { message = "No groups found for this hackathon." });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
+        [HttpGet("{groupId}/teams")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupTeams(int groupId)
+        {
+            try
+            {
+                var result = await _groupService.GetGroupTeamsByGroupIdAsync(groupId);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Unexpected error", detail = ex.Message });
+            }
+        }
+
     }
 }

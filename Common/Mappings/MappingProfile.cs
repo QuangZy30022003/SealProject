@@ -211,6 +211,11 @@ namespace Common.Mappings
 
             //group
             CreateMap<Group, GroupDto>();
+
+            // GroupTeams
+            CreateMap<GroupTeam, GroupTeamDto>()
+    .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName));
+
         }
     }
 }
