@@ -92,5 +92,57 @@ namespace Service.Servicefolder
 
             return result;
         }
+
+        public async Task<List<GroupDto>> GetGroupsByHackathonAsync(int hackathonId)
+        {
+            // Lấy tất cả phase thuộc hackathon
+            var phases = await _uow.HackathonPhases.GetAllAsync(p => p.HackathonId == hackathonId);
+            if (!phases.Any())
+                return new List<GroupDto>();
+
+            var phaseIds = phases.Select(x => x.PhaseId).ToList();
+
+            // Lấy tất cả track thuộc các phase
+            var tracks = await _uow.Tracks.GetAllAsync(t => phaseIds.Contains(t.PhaseId));
+            if (!tracks.Any())
+                return new List<GroupDto>();
+
+            var trackIds = tracks.Select(t => t.TrackId).ToList();
+
+            // Lấy group theo các track
+            var groups = await _uow.Groups.GetAllAsync(g => trackIds.Contains(g.TrackId));
+            if (!groups.Any())
+                return new List<GroupDto>();
+
+            var result = _mapper.Map<List<GroupDto>>(groups);
+
+            // Lấy thêm teamIds
+            foreach (var g in result)
+            {
+                var teamIds = (await _uow.GroupsTeams.GetAllAsync(gt => gt.GroupId == g.GroupId))
+                    .Select(gt => gt.TeamId)
+                    .ToList();
+
+                g.TeamIds = teamIds;
+            }
+
+            return result;
+        }
+        public async Task<List<GroupTeamDto>> GetGroupTeamsByGroupIdAsync(int groupId)
+        {
+            // Lấy Group để kiểm tra tồn tại
+            var group = await _uow.Groups.GetByIdAsync(groupId);
+            if (group == null)
+                throw new ArgumentException("GroupId không tồn tại");
+
+            // Lấy danh sách GroupTeam + Include Team
+            var groupTeams = await _uow.GroupsTeams.GetAllIncludingAsync(
+                g => g.GroupId == groupId,
+                g => g.Team
+            );
+
+            return _mapper.Map<List<GroupTeamDto>>(groupTeams);
+        }
+
     }
 }

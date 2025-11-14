@@ -11,5 +11,9 @@ namespace Service.Interface
     public interface IGroupService
     {
         Task<List<GroupDto>> CreateGroupsByTrackAsync(CreateGroupsRequestDto dto);
+        Task<List<GroupDto>> GetGroupsByHackathonAsync(int hackathonId);
+
+        Task<List<GroupTeamDto>> GetGroupTeamsByGroupIdAsync(int groupId);
+
     }
 }
