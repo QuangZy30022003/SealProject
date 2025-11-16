@@ -1,4 +1,6 @@
-﻿using Common.DTOs.AppealDto;
+﻿using Common;
+using Common.DTOs.AppealDto;
+using Common.Wrappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,26 +13,31 @@ namespace Seal.Controller
     public class AppealController : ControllerBase
     {
         private readonly IAppealService _appealService;
+        private readonly IUserContextService _userContext;
 
-        public AppealController(IAppealService appealService)
+        public AppealController(IAppealService appealService, IUserContextService userContext)
         {
             _appealService = appealService;
+            _userContext = userContext;
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateAppeal([FromBody] CreateAppealDto dto)
+        public async Task<IActionResult> CreateAppeal(CreateAppealDto dto)
         {
             try
             {
-                var result = await _appealService.CreateAppealAsync(dto);
-                return Ok(result);
+                var userId = _userContext.GetCurrentUserId();
+                var result = await _appealService.CreateAppealAsync(dto, userId);
+                return Ok(ApiResponse<AppealResponseDto>.Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
 
+        [Authorize]
         [HttpGet("team/{teamId}")]
         public async Task<IActionResult> GetAppealsByTeam(int teamId)
         {
@@ -38,6 +45,7 @@ namespace Seal.Controller
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllAppeals()
         {
@@ -45,6 +53,7 @@ namespace Seal.Controller
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("{appealId}")]
         public async Task<IActionResult> GetById(int appealId)
         {
@@ -55,20 +64,23 @@ namespace Seal.Controller
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{appealId}/review")]
-        public async Task<IActionResult> ReviewAppeal(int appealId, [FromBody] ReviewAppealDto dto)
+        public async Task<IActionResult> Review(int appealId, ReviewAppealDto dto)
         {
             try
             {
-                var result = await _appealService.ReviewAppealAsync(appealId, dto);
-                if (result == null)
-                    return NotFound(new { message = "Appeal not found." });
+                var reviewerId = _userContext.GetCurrentUserId();
+                var result = await _appealService.ReviewAppealAsync(appealId, dto, reviewerId);
 
-                return Ok(result);
+                if (result == null)
+                    return NotFound(ApiResponse<object>.Fail("Appeal not found."));
+
+                return Ok(ApiResponse<AppealResponseDto>.Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
     }

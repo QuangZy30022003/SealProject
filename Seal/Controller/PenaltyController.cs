@@ -1,4 +1,5 @@
-﻿using Common.DTOs.PenaltyBonusDto;
+﻿using Common;
+using Common.DTOs.PenaltyBonusDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,18 +12,25 @@ namespace Seal.Controller
     public class PenaltyController : ControllerBase
     {
         private readonly IPenaltyService _service;
+        private readonly IUserContextService _userContext;
 
-        public PenaltyController(IPenaltyService service)
+        public PenaltyController(IPenaltyService service, IUserContextService userContext)
         {
             _service = service;
+            _userContext = userContext;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreatePenaltiesBonuseDto dto)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var userId = _userContext.GetCurrentUserId();
             try
             {
-                var result = await _service.CreateAsync(dto);
+                var result = await _service.CreateAsync(dto, userId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -38,11 +46,16 @@ namespace Seal.Controller
             return Ok(result);
         }
 
-        [HttpGet("team/{teamId}")]
-        public async Task<IActionResult> GetByTeam(int teamId)
+        [HttpGet("phase/{phaseId}")]
+        public async Task<IActionResult> GetByPhase(int phaseId)
         {
-            var result = await _service.GetByTeamAsync(teamId);
-            return Ok(result);
+            return Ok(await _service.GetByPhaseAsync(phaseId));
+        }
+
+        [HttpGet("team/{teamId}/phase/{phaseId}")]
+        public async Task<IActionResult> GetByTeam(int teamId, int phaseId)
+        {
+            return Ok(await _service.GetByTeamAsync(teamId, phaseId));
         }
 
         [HttpGet("{id}")]
@@ -55,6 +68,7 @@ namespace Seal.Controller
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePenaltiesBonuseDto dto)
         {
@@ -72,13 +86,12 @@ namespace Seal.Controller
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _service.DeleteAsync(id);
-            if (!success)
-                return NotFound(new { message = "Adjustment not found." });
-
+            bool ok = await _service.SoftDeleteAsync(id);
+            if (!ok) return NotFound(new { message = "Adjustment not found." });
             return NoContent();
         }
     }

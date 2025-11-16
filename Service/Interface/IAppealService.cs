@@ -10,10 +10,10 @@ namespace Service.Interface
 {
     public interface IAppealService
     {
-        Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto);
+        Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto, int currentUserId);
         Task<IEnumerable<AppealResponseDto>> GetAppealsByTeamAsync(int teamId);
         Task<IEnumerable<AppealResponseDto>> GetAllAppealsAsync();
         Task<AppealResponseDto?> GetAppealByIdAsync(int appealId);
-        Task<AppealResponseDto?> ReviewAppealAsync(int appealId, ReviewAppealDto dto);
+        Task<AppealResponseDto?> ReviewAppealAsync(int appealId, ReviewAppealDto dto, int reviewerUserId);
     }
 }

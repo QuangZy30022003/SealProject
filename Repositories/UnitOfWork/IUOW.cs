@@ -40,6 +40,7 @@ namespace Repositories.UnitOfWork
         IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
         IRepository<Appeal> Appeals { get; }
         IRepository<Ranking> Rankings { get; }
+        IRepository<ScoreHistory> ScoreHistorys { get; }
 
 
         IRepository<Season> Seasons { get; }

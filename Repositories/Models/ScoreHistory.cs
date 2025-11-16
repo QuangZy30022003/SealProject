@@ -5,8 +5,10 @@ using System.Collections.Generic;
 
 namespace Repositories.Models;
 
-public partial class Score
+public partial class ScoreHistory
 {
+    public int HistoryId { get; set; }
+
     public int ScoreId { get; set; }
 
     public int SubmissionId { get; set; }
@@ -15,21 +17,21 @@ public partial class Score
 
     public int CriteriaId { get; set; }
 
-    public decimal Score1 { get; set; }
+    public int OldScore { get; set; }
 
-    public string Comment { get; set; }
+    public string OldComment { get; set; }
 
-    public DateTime ScoredAt { get; set; }
+    public DateTime ChangedAt { get; set; }
 
-    public bool RequiresReScore { get; set; }
+    public string ChangeReason { get; set; }
 
-    public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
+    public int? ChangedBy { get; set; }
 
     public virtual Criterion Criteria { get; set; }
 
     public virtual User Judge { get; set; }
 
-    public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();
+    public virtual Score Score { get; set; }
 
     public virtual Submission Submission { get; set; }
 }

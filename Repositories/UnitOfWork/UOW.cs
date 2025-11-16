@@ -35,6 +35,7 @@ namespace Repositories.UnitOfWork
         public IRepository<PenaltiesBonuse> PenaltiesBonuses { get; }
         public IRepository<Appeal> Appeals { get; }
         public IRepository<Ranking> Rankings { get; }
+        public IRepository<ScoreHistory> ScoreHistorys { get; }
 
 
         public IRepository<Criterion> Criteria { get; }
@@ -103,6 +104,8 @@ namespace Repositories.UnitOfWork
             Scores = new GenericRepository<Score>(_context);
             PenaltiesBonuses = new GenericRepository<PenaltiesBonuse>(_context);
             Appeals = new GenericRepository<Appeal>(_context);
+            Rankings = new GenericRepository<Ranking>(_context);
+            ScoreHistorys = new GenericRepository<ScoreHistory>(_context);
 
             Criteria = new GenericRepository<Criterion>(_context);
             CriterionDetail = new GenericRepository<CriterionDetail>(_context);
