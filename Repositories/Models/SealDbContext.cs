@@ -59,6 +59,8 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<Score> Scores { get; set; }
 
+    public virtual DbSet<ScoreHistory> ScoreHistories { get; set; }
+
     public virtual DbSet<Season> Seasons { get; set; }
 
     public virtual DbSet<StudentVerification> StudentVerifications { get; set; }
@@ -365,6 +367,17 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.Type)
                 .IsRequired()
                 .HasMaxLength(20);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PenaltiesBonuses)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PenaltiesBonuses_CreatedBy");
+
+            entity.HasOne(d => d.Phase).WithMany(p => p.PenaltiesBonuses)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PenaltiesBonuses_Phase");
 
             entity.HasOne(d => d.Team).WithMany(p => p.PenaltiesBonuses).HasForeignKey(d => d.TeamId);
         });
@@ -464,6 +477,32 @@ public partial class SealDbContext : DbContext
             entity.HasOne(d => d.Submission).WithMany(p => p.Scores).HasForeignKey(d => d.SubmissionId);
         });
 
+        modelBuilder.Entity<ScoreHistory>(entity =>
+        {
+            entity.HasKey(e => e.HistoryId).HasName("PK__ScoreHis__4D7B4ABD4DE4ECF3");
+
+            entity.ToTable("ScoreHistory");
+
+            entity.Property(e => e.ChangeReason).HasMaxLength(500);
+
+            entity.HasOne(d => d.Criteria).WithMany(p => p.ScoreHistories)
+                .HasForeignKey(d => d.CriteriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Judge).WithMany(p => p.ScoreHistories)
+                .HasForeignKey(d => d.JudgeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ScoreHistory_Users_UserId");
+
+            entity.HasOne(d => d.Score).WithMany(p => p.ScoreHistories)
+                .HasForeignKey(d => d.ScoreId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Submission).WithMany(p => p.ScoreHistories)
+                .HasForeignKey(d => d.SubmissionId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
         modelBuilder.Entity<Season>(entity =>
         {
             entity.HasKey(e => e.SeasonId).HasName("PK__Season__C1814E1828AA9ABD");
@@ -541,7 +580,9 @@ public partial class SealDbContext : DbContext
 
             entity.HasOne(d => d.Chapter).WithMany(p => p.Teams).HasForeignKey(d => d.ChapterId);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Teams).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Teams)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(d => d.TeamLeader).WithMany(p => p.Teams)
                 .HasForeignKey(d => d.TeamLeaderId)

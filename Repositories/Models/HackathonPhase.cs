@@ -25,6 +25,8 @@ public partial class HackathonPhase
 
     public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();
 
+    public virtual ICollection<PenaltiesBonuse> PenaltiesBonuses { get; set; } = new List<PenaltiesBonuse>();
+
     public virtual ICollection<ScheduleEvent> ScheduleEvents { get; set; } = new List<ScheduleEvent>();
 
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();

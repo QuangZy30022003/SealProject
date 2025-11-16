@@ -25,6 +25,8 @@ public partial class Submission
 
     public virtual HackathonPhase Phase { get; set; }
 
+    public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();
+
     public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
 
     public virtual User SubmittedByNavigation { get; set; }

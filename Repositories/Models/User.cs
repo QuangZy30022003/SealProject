@@ -47,9 +47,13 @@ public partial class User
 
     public virtual ICollection<PartnerProfile> PartnerProfiles { get; set; } = new List<PartnerProfile>();
 
+    public virtual ICollection<PenaltiesBonuse> PenaltiesBonuses { get; set; } = new List<PenaltiesBonuse>();
+
     public virtual ICollection<PrizeAllocation> PrizeAllocations { get; set; } = new List<PrizeAllocation>();
 
     public virtual Role Role { get; set; }
+
+    public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();
 
     public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
 

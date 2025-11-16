@@ -148,7 +148,19 @@ namespace Common.Mappings
 
             // Appeal
             CreateMap<Appeal, AppealResponseDto>()
-               .ForMember(dest => dest.ReviewedByName, opt => opt.MapFrom(src => src.ReviewedBy != null ? src.ReviewedBy.FullName : null));
+             .ForMember(dest => dest.TeamName,
+                 opt => opt.MapFrom(src => src.Team.TeamName))
+
+             .ForMember(dest => dest.PenaltyType,
+                 opt => opt.MapFrom(src => src.Adjustment != null ? src.Adjustment.Type : null))
+
+             .ForMember(dest => dest.ScoreValue,
+                opt => opt.MapFrom(src => src.Score != null ? src.Score.Score1 : (decimal?)null))
+
+             .ForMember(dest => dest.ReviewedByName,
+                 opt => opt.MapFrom(src => src.ReviewedBy != null
+                     ? src.ReviewedBy.FullName
+                     : null));
             CreateMap<CreateAppealDto, Appeal>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => "Pending"));

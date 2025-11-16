@@ -10,6 +10,5 @@ namespace Common.DTOs.AppealDto
     {
         public string Status { get; set; } = string.Empty; // Approved | Rejected
         public string AdminResponse { get; set; } = string.Empty;
-        public int ReviewedById { get; set; }
     }
 }

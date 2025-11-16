@@ -13,140 +13,144 @@
    "SelectedHandlebarsLanguage": 2,
    "SelectedToBeGenerated": 0,
    "T4TemplatePath": null,
-   "Tables": [
-      {
-         "Name": "[dbo].[Appeals]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[AuditLogs]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Challenges]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Chapters]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Criteria]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CriterionDetails]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[FinalQualifications]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Groups]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[GroupTeams]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[HackathonPhases]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[HackathonRegistrations]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Hackathons]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JudgeAssignments]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[MentorAssignments]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Notifications]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PartnerProfiles]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PenaltiesBonuses]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PrizeAllocations]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Prizes]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Rankings]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Roles]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ScheduleEvents]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Scores]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Season]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[StudentVerifications]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Submissions]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TeamInvitations]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TeamJoinRequests]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TeamMembers]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Teams]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TeamTrackSelections]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Tracks]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Users]",
-         "ObjectType": 0
-      }
-   ],
+  "Tables": [
+    {
+      "Name": "[dbo].[Appeals]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[AuditLogs]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Challenges]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Chapters]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Criteria]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CriterionDetails]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[FinalQualifications]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Groups]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[GroupTeams]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[HackathonPhases]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[HackathonRegistrations]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Hackathons]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JudgeAssignments]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[MentorAssignments]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Notifications]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PartnerProfiles]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PenaltiesBonuses]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PrizeAllocations]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Prizes]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Rankings]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Roles]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ScheduleEvents]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ScoreHistory]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Scores]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Season]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[StudentVerifications]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Submissions]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TeamInvitations]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TeamJoinRequests]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TeamMembers]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Teams]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TeamTrackSelections]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Tracks]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Users]",
+      "ObjectType": 0
+    }
+  ],
    "UiHint": null,
    "UncountableWords": null,
    "UseAsyncStoredProcedureCalls": true,

@@ -19,7 +19,19 @@ public partial class PenaltiesBonuse
 
     public DateTime CreatedAt { get; set; }
 
+    public int PhaseId { get; set; }
+
+    public int CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
+
+    public virtual User CreatedByNavigation { get; set; }
+
+    public virtual HackathonPhase Phase { get; set; }
 
     public virtual Team Team { get; set; }
 }
