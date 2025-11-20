@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.DTOs.ScoreDto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,15 +30,15 @@ namespace Common.DTOs.Submission
     public class SubmissionResponseDto
     {
         public int SubmissionId { get; set; }
-        public int TeamId { get; set; }
-        public int PhaseId { get; set; }
+        public string TeamName { get; set; }
+        public string PhaseName { get; set; }
         public string Title { get; set; }
         public string FilePath { get; set; }
         public DateTime SubmittedAt { get; set; }
         public int SubmittedBy { get; set; }
         public bool IsFinal { get; set; }
 
-        public int? TrackId { get; set; }
+        public string TrackName { get; set; }
     }
 
 }

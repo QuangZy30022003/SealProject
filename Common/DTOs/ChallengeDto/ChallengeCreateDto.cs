@@ -66,6 +66,6 @@ namespace Common.DTOs.ChallengeDto
     public class RandomChallengeTrackResponse
     {
         public int TrackId { get; set; }
-        public List<int> SelectedChallengeIds { get; set; }
+        public List<ChallengeDto> SelectedChallenges { get; set; }
     }
 }

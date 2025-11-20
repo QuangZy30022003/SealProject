@@ -69,13 +69,13 @@ namespace Seal.Controller
 
 
         // ✅ GET: Lấy danh sách điểm đã chấm
-        [HttpGet("myscores/{phaseId}")]
-        public async Task<IActionResult> GetMyScores(int phaseId)
-        {
-            var judgeId = int.Parse(User.FindFirstValue("UserId"));
-            var scores = await _scoreService.GetScoresByJudgeAsync(judgeId, phaseId);
-            return Ok(scores);
-        }
+        //[HttpGet("myscores/{phaseId}")]
+        //public async Task<IActionResult> GetMyScores(int phaseId)
+        //{
+        //    var judgeId = int.Parse(User.FindFirstValue("UserId"));
+        //    var scores = await _scoreService.GetScoresByJudgeAsync(judgeId, phaseId);
+        //    return Ok(scores);
+        //}
         [Authorize(Roles = "Judge")]
         [HttpPut("score")]
         public async Task<IActionResult> UpdateScores([FromBody] SubmissionScoreInputDto dto)
@@ -103,20 +103,20 @@ namespace Seal.Controller
             }
         }
 
-        [HttpGet("submission/{submissionId}/scores-with-average")]
-        [Authorize]
-        public async Task<IActionResult> GetScoresWithTeamAverage(int submissionId)
-        {
-            try
-            {
-                var result = await _scoreService.GetScoresWithTeamAverageBySubmissionAsync(submissionId);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //[HttpGet("submission/{submissionId}/scores-with-average")]
+        //[Authorize]
+        //public async Task<IActionResult> GetScoresWithTeamAverage(int submissionId)
+        //{
+        //    try
+        //    {
+        //        var result = await _scoreService.GetScoresWithTeamAverageBySubmissionAsync(submissionId);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
         [HttpGet("group/{groupId}/team-scores")]
         [Authorize(Roles = "Judge,Admin")]
@@ -132,7 +132,23 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("myscores/grouped/{phaseId}")]
+        [Authorize(Roles = "Judge")]
 
+        public async Task<IActionResult> GetMyScoresGrouped(int phaseId)
+        {
+            var judgeId = int.Parse(User.FindFirstValue("UserId"));
+
+            try
+            {
+                var result = await _scoreService.GetMyScoresGroupedBySubmissionAsync(judgeId, phaseId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }

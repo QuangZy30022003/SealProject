@@ -87,40 +87,52 @@ namespace Service.Servicefolder
             var track = await _uow.Tracks.GetByIdAsync(request.TrackId);
             if (track == null) return null;
 
-            // Lấy phaseId của track
             var phaseId = track.PhaseId;
 
-            // Lấy tất cả track trong phase này đã có challenge
-            var usedChallengeIds = (await _uow.Tracks.GetAllAsync(t => t.PhaseId == phaseId && t.ChallengeId != null))
-                                    .Select(t => t.ChallengeId.Value)
-                                    .ToList();
+            // Lấy các challenge đã dùng trong phase
+            var usedChallengeIds = (await _uow.Tracks.GetAllAsync(
+                t => t.PhaseId == phaseId && t.ChallengeId != null))
+                .Select(t => t.ChallengeId.Value)
+                .ToList();
 
-            // Lọc các challenge hợp lệ (status = Complete, trong danh sách gửi lên, chưa dùng trong phase)
-            var challenges = await _uow.Challenges.GetAllAsync(c =>
-                request.ChallengeIds.Contains(c.ChallengeId) &&
-                c.Status == "Complete" &&
-                !usedChallengeIds.Contains(c.ChallengeId)
+            // Lọc challenge hợp lệ
+            var challenges = await _uow.Challenges.GetAllIncludingAsync(
+                c => request.ChallengeIds.Contains(c.ChallengeId)
+                    && c.Status == "Complete"
+                    && !usedChallengeIds.Contains(c.ChallengeId),
+                c => c.User
             );
 
-            if (challenges == null || !challenges.Any())
-                return null; // không còn challenge hợp lệ
+            if (!challenges.Any())
+                return null;
 
-            // Random
             var rnd = new Random();
-            var selected = challenges.OrderBy(x => rnd.Next()).Take(request.Quantity).ToList();
+            var selected = challenges
+                .OrderBy(x => rnd.Next())
+                .Take(request.Quantity)
+                .ToList();
 
-            // Lưu challenge đầu tiên cho Track.ChallengeId (vẫn là 1 challenge)
+            // Gán challenge đầu tiên cho Track
             track.ChallengeId = selected.First().ChallengeId;
-
             _uow.Tracks.Update(track);
             await _uow.SaveAsync();
 
             return new RandomChallengeTrackResponse
             {
                 TrackId = track.TrackId,
-                SelectedChallengeIds = selected.Select(x => x.ChallengeId).ToList()
+                SelectedChallenges = selected.Select(c => new ChallengeDto
+                {
+                    ChallengeId = c.ChallengeId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    FilePath = c.FilePath,
+                    Status = c.Status,
+                    CreatedAt = c.CreatedAt,
+                    HackathonId = c.HackathonId,
+                    UserId = c.UserId ?? 0,
+                    UserName = c.User?.FullName ?? ""
+                }).ToList()
             };
         }
-
     }
 }

@@ -167,10 +167,23 @@ namespace Common.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => "Pending"));
 
             //Submission
-
             CreateMap<Submission, SubmissionResponseDto>()
-                .ForMember(dest => dest.TrackId,
-                           opt => opt.MapFrom(src => src.Team.TeamTrackSelections.FirstOrDefault().TrackId));
+                .ForMember(dest => dest.TeamName,
+                    opt => opt.MapFrom(src => src.Team.TeamName))
+
+                .ForMember(dest => dest.PhaseName,
+                    opt => opt.MapFrom(src => src.Phase.PhaseName))
+
+                .ForMember(dest => dest.TrackName,
+                    opt => opt.MapFrom(src =>
+                        src.Team.TeamTrackSelections != null
+                            ? src.Team.TeamTrackSelections
+                                .Where(t => t.Track != null)
+                                .Select(t => t.Track.Name)
+                                .FirstOrDefault() ?? ""
+                            : ""
+                    ));
+
             CreateMap<SubmissionCreateDto, Submission>();
             CreateMap<SubmissionUpdateDto, Submission>();
 

@@ -74,5 +74,12 @@ namespace Common.DTOs.ScoreDto
         public decimal AverageScore { get; set; }
         public int Rank { get; set; }
     }
+    public class SubmissionScoresGroupedDto
+    {
+        public int SubmissionId { get; set; }
+        public string SubmissionName { get; set; }
+        public decimal TotalScore { get; set; } // thay đổi tên cho rõ ràng
+        public List<ScoreResponseDto> Scores { get; set; } = new List<ScoreResponseDto>();
+    }
 
 }
