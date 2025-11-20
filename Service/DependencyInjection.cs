@@ -42,6 +42,7 @@ namespace Service
             service.AddScoped<ITeamTrackService, TeamTrackService>();
             service.AddScoped<IJudgeAssignmentService, JudgeAssignmentService>();
             service.AddScoped<IGroupService, GroupService>();
+            service.AddScoped<IQualificationService, QualificationService>();
             return service;
 
         }
