@@ -28,6 +28,7 @@ using Common.DTOs.TrackDto;
 using Common.DTOs.TeamTrackDto;
 using Common.DTOs.JudgeAssignmentDto;
 using Common.DTOs.GroupDto;
+using Common.DTOs.QualifiedFinealTeamDto;
 
 
 
@@ -77,7 +78,7 @@ namespace Common.Mappings
       .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SeasonCode));
             CreateMap<SeasonUpdateDto, Season>();
             CreateMap<Season, SeasonResponse>()
-    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code)); 
+    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code));
 
             // Challenge
 
@@ -264,6 +265,14 @@ namespace Common.Mappings
             // GroupTeams
             CreateMap<GroupTeam, GroupTeamDto>()
     .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName));
+            //qualificationTeamFinal
+            CreateMap<GroupTeam, QualifiedTeamDto>()
+    .ForMember(dest => dest.TeamName,
+        opt => opt.MapFrom(src => src.Team.TeamName))
+    .ForMember(dest => dest.AverageScore,
+        opt => opt.MapFrom(src => src.AverageScore))
+    .ForMember(dest => dest.GroupId,
+        opt => opt.MapFrom(src => src.GroupId));
 
         }
     }
