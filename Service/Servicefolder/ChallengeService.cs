@@ -131,12 +131,29 @@ namespace Service.Servicefolder
 
         public async Task<List<ChallengeDto>> GetCompletedChallengesByHackathonAsync(int hackathonId)
         {
-            var challenges = await _uow.ChallengeRepository.GetCompletedChallengesByHackathonIdAsync(hackathonId);
+            // Lấy toàn bộ challenge completed theo hackathon
+            var challenges = await _uow.ChallengeRepository
+                .GetCompletedChallengesByHackathonIdAsync(hackathonId);
 
             if (challenges == null || !challenges.Any())
                 return new List<ChallengeDto>();
 
-            return _mapper.Map<List<ChallengeDto>>(challenges);
+            // Lấy danh sách challengeId đã được dùng trong Track
+            var usedChallengeIds = await _uow.Tracks
+                .GetAllAsync();
+
+            var usedIds = usedChallengeIds
+                .Where(t => t.ChallengeId != null)
+                .Select(t => t.ChallengeId!.Value)
+                .ToHashSet();
+
+            // Lọc bỏ các challenge đã được dùng
+            var filtered = challenges
+                .Where(c => !usedIds.Contains(c.ChallengeId))
+                .ToList();
+
+            return _mapper.Map<List<ChallengeDto>>(filtered);
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.ScoreDto;
+using Common.DTOs.Submission;
 using Repositories.Models;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace Service.Interface
         Task<List<ScoreWithAverageDto>> GetScoresWithTeamAverageBySubmissionAsync(int submissionId);
 
         Task<List<TeamScoreDto>> GetTeamScoresByGroupAsync(int groupId);
+        Task<List<SubmissionScoresGroupedDto>> GetMyScoresGroupedBySubmissionAsync(int judgeId, int phaseId);
     }
 }

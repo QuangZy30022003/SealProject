@@ -106,5 +106,28 @@ namespace Seal.Controller
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _submissionService.GetSubmissionByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _submissionService.GetAllSubmissionsAsync();
+            return Ok(result);
+        }
+
     }
 }

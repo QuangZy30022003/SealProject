@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.DTOs.ScoreDto;
+using Common.DTOs.Submission;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -382,6 +383,36 @@ namespace Service.Servicefolder
             })
             .OrderByDescending(t => t.AverageScore)
             .ToList();
+        }
+        public async Task<List<SubmissionScoresGroupedDto>> GetMyScoresGroupedBySubmissionAsync(int judgeId, int phaseId)
+        {
+            // Lấy tất cả score của judge trong phase
+            var scores = await _uow.Scores.GetAllIncludingAsync(
+                s => s.JudgeId == judgeId && s.Submission.PhaseId == phaseId,
+                s => s.Submission,
+                s => s.Criteria
+            );
+
+            if (!scores.Any())
+                return new List<SubmissionScoresGroupedDto>();
+
+            // Nhóm theo SubmissionId
+            var grouped = scores
+                .GroupBy(s => s.SubmissionId)
+                .Select(g =>
+                {
+                    var total = g.Sum(s => s.Score1); // tổng điểm thay vì trung bình
+                    return new SubmissionScoresGroupedDto
+                    {
+                        SubmissionId = g.Key,
+                        SubmissionName = g.First().Submission.Title,
+                        TotalScore = total,
+                        Scores = _mapper.Map<List<ScoreResponseDto>>(g.ToList())
+                    };
+                })
+                .ToList();
+
+            return grouped;
         }
 
     }

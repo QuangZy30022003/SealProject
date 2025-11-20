@@ -94,35 +94,58 @@ namespace Service.Servicefolder
 
         public async Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAsync(int teamId)
         {
-            // Kiểm tra team có tồn tại
             var teamExists = await _uow.Teams.ExistsAsync(t => t.TeamId == teamId);
             if (!teamExists)
                 throw new Exception("Team not found");
 
-            // Lấy submission của team, include Team và TeamTrackSelections
+            // Load Submission + Team + TeamTrackSelections + Phase
             var teamSubmissions = await _uow.Submissions.GetAllIncludingAsync(
                 s => s.TeamId == teamId,
                 s => s.Team,
-                s => s.Team.TeamTrackSelections
+                s => s.Team.TeamTrackSelections,
+                s => s.Phase
             );
 
-            // AutoMapper sẽ map TrackId từ Team.TeamTrackSelections.First()
+            // Lấy toàn bộ TrackId
+            var trackIds = teamSubmissions
+                .SelectMany(s => s.Team.TeamTrackSelections.Select(ts => ts.TrackId))
+                .Distinct()
+                .ToList();
+
+            // Load track một lần
+            var tracks = await _uow.Tracks.GetAllAsync(
+                t => trackIds.Contains(t.TrackId)
+            );
+
+            // Gán Track vào đúng selection
+            foreach (var submission in teamSubmissions)
+            {
+                foreach (var sel in submission.Team.TeamTrackSelections)
+                {
+                    sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+                }
+            }
+
             return _mapper.Map<List<SubmissionResponseDto>>(teamSubmissions);
         }
 
-         public async Task<List<SubmissionResponseDto>> GetFinalSubmissionsByPhaseAsync(int phaseId, int userId, string role)
+
+        public async Task<List<SubmissionResponseDto>> GetFinalSubmissionsByPhaseAsync(int phaseId, int userId, string role)
         {
             IEnumerable<Submission> submissions;
 
+            // ADMIN
             if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
                 role.Equals("SystemAdministrator", StringComparison.OrdinalIgnoreCase))
             {
                 submissions = await _uow.Submissions.GetAllIncludingAsync(
                     s => s.IsFinal && s.PhaseId == phaseId,
                     s => s.Team,
-                    s => s.Team.TeamTrackSelections
+                    s => s.Team.TeamTrackSelections,
+                    s => s.Phase
                 );
             }
+            // JUDGE
             else if (role.Equals("Judge", StringComparison.OrdinalIgnoreCase))
             {
                 var assigned = await _uow.JudgeAssignments.ExistsAsync(
@@ -135,7 +158,8 @@ namespace Service.Servicefolder
                 submissions = await _uow.Submissions.GetAllIncludingAsync(
                     s => s.IsFinal && s.PhaseId == phaseId,
                     s => s.Team,
-                    s => s.Team.TeamTrackSelections
+                    s => s.Team.TeamTrackSelections,
+                    s => s.Phase
                 );
             }
             else
@@ -143,7 +167,87 @@ namespace Service.Servicefolder
                 throw new Exception("You are not authorized to view submissions.");
             }
 
+            // ---- BỔ SUNG: LOAD TRACK ĐỂ LẤY TRACK NAME ----
+            var trackIds = submissions
+                .SelectMany(s => s.Team.TeamTrackSelections.Select(ts => ts.TrackId))
+                .Distinct()
+                .ToList();
+
+            var tracks = await _uow.Tracks.GetAllAsync(t => trackIds.Contains(t.TrackId));
+
+            foreach (var submission in submissions)
+            {
+                foreach (var sel in submission.Team.TeamTrackSelections)
+                {
+                    sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+                }
+            }
+
+            // MAP DTO
             return _mapper.Map<List<SubmissionResponseDto>>(submissions);
         }
+
+        public async Task<SubmissionResponseDto> GetSubmissionByIdAsync(int submissionId)
+        {
+            var submission = await _uow.Submissions.GetAllIncludingAsync(
+                s => s.SubmissionId == submissionId,
+                s => s.Team,
+                s => s.Team.TeamTrackSelections,
+                s => s.Phase
+            );
+
+            var sub = submission.FirstOrDefault();
+            if (sub == null)
+                throw new Exception("Submission not found");
+
+            // Lấy TrackId
+            var trackIds = sub.Team.TeamTrackSelections
+                .Select(x => x.TrackId)
+                .Distinct()
+                .ToList();
+
+            // Load track
+            var tracks = await _uow.Tracks.GetAllAsync(t => trackIds.Contains(t.TrackId));
+
+            foreach (var sel in sub.Team.TeamTrackSelections)
+            {
+                sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+            }
+
+            return _mapper.Map<SubmissionResponseDto>(sub);
+        }
+
+        public async Task<List<SubmissionResponseDto>> GetAllSubmissionsAsync()
+        {
+            var submissions = await _uow.Submissions.GetAllIncludingAsync(
+                s => true,
+                s => s.Team,
+                s => s.Team.TeamTrackSelections,
+                s => s.Phase
+            );
+
+            if (submissions == null || !submissions.Any())
+                return new List<SubmissionResponseDto>();
+
+            // Lấy toàn bộ TrackId
+            var trackIds = submissions
+                .SelectMany(s => s.Team.TeamTrackSelections.Select(ts => ts.TrackId))
+                .Distinct()
+                .ToList();
+
+            // Load track duy nhất 1 lần
+            var tracks = await _uow.Tracks.GetAllAsync(t => trackIds.Contains(t.TrackId));
+
+            foreach (var submission in submissions)
+            {
+                foreach (var sel in submission.Team.TeamTrackSelections)
+                {
+                    sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+                }
+            }
+
+            return _mapper.Map<List<SubmissionResponseDto>>(submissions);
+        }
+
     }
 }
