@@ -23,9 +23,11 @@ public partial class Challenge
 
     public string Status { get; set; }
 
+    public int? TrackId { get; set; }
+
     public virtual Hackathon Hackathon { get; set; }
 
-    public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
+    public virtual Track Track { get; set; }
 
     public virtual User User { get; set; }
 }

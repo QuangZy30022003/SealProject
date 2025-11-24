@@ -229,7 +229,14 @@ namespace Common.Mappings
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
             //Track
-            CreateMap<Track, TrackRespone>();
+            CreateMap<Track, TrackRespone>()
+                .ForMember(dest => dest.Challenges, opt => opt.MapFrom(src =>
+                       src.Challenges.Select(c => new ChallengeInTrackDto
+                       {
+                           ChallengeId = c.ChallengeId,
+                           Title = c.Title
+                       })
+                ));
             CreateMap<CreateTrackDto, Track>();
             CreateMap<UpdateTrackDto, Track>();
 

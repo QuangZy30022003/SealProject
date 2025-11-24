@@ -155,5 +155,16 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
             return true;
         }
+
+        public async Task<IEnumerable<TeamDto>> GetTeamsByChapterIdAsync(int chapterId)
+        {
+            var teams = await _uow.Teams.GetAllIncludingAsync(
+                t => t.ChapterId == chapterId,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+            return _mapper.Map<IEnumerable<TeamDto>>(teams);
+        }
     }
 }

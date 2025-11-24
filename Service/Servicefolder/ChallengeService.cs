@@ -135,8 +135,13 @@ namespace Service.Servicefolder
 
             if (challenges == null || !challenges.Any())
                 return new List<ChallengeDto>();
+            
+            // Challenge đã được dùng (TrackId != null)
+            var filtered = challenges
+                .Where(c => c.TrackId == null)
+                .ToList();
 
-            return _mapper.Map<List<ChallengeDto>>(challenges);
+            return _mapper.Map<List<ChallengeDto>>(filtered);
         }
     }
 }

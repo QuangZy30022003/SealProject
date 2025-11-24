@@ -26,14 +26,21 @@ namespace Service.Servicefolder
         // ✅ Lấy tất cả track theo phase
         public async Task<List<TrackRespone>> GetTracksdAsync()
         {
-            var tracks = await _uow.Tracks.GetAllAsync();
+            var tracks = await _uow.Tracks.GetAllIncludingAsync(
+                null,
+                t => t.Challenges
+            );
             return _mapper.Map<List<TrackRespone>>(tracks);
         }
 
         public async Task<TrackRespone?> GetTrackByIdAsync(int id)
         {
-            var track = await _uow.Tracks.GetByIdAsync(id);
-            return track == null ? null : _mapper.Map<TrackRespone>(track);
+            var track = await _uow.Tracks.GetAllIncludingAsync(
+                t => t.TrackId == id,
+                t => t.Challenges
+            );
+            var result = track.FirstOrDefault();
+            return result == null ? null : _mapper.Map<TrackRespone>(result);
         }
         // ✅ Tạo track (ChallengeId luôn = null)
         public async Task<TrackRespone> CreateTrackAsync(CreateTrackDto dto)
@@ -42,8 +49,7 @@ namespace Service.Servicefolder
             {
                 Name = dto.Name,
                 Description = dto.Description,
-                PhaseId = dto.PhaseId,
-                ChallengeId = null
+                PhaseId = dto.PhaseId
             };
 
             await _uow.Tracks.AddAsync(track);
@@ -90,10 +96,11 @@ namespace Service.Servicefolder
             // Lấy phaseId của track
             var phaseId = track.PhaseId;
 
-            // Lấy tất cả track trong phase này đã có challenge
-            var usedChallengeIds = (await _uow.Tracks.GetAllAsync(t => t.PhaseId == phaseId && t.ChallengeId != null))
-                                    .Select(t => t.ChallengeId.Value)
-                                    .ToList();
+            // Lấy challenge đã được gán trong phase này
+            var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
+                c => c.TrackId != null && c.Track.PhaseId == phaseId,
+                c => c.Track
+                )).Select(c => c.ChallengeId).ToList();
 
             // Lọc các challenge hợp lệ (status = Complete, trong danh sách gửi lên, chưa dùng trong phase)
             var challenges = await _uow.Challenges.GetAllAsync(c =>
@@ -109,8 +116,12 @@ namespace Service.Servicefolder
             var rnd = new Random();
             var selected = challenges.OrderBy(x => rnd.Next()).Take(request.Quantity).ToList();
 
-            // Lưu challenge đầu tiên cho Track.ChallengeId (vẫn là 1 challenge)
-            track.ChallengeId = selected.First().ChallengeId;
+            // Gán tất cả selected challenge vào Track
+            foreach (var c in selected)
+            {
+                c.TrackId = track.TrackId;
+                _uow.Challenges.Update(c);
+            }
 
             _uow.Tracks.Update(track);
             await _uow.SaveAsync();
@@ -118,7 +129,18 @@ namespace Service.Servicefolder
             return new RandomChallengeTrackResponse
             {
                 TrackId = track.TrackId,
-                SelectedChallengeIds = selected.Select(x => x.ChallengeId).ToList()
+                SelectedChallenges = selected.Select(c => new ChallengeDto
+                {
+                    ChallengeId = c.ChallengeId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    FilePath = c.FilePath,
+                    Status = c.Status,
+                    CreatedAt = c.CreatedAt,
+                    HackathonId = c.HackathonId,
+                    UserId = c.UserId ?? 0,
+                    UserName = c.User?.FullName ?? ""
+                }).ToList()
             };
         }
 

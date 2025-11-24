@@ -15,5 +15,6 @@ namespace Service.Interface
         Task<IEnumerable<TeamDto>> GetAllAsync();
         Task<TeamDto?> UpdateAsync(int id, UpdateTeamDto dto);
         Task<bool> DeleteAsync(int id, int userId);
+        Task<IEnumerable<TeamDto>> GetTeamsByChapterIdAsync(int chapterId);
     }
 }
