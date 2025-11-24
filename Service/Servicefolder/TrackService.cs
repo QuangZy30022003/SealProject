@@ -97,24 +97,21 @@ namespace Service.Servicefolder
 
 
             // Lấy challenge đã được gán trong phase này
-var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
-    c => c.TrackId != null && c.Track.PhaseId == phaseId,
-    c => c.Track
-    )).Select(c => c.ChallengeId).ToList();
+            var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
+                c => c.TrackId != null && c.Track.PhaseId == phaseId,
+                c => c.Track
+                )).Select(c => c.ChallengeId).ToList();
 
-             // Lọc challenge hợp lệ
- var challenges = await _uow.Challenges.GetAllIncludingAsync(
-     c => request.ChallengeIds.Contains(c.ChallengeId)
-         && c.Status == "Complete"
-         && !usedChallengeIds.Contains(c.ChallengeId),
-     c => c.User
- );
-
-   
-
+            // Lọc challenge hợp lệ
+            var challenges = await _uow.Challenges.GetAllIncludingAsync(
+                c => request.ChallengeIds.Contains(c.ChallengeId)
+                    && c.Status == "Complete"
+                    && !usedChallengeIds.Contains(c.ChallengeId),
+                c => c.User
             );
 
-            if (!challenges.Any())
+            // không còn challenge hợp lệ
+            if (challenges == null || !challenges.Any())
                 return null;
 
             var rnd = new Random();
@@ -123,13 +120,13 @@ var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
                 .Take(request.Quantity)
                 .ToList();
 
-// Gán tất cả selected challenge vào Track
-foreach (var c in selected)
-{
-    c.TrackId = track.TrackId;
-    _uow.Challenges.Update(c);
-}
-            _uow.Tracks.Update(track);
+            // Gán tất cả selected challenge vào Track
+            foreach (var c in selected)
+            {
+                c.TrackId = track.TrackId;
+                _uow.Challenges.Update(c);
+            }
+
             await _uow.SaveAsync();
 
             return new RandomChallengeTrackResponse
