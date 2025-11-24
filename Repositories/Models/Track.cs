@@ -11,13 +11,11 @@ public partial class Track
 
     public int PhaseId { get; set; }
 
-    public int? ChallengeId { get; set; }
-
     public string Name { get; set; }
 
     public string Description { get; set; }
 
-    public virtual Challenge Challenge { get; set; }
+    public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
 
     public virtual ICollection<Criterion> Criteria { get; set; } = new List<Criterion>();
 

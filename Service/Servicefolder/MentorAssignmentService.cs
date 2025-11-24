@@ -60,6 +60,14 @@ namespace Service.Servicefolder
             var hackathon = await _uow.Hackathons.GetByIdAsync(dto.HackathonId);
             if (hackathon == null)
                 throw new Exception("Hackathon not found!");
+            // 3.5. Kiểm tra team đã đăng ký hackathon chưa
+            var registration = await _uow.HackathonRegistrations.FirstOrDefaultAsync(
+                r => r.TeamId == dto.TeamId &&
+                     r.HackathonId == dto.HackathonId &&
+                     r.Status == "Approved");
+
+            if (registration == null)
+                throw new Exception("Team must register and be approved for the hackathon before requesting a mentor.");
 
             // 4. Kiểm tra assignment cũ
             var existing = await _uow.MentorAssignments.GetAllAsync(

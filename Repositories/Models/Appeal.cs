@@ -29,6 +29,8 @@ public partial class Appeal
 
     public int? ScoreId { get; set; }
 
+    public string Reason { get; set; }
+
     public virtual PenaltiesBonuse Adjustment { get; set; }
 
     public virtual User ReviewedBy { get; set; }

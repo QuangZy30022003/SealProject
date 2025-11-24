@@ -13,5 +13,6 @@ namespace Common.DTOs.AppealDto
         public int? ScoreId { get; set; } // Cho score
         public int TeamId { get; set; }
         public string Message { get; set; } = string.Empty;
+        public string? Reason { get; set; } = string.Empty;
     }
 }

@@ -137,19 +137,10 @@ namespace Service.Servicefolder
 
             if (challenges == null || !challenges.Any())
                 return new List<ChallengeDto>();
-
-            // Lấy danh sách challengeId đã được dùng trong Track
-            var usedChallengeIds = await _uow.Tracks
-                .GetAllAsync();
-
-            var usedIds = usedChallengeIds
-                .Where(t => t.ChallengeId != null)
-                .Select(t => t.ChallengeId!.Value)
-                .ToHashSet();
-
-            // Lọc bỏ các challenge đã được dùng
+            
+            // Challenge đã được dùng (TrackId != null)
             var filtered = challenges
-                .Where(c => !usedIds.Contains(c.ChallengeId))
+                .Where(c => c.TrackId == null)
                 .ToList();
 
             return _mapper.Map<List<ChallengeDto>>(filtered);

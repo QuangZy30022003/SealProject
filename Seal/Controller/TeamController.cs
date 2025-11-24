@@ -103,5 +103,12 @@ namespace Seal.Controller
                 return Forbid(ex.Message);
             }
         }
+
+        [HttpGet("chapter/{chapterId}")]
+        public async Task<IActionResult> GetTeamsByChapter(int chapterId)
+        {
+            var result = await _teamService.GetTeamsByChapterIdAsync(chapterId);
+            return Ok(result);
+        }
     }
 }

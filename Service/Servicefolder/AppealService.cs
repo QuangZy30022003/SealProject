@@ -90,6 +90,7 @@ namespace Service.Servicefolder
                 ScoreId = dto.ScoreId,
                 TeamId = dto.TeamId,
                 Message = dto.Message,
+                Reason = dto.Reason,
                 Status = AppealStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
@@ -171,50 +172,31 @@ namespace Service.Servicefolder
 
                 if (appeal.AppealType == AppealType.Score && appeal.ScoreId.HasValue)
                 {
-                    // find the score and related submission
+                    // lấy đúng điểm bị appeal
                     var score = await _uow.Scores.GetByIdAsync(appeal.ScoreId.Value);
                     if (score == null)
                         throw new InvalidOperationException("Score not found.");
 
-                    var submission = await _uow.Submissions.GetByIdAsync(score.SubmissionId);
-                    if (submission == null)
-                        throw new InvalidOperationException("Submission not found.");
-
-                    // get all scores of that submission (all judges, all criteria)
-                    var allScores = (await _uow.Scores.GetAllAsync(s => s.SubmissionId == submission.SubmissionId)).ToList();
-                    if (!allScores.Any())
-                        throw new InvalidOperationException("No scores found for this submission.");
-
-                    // create score history entries BEFORE marking requiresRescore
-                    var historyList = new List<ScoreHistory>();
-                    foreach (var s in allScores)
+                    // tạo lịch sử score trước khi re-score
+                    var history = new ScoreHistory
                     {
-                        historyList.Add(new ScoreHistory
-                        {
-                            ScoreId = s.ScoreId,
-                            SubmissionId = s.SubmissionId,
-                            JudgeId = s.JudgeId,
-                            CriteriaId = s.CriteriaId,
-                            OldScore = (int)s.Score1,
-                            OldComment = s.Comment,
-                            ChangedAt = DateTime.UtcNow,
-                            ChangeReason = "Appeal approved - requires re-score",
-                            ChangedBy = reviewerUserId
-                        });
+                        ScoreId = score.ScoreId,
+                        SubmissionId = score.SubmissionId,
+                        JudgeId = score.JudgeId,
+                        CriteriaId = score.CriteriaId,
+                        OldScore = (int)score.Score1,
+                        OldComment = score.Comment,
+                        ChangedAt = DateTime.UtcNow,
+                        ChangeReason = "Appeal approved - requires re-score",
+                        ChangedBy = reviewerUserId
+                    };
 
-                        // mark require re-score and add a note
-                        s.RequiresReScore = true;
-                        s.Comment = (s.Comment ?? "") + " (Requires re-score due to approved appeal)";
-                        _uow.Scores.Update(s);
-                    }
+                    await _uow.ScoreHistorys.AddAsync(history);
 
-                    // persist histories
-                    if (historyList.Any())
-                    {
-                        // assume ScoreHistories repository supports AddRangeAsync; otherwise loop AddAsync
-                        foreach (var h in historyList)
-                            await _uow.ScoreHistorys.AddAsync(h);
-                    }
+                    // mark require re-score + update comment
+                    score.RequiresReScore = true;
+                    score.Comment = (score.Comment ?? "") + " (Requires re-score due to approved appeal)";
+                    _uow.Scores.Update(score);
                 }
             }
 

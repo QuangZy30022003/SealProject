@@ -8,6 +8,10 @@ namespace Repositories.Models;
 
 public partial class SealDbContext : DbContext
 {
+    public SealDbContext()
+    {
+    }
+
     public SealDbContext(DbContextOptions<SealDbContext> options)
         : base(options)
     {
@@ -81,6 +85,7 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Appeal>(entity =>
@@ -134,11 +139,16 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.Title)
                 .IsRequired()
                 .HasMaxLength(200);
+            entity.Property(e => e.TrackId).HasColumnName("TrackID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
             entity.HasOne(d => d.Hackathon).WithMany(p => p.Challenges)
                 .HasForeignKey(d => d.HackathonId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Track).WithMany(p => p.Challenges)
+                .HasForeignKey(d => d.TrackId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(d => d.User).WithMany(p => p.Challenges)
                 .HasForeignKey(d => d.UserId)
@@ -660,15 +670,10 @@ public partial class SealDbContext : DbContext
             entity.HasKey(e => e.TrackId).HasName("PK__Tracks__7A74F8C08EB02D6D");
 
             entity.Property(e => e.TrackId).HasColumnName("TrackID");
-            entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
-
-            entity.HasOne(d => d.Challenge).WithMany(p => p.Tracks)
-                .HasForeignKey(d => d.ChallengeId)
-                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(d => d.Phase).WithMany(p => p.Tracks).HasForeignKey(d => d.PhaseId);
         });
