@@ -134,6 +134,7 @@ namespace Repositories.UnitOfWork
             PrizeRepository = new PrizeRepository(_context);
 
             JudgeAssignments = new GenericRepository<JudgeAssignment>(_context);
+            Submissions = new GenericRepository<Submission>(_context);
         }
 
         public async Task<int> SaveAsync()

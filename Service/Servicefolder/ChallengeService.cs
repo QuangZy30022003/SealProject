@@ -131,7 +131,9 @@ namespace Service.Servicefolder
 
         public async Task<List<ChallengeDto>> GetCompletedChallengesByHackathonAsync(int hackathonId)
         {
-            var challenges = await _uow.ChallengeRepository.GetCompletedChallengesByHackathonIdAsync(hackathonId);
+            // Lấy toàn bộ challenge completed theo hackathon
+            var challenges = await _uow.ChallengeRepository
+                .GetCompletedChallengesByHackathonIdAsync(hackathonId);
 
             if (challenges == null || !challenges.Any())
                 return new List<ChallengeDto>();
@@ -143,5 +145,6 @@ namespace Service.Servicefolder
 
             return _mapper.Map<List<ChallengeDto>>(filtered);
         }
+
     }
 }

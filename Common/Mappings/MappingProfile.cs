@@ -27,12 +27,14 @@ using Common.DTOs.RegisterHackathonDto;
 using Common.DTOs.TrackDto;
 using Common.DTOs.TeamTrackDto;
 using Common.DTOs.JudgeAssignmentDto;
+using Common.DTOs.GroupDto;
+using Common.DTOs.QualifiedFinealTeamDto;
 
 
 
 namespace Common.Mappings
 {
-    public class MappingProfile: Profile
+    public class MappingProfile : Profile
     {
         public MappingProfile()
         {
@@ -76,7 +78,7 @@ namespace Common.Mappings
       .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SeasonCode));
             CreateMap<SeasonUpdateDto, Season>();
             CreateMap<Season, SeasonResponse>()
-    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code)); 
+    .ForMember(dest => dest.SeasonCode, opt => opt.MapFrom(src => src.Code));
 
             // Challenge
 
@@ -125,7 +127,7 @@ namespace Common.Mappings
               .ForMember(dest => dest.MentorId, opt => opt.MapFrom(src => src.MentorId))
               .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
               .ForMember(dest => dest.HackathonId, opt => opt.MapFrom(src => src.HackathonId));
-  
+
             //team member
             CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
@@ -142,7 +144,7 @@ namespace Common.Mappings
             // PenaltiesBonuse
             CreateMap<PenaltiesBonuse, PenaltiesBonuseResponseDto>()
     .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null));
-    //.ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
+            //.ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null));
             CreateMap<CreatePenaltiesBonuseDto, PenaltiesBonuse>();
 
 
@@ -166,10 +168,23 @@ namespace Common.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => "Pending"));
 
             //Submission
-
             CreateMap<Submission, SubmissionResponseDto>()
-                .ForMember(dest => dest.TrackId,
-                           opt => opt.MapFrom(src => src.Team.TeamTrackSelections.FirstOrDefault().TrackId));
+                .ForMember(dest => dest.TeamName,
+                    opt => opt.MapFrom(src => src.Team.TeamName))
+
+                .ForMember(dest => dest.PhaseName,
+                    opt => opt.MapFrom(src => src.Phase.PhaseName))
+
+                .ForMember(dest => dest.TrackName,
+                    opt => opt.MapFrom(src =>
+                        src.Team.TeamTrackSelections != null
+                            ? src.Team.TeamTrackSelections
+                                .Where(t => t.Track != null)
+                                .Select(t => t.Track.Name)
+                                .FirstOrDefault() ?? ""
+                            : ""
+                    ));
+
             CreateMap<SubmissionCreateDto, Submission>();
             CreateMap<SubmissionUpdateDto, Submission>();
 
@@ -180,23 +195,10 @@ namespace Common.Mappings
 
             // Score
             // Map từ entity Score → DTO đọc ra
-            CreateMap<Score, ScoreReadDto>()
-              .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
-              .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score1))
-              .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
-              .ForMember(dest => dest.JudgeName, opt => opt.MapFrom(src => src.Judge.FullName))
-              .ForMember(dest => dest.ScoredAt, opt => opt.MapFrom(src => src.ScoredAt));
-            // Map khi lưu dữ liệu (DTO → Entity)
-            CreateMap<JudgeScoreDto, Score>()
-              .ForMember(dest => dest.Score1, opt => opt.Ignore()) // tổng điểm sẽ tính trong service
-              .ForMember(dest => dest.CriteriaId, opt => opt.MapFrom(src => src.CriteriaId))
-              .ForMember(dest => dest.SubmissionId, opt => opt.MapFrom(src => src.SubmissionId))
-              .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
-              .ForMember(dest => dest.JudgeId, opt => opt.Ignore()) // gán trong service
-              .ForMember(dest => dest.ScoredAt, opt => opt.Ignore())
-              .ForMember(dest => dest.Criteria, opt => opt.Ignore())
-              .ForMember(dest => dest.Judge, opt => opt.Ignore())
-              .ForMember(dest => dest.Submission, opt => opt.Ignore());
+            CreateMap<Score, ScoreResponseDto>()
+                 .ForMember(dest => dest.SubmissionName, opt => opt.MapFrom(src => src.Submission.Title))
+                 .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
+                 .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score1));
             //payload
 
             CreateMap<HackathonCreatePayloadDto, Hackathon>();
@@ -264,6 +266,21 @@ namespace Common.Mappings
     .ForMember(dest => dest.TrackId,
         opt => opt.MapFrom(src => src.TrackId));
 
+            //group
+            CreateMap<Group, GroupDto>();
+
+            // GroupTeams
+            CreateMap<GroupTeam, GroupTeamDto>()
+    .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName));
+            //qualificationTeamFinal
+            CreateMap<GroupTeam, QualifiedTeamDto>()
+    .ForMember(dest => dest.TeamName,
+        opt => opt.MapFrom(src => src.Team.TeamName))
+    .ForMember(dest => dest.AverageScore,
+        opt => opt.MapFrom(src => src.AverageScore))
+    .ForMember(dest => dest.GroupId,
+        opt => opt.MapFrom(src => src.GroupId));
+
         }
     }
-    }
+}

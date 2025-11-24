@@ -1,95 +1,95 @@
-﻿using Common.DTOs.ChallengeDto;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Service.Interface;
-using Service.Servicefolder;
+﻿    using Common.DTOs.ChallengeDto;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Service.Interface;
+    using Service.Servicefolder;
 
-namespace Seal.Controller
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ChallengeController : ControllerBase
+    namespace Seal.Controller
     {
-        private readonly IChallengeService _service;
-
-        public ChallengeController(IChallengeService service)
+        [Route("api/[controller]")]
+        [ApiController]
+        public class ChallengeController : ControllerBase
         {
-            _service = service;
-        }
+            private readonly IChallengeService _service;
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var challenges = await _service.GetAllAsync();
-            return Ok(challenges);
-        }
+            public ChallengeController(IChallengeService service)
+            {
+                _service = service;
+            }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var challenge = await _service.GetByIdAsync(id);
-            if (challenge == null) return NotFound();
-            return Ok(challenge);
-        }
+            [HttpGet]
+            public async Task<IActionResult> GetAll()
+            {
+                var challenges = await _service.GetAllAsync();
+                return Ok(challenges);
+            }
 
-        [Authorize(Roles = "Partner, Admin")]
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromForm] ChallengeCreateUnifiedDto dto)
-        {
-            var userId = int.Parse(User.FindFirst("UserId")!.Value);
+            [HttpGet("{id}")]
+            public async Task<IActionResult> GetById(int id)
+            {
+                var challenge = await _service.GetByIdAsync(id);
+                if (challenge == null) return NotFound();
+                return Ok(challenge);
+            }
 
-            var result = await _service.CreateAsync(dto, userId);
+            [Authorize(Roles = "Partner, Admin")]
+            [HttpPost("create")]
+            public async Task<IActionResult> Create([FromForm] ChallengeCreateUnifiedDto dto)
+            {
+                var userId = int.Parse(User.FindFirst("UserId")!.Value);
 
-            return Ok(result);
-        }
+                var result = await _service.CreateAsync(dto, userId);
 
-        [Authorize(Roles = "Partner, Admin")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
-            if (userIdClaim == null) return Unauthorized("Không tìm thấy UserId trong token");
-            int userId = int.Parse(userIdClaim);
-            var result = await _service.PartnerDeleteAsync(id, userId);
-            if (!result) return NotFound();
-            return NoContent();
-        }
+                return Ok(result);
+            }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPatch("{id}/status")]
-        public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChallengeStatusDto statusDto)
-        {
-            var success = await _service.ChangeStatusAsync(id, statusDto);
-            if (!success) return NotFound();
-            return NoContent();
-        }
-        [Authorize(Roles = "Partner, Admin")]
-        [HttpPut("{id}/partner")]
-        public async Task<IActionResult> PartnerUpdate(int id, [FromForm] ChallengePartnerUpdateDto dto)
-        {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
-            if (userIdClaim == null)
-                return Unauthorized("Không tìm thấy UserId trong token");
+            [Authorize(Roles = "Partner, Admin")]
+            [HttpDelete("{id}")]
+            public async Task<IActionResult> Delete(int id)
+            {
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Không tìm thấy UserId trong token");
+                int userId = int.Parse(userIdClaim);
+                var result = await _service.PartnerDeleteAsync(id, userId);
+                if (!result) return NotFound();
+                return NoContent();
+            }
 
-            int userId = int.Parse(userIdClaim);
+            [Authorize(Roles = "Admin")]
+            [HttpPatch("{id}/status")]
+            public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChallengeStatusDto statusDto)
+            {
+                var success = await _service.ChangeStatusAsync(id, statusDto);
+                if (!success) return NotFound();
+                return NoContent();
+            }
+            [Authorize(Roles = "Partner, Admin")]
+            [HttpPut("{id}/partner")]
+            public async Task<IActionResult> PartnerUpdate(int id, [FromForm] ChallengePartnerUpdateDto dto)
+            {
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null)
+                    return Unauthorized("Không tìm thấy UserId trong token");
 
-            var errorMessage = await _service.PartnerUpdateAsync(id, userId, dto);
-            if (errorMessage != null)
-                return BadRequest(new { message = errorMessage });
+                int userId = int.Parse(userIdClaim);
 
-            return NoContent();
-        }
-        [Authorize(Roles = "Admin")]
+                var errorMessage = await _service.PartnerUpdateAsync(id, userId, dto);
+                if (errorMessage != null)
+                    return BadRequest(new { message = errorMessage });
 
-        [HttpGet("completed/{hackathonId}")]
-        public async Task<IActionResult> GetCompletedChallengesByHackathon(int hackathonId)
-        {
-            var result = await _service.GetCompletedChallengesByHackathonAsync(hackathonId);
+                return NoContent();
+            }
+            [Authorize(Roles = "Admin")]
 
-            if (result == null || result.Count == 0)
-                return NotFound("No completed challenges found for this hackathon.");
+            [HttpGet("completed/{hackathonId}")]
+            public async Task<IActionResult> GetCompletedChallengesByHackathon(int hackathonId)
+            {
+                var result = await _service.GetCompletedChallengesByHackathonAsync(hackathonId);
 
-            return Ok(result);
+                if (result == null || result.Count == 0)
+                    return NotFound("No completed challenges found for this hackathon.");
+
+                return Ok(result);
+            }
         }
     }
-}

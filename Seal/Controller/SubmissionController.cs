@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
 using Service.Servicefolder;
+using System.Security.Claims;
 
 namespace Seal.Controller
 {
@@ -88,5 +89,45 @@ namespace Seal.Controller
             var result = await _submissionService.GetSubmissionsByTeamAsync(teamId);
             return Ok(result);
         }
+
+        [HttpGet("phase/{phaseId}")]
+        public async Task<IActionResult> GetByPhase(int phaseId)
+        {
+            try
+            {
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+                var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+
+                var result = await _submissionService.GetFinalSubmissionsByPhaseAsync(phaseId, userId, userRole);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _submissionService.GetSubmissionByIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _submissionService.GetAllSubmissionsAsync();
+            return Ok(result);
+        }
+
     }
 }

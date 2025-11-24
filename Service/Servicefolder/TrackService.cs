@@ -93,36 +93,42 @@ namespace Service.Servicefolder
             var track = await _uow.Tracks.GetByIdAsync(request.TrackId);
             if (track == null) return null;
 
-            // Lấy phaseId của track
             var phaseId = track.PhaseId;
 
-            // Lấy challenge đã được gán trong phase này
-            var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
-                c => c.TrackId != null && c.Track.PhaseId == phaseId,
-                c => c.Track
-                )).Select(c => c.ChallengeId).ToList();
 
-            // Lọc các challenge hợp lệ (status = Complete, trong danh sách gửi lên, chưa dùng trong phase)
-            var challenges = await _uow.Challenges.GetAllAsync(c =>
-                request.ChallengeIds.Contains(c.ChallengeId) &&
-                c.Status == "Complete" &&
-                !usedChallengeIds.Contains(c.ChallengeId)
+            // Lấy challenge đã được gán trong phase này
+var usedChallengeIds = (await _uow.Challenges.GetAllIncludingAsync(
+    c => c.TrackId != null && c.Track.PhaseId == phaseId,
+    c => c.Track
+    )).Select(c => c.ChallengeId).ToList();
+
+             // Lọc challenge hợp lệ
+ var challenges = await _uow.Challenges.GetAllIncludingAsync(
+     c => request.ChallengeIds.Contains(c.ChallengeId)
+         && c.Status == "Complete"
+         && !usedChallengeIds.Contains(c.ChallengeId),
+     c => c.User
+ );
+
+   
+
             );
 
-            if (challenges == null || !challenges.Any())
-                return null; // không còn challenge hợp lệ
+            if (!challenges.Any())
+                return null;
 
-            // Random
             var rnd = new Random();
-            var selected = challenges.OrderBy(x => rnd.Next()).Take(request.Quantity).ToList();
+            var selected = challenges
+                .OrderBy(x => rnd.Next())
+                .Take(request.Quantity)
+                .ToList();
 
-            // Gán tất cả selected challenge vào Track
-            foreach (var c in selected)
-            {
-                c.TrackId = track.TrackId;
-                _uow.Challenges.Update(c);
-            }
-
+// Gán tất cả selected challenge vào Track
+foreach (var c in selected)
+{
+    c.TrackId = track.TrackId;
+    _uow.Challenges.Update(c);
+}
             _uow.Tracks.Update(track);
             await _uow.SaveAsync();
 
@@ -143,6 +149,5 @@ namespace Service.Servicefolder
                 }).ToList()
             };
         }
-
     }
 }

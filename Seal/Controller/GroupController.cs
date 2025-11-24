@@ -1,0 +1,89 @@
+﻿using Common.DTOs.GroupDto;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Service.Interface;
+
+namespace Seal.Controller
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class GroupController : ControllerBase
+    {
+        private readonly IGroupService _groupService;
+
+        public GroupController(IGroupService groupService)
+        {
+            _groupService = groupService;
+        }
+
+        [HttpPost("auto-create")]
+        [Authorize(Roles = "Admin, Judge")] // Chỉ Admin mới được phép
+        public async Task<IActionResult> AutoCreateGroups([FromBody] CreateGroupsRequestDto dto)
+        {
+            try
+            {
+                if (dto.TeamsPerGroup <= 0)
+                    return BadRequest(new { message = "TeamsPerGroup phải lớn hơn 0" });
+
+                // Lấy userId từ JWT
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized(new { message = "Invalid token" });
+
+                var groups = await _groupService.CreateGroupsByTrackAsync(dto);
+
+                return Ok(groups);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
+        [HttpGet("Group/{hackathonId}")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupsByHackathon(int hackathonId)
+        {
+            try
+            {
+                var result = await _groupService.GetGroupsByHackathonAsync(hackathonId);
+
+                if (result == null || result.Count == 0)
+                    return NotFound(new { message = "No groups found for this hackathon." });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
+        [HttpGet("{groupId}/teams")]
+        [Authorize]
+        public async Task<IActionResult> GetGroupTeams(int groupId)
+        {
+            try
+            {
+                var result = await _groupService.GetGroupTeamsByGroupIdAsync(groupId);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Unexpected error", detail = ex.Message });
+            }
+        }
+
+    }
+}
