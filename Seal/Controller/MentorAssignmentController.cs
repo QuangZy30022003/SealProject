@@ -28,12 +28,15 @@ namespace Seal.Controller
         }
 
         [HttpPost]
-        [Authorize(Roles = "TeamLeader")]
+        [Authorize] // chỉ cần login
         public async Task<IActionResult> Register([FromBody] MentorAssignmentCreateDto dto)
         {
-            var result = await _service.RegisterAsync(dto);
+            int userId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
+
+            var result = await _service.RegisterAsync(userId, dto);
             return Ok(result);
         }
+
 
         [HttpPut("{assignmentId}/approve")]
         [Authorize(Roles = "Mentor")]

@@ -57,7 +57,7 @@ namespace Seal.Controller
         }
 
         [HttpPost("approve")]
-        [Authorize(Roles = "Admin")] // chỉ Admin mới được approve
+        [Authorize(Roles = "Admin,ChapterLeader")] // chỉ Admin mới được approve
         public async Task<IActionResult> Approve([FromBody] ApproveTeamRequest dto)
         {
             int chapterId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
@@ -70,7 +70,7 @@ namespace Seal.Controller
             return BadRequest(new { message = result });
         }
         [HttpPost("reject")]
-        [Authorize(Roles = "Admin")] // chỉ admin mới được reject
+        [Authorize(Roles = "Admin,ChapterLeader")] // chỉ admin mới được reject
         public async Task<IActionResult> Reject([FromBody] RejectTeamRequest dto)
         {
             int chapterId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
@@ -83,7 +83,7 @@ namespace Seal.Controller
             return BadRequest(new { message = result });
         }
         [HttpGet("hackathonId")]
-        [Authorize(Roles = "Admin")] // ai có quyền xem
+        [Authorize(Roles = "Admin,ChapterLeader")] // ai có quyền xem
         public async Task<IActionResult> GetByHackathon([FromQuery] int hackathonId)
         {
             var registrations = await _service.GetRegistrationsByHackathonAsync(hackathonId);

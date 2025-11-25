@@ -41,8 +41,22 @@ namespace Service.Servicefolder
             });
         }
 
-        public async Task<MentorAssignmentResponseDto> RegisterAsync(MentorAssignmentCreateDto dto)
+        public async Task<MentorAssignmentResponseDto> RegisterAsync(int userId, MentorAssignmentCreateDto dto)
         {
+            // 🔥 0. Check TeamLeader or Leader from TeamMember table
+            var member = await _uow.TeamMembers.FirstOrDefaultAsync(
+                tm => tm.TeamId == dto.TeamId && tm.UserId == userId
+            );
+
+            if (member == null)
+                throw new Exception("You are not a member of this team!");
+
+            if (!string.Equals(member.RoleInTeam, "TeamLeader", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(member.RoleInTeam, "Leader", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException("Only TeamLeader or Leader can register a mentor!");
+            }
+
             // 1. Validate Mentor
             var mentor = await _uow.Users.GetByIdAsync(dto.MentorId);
             if (mentor == null || mentor.RoleId != 5) // 5 = Mentor
@@ -69,7 +83,17 @@ namespace Service.Servicefolder
             if (registration == null)
                 throw new Exception("Team must register and be approved for the hackathon before requesting a mentor.");
 
-            // 4. Kiểm tra assignment cũ
+            // 🔥 Check team has registered this hackathon with WaitingMentor status
+            var registration = await _uow.HackathonRegistrations
+                .FirstOrDefaultAsync(r => r.TeamId == dto.TeamId && r.HackathonId == dto.HackathonId);
+
+            if (registration == null)
+                throw new Exception("Team has not registered for this hackathon!");
+
+            if (!string.Equals(registration.Status, "WaitingMentor", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Team cannot register mentor because the registration status is not 'WaitingMentor'.");
+
+            // 4. Validate existing assignment
             var existing = await _uow.MentorAssignments.GetAllAsync(
                 filter: a => a.TeamId == dto.TeamId && a.HackathonId == dto.HackathonId && a.MentorId == dto.MentorId
             );
@@ -80,7 +104,6 @@ namespace Service.Servicefolder
             {
                 if (latest.Status == "Pending")
                 {
-                    // Nếu Pending > 3 ngày thì auto reject
                     if (latest.AssignedAt.AddDays(3) < DateTime.UtcNow)
                     {
                         latest.Status = "Rejected";
@@ -98,32 +121,32 @@ namespace Service.Servicefolder
                 }
             }
 
-            // 5. Tạo bản ghi mới
+            // 5. Create new assignment
             var assignment = new MentorAssignment
             {
                 MentorId = dto.MentorId,
                 HackathonId = dto.HackathonId,
                 TeamId = dto.TeamId,
-                Status = "Pending",
+                Status = "WaitingMentor",
                 AssignedAt = DateTime.UtcNow
             };
 
             await _uow.MentorAssignments.AddAsync(assignment);
             await _uow.SaveAsync();
 
-            // 6. Gửi mail cho mentor
+            // 6. Send email
             string subject = "📩 Mentor Assignment Notification";
             string body = $@"
 <p>Dear <b>{mentor.FullName}</b>,</p>
 <p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Hackathon <b>{hackathon.HackathonId}</b>.</p>
-<p>Status of this assignment: <b>{assignment.Status}</b></p>
+<p>Status: <b>{assignment.Status}</b></p>
 <p>Best regards,<br/>Seal System</p>";
 
             await _emailService.SendEmailAsync(mentor.Email, subject, body);
 
-            // 7. Trả kết quả về client
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }
+
 
         public async Task<MentorAssignmentResponseDto> ApproveAsync(int assignmentId)
         {
@@ -132,11 +155,21 @@ namespace Service.Servicefolder
 
             assignment.Status = "Approved";
             assignment.AssignedAt = DateTime.UtcNow;
-
             _uow.MentorAssignments.Update(assignment);
+
+            // ⭐ Update HackathonRegistration status
+            var registration = await _uow.HackathonRegistrations
+                .FirstOrDefaultAsync(r => r.TeamId == assignment.TeamId);
+
+            if (registration != null)
+            {
+                registration.Status = "Approved";
+                _uow.HackathonRegistrations.Update(registration);
+            }
+
             await _uow.SaveAsync();
 
-            // Gửi mail cho TeamLeader
+            // Send email to Leader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
 
@@ -144,17 +177,16 @@ namespace Service.Servicefolder
             {
                 string subject = "Mentor Assignment Approved";
                 string body = $@"
-            <p>Dear {leader.FullName},</p>
-            <p>Your team <b>{team.TeamName}</b> has been approved by Mentor ID {assignment.MentorId}.</p>
-            <p>Congratulations! You can now start working with your mentor.</p>
-            <p>Best regards,<br/>Seal System</p>";
+        <p>Dear {leader.FullName},</p>
+        <p>Your team <b>{team.TeamName}</b> has been approved by Mentor ID {assignment.MentorId}.</p>
+        <p>Congratulations! You can now start working with your mentor.</p>
+        <p>Best regards,<br/>Seal System</p>";
 
                 await _emailService.SendEmailAsync(leader.Email, subject, body);
             }
 
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }
-
         public async Task<MentorAssignmentResponseDto> RejectAsync(int assignmentId)
         {
             var assignment = await _uow.MentorAssignments.GetByIdAsync(assignmentId);
@@ -162,11 +194,22 @@ namespace Service.Servicefolder
 
             assignment.Status = "Rejected";
             assignment.AssignedAt = DateTime.UtcNow;
-
             _uow.MentorAssignments.Update(assignment);
+
+            // ⭐ Update HackathonRegistration status
+            var registration = await _uow.HackathonRegistrations
+                .FirstOrDefaultAsync(r => r.TeamId == assignment.TeamId);
+
+            if (registration != null)
+            {
+                // Team phải quay lại waiting mentor để request mentor mới
+                registration.Status = "WaitingMentor";
+                _uow.HackathonRegistrations.Update(registration);
+            }
+
             await _uow.SaveAsync();
 
-            // Gửi mail cho TeamLeader
+            // Send email
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
 
@@ -174,16 +217,17 @@ namespace Service.Servicefolder
             {
                 string subject = "Mentor Assignment Rejected";
                 string body = $@"
-            <p>Dear {leader.FullName},</p>
-            <p>Unfortunately, your mentor request for team <b>{team.TeamName}</b> was rejected.</p>
-            <p>You may try requesting another mentor.</p>
-            <p>Best regards,<br/>Seal System</p>";
+        <p>Dear {leader.FullName},</p>
+        <p>Your mentor request for team <b>{team.TeamName}</b> was rejected.</p>
+        <p>You may try requesting another mentor.</p>
+        <p>Best regards,<br/>Seal System</p>";
 
                 await _emailService.SendEmailAsync(leader.Email, subject, body);
             }
 
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }
+
 
 
         public async Task<IEnumerable<MentorAssignmentResponseDto>> GetByMentorAsync(int mentorId)
