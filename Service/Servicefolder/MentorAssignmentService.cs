@@ -43,7 +43,7 @@ namespace Service.Servicefolder
 
         public async Task<MentorAssignmentResponseDto> RegisterAsync(int userId, MentorAssignmentCreateDto dto)
         {
-            // 🔥 0. Check TeamLeader or Leader from TeamMember table
+            // 0. Check leader
             var member = await _uow.TeamMembers.FirstOrDefaultAsync(
                 tm => tm.TeamId == dto.TeamId && tm.UserId == userId
             );
@@ -53,13 +53,11 @@ namespace Service.Servicefolder
 
             if (!string.Equals(member.RoleInTeam, "TeamLeader", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(member.RoleInTeam, "Leader", StringComparison.OrdinalIgnoreCase))
-            {
                 throw new UnauthorizedAccessException("Only TeamLeader or Leader can register a mentor!");
-            }
 
             // 1. Validate Mentor
             var mentor = await _uow.Users.GetByIdAsync(dto.MentorId);
-            if (mentor == null || mentor.RoleId != 5) // 5 = Mentor
+            if (mentor == null || mentor.RoleId != 5)
                 throw new Exception("Invalid mentor!");
 
             if (string.IsNullOrEmpty(mentor.Email))
@@ -74,26 +72,24 @@ namespace Service.Servicefolder
             var hackathon = await _uow.Hackathons.GetByIdAsync(dto.HackathonId);
             if (hackathon == null)
                 throw new Exception("Hackathon not found!");
-            // 3.5. Kiểm tra team đã đăng ký hackathon chưa
+
+            // 🔥 SINGLE registration variable
             var registration = await _uow.HackathonRegistrations.FirstOrDefaultAsync(
                 r => r.TeamId == dto.TeamId &&
-                     r.HackathonId == dto.HackathonId &&
-                     r.Status == "Approved");
-
-            if (registration == null)
-                throw new Exception("Team must register and be approved for the hackathon before requesting a mentor.");
-
-            // 🔥 Check team has registered this hackathon with WaitingMentor status
-            var registration = await _uow.HackathonRegistrations
-                .FirstOrDefaultAsync(r => r.TeamId == dto.TeamId && r.HackathonId == dto.HackathonId);
+                     r.HackathonId == dto.HackathonId
+            );
 
             if (registration == null)
                 throw new Exception("Team has not registered for this hackathon!");
 
+            if (!string.Equals(registration.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Team must be approved in this hackathon before requesting a mentor.");
+
+            // 🔥 Check WaitingMentor
             if (!string.Equals(registration.Status, "WaitingMentor", StringComparison.OrdinalIgnoreCase))
                 throw new Exception("Team cannot register mentor because the registration status is not 'WaitingMentor'.");
 
-            // 4. Validate existing assignment
+            // 4. Validate previous assignments
             var existing = await _uow.MentorAssignments.GetAllAsync(
                 filter: a => a.TeamId == dto.TeamId && a.HackathonId == dto.HackathonId && a.MentorId == dto.MentorId
             );
