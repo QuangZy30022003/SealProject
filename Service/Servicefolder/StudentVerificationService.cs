@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Common.DTOs.StudentVerification;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Repositories.Interface;
 using Repositories.Models;
 using Repositories.UnitOfWork;
@@ -16,14 +19,14 @@ namespace Service.Servicefolder
     public class StudentVerificationService : IStudentVerificationService
     {
         private readonly IUOW _uow;
-        private readonly IWebHostEnvironment _env;
         private readonly IMapper _mapper;
+        private readonly IFileUploadService _fileUploadService;
 
-        public StudentVerificationService(IUOW uow, IWebHostEnvironment env, IMapper mapper)
+        public StudentVerificationService(IUOW uow, IMapper mapper, IConfiguration config, IFileUploadService fileUploadService)
         {
             _uow = uow;
-            _env = env;
             _mapper = mapper;
+            _fileUploadService = fileUploadService; 
         }
 
         public async Task SubmitAsync(int userId, string userEmail, StudentVerificationDto dto)
@@ -32,45 +35,26 @@ namespace Service.Servicefolder
             if (existing != null)
                 throw new Exception("Bạn đã gửi yêu cầu xác thực trước đó.");
 
-            // upload folder
-            string uploadDir = Path.Combine(_env.WebRootPath, "uploads/studentCards");
-            if (!Directory.Exists(uploadDir))
-                Directory.CreateDirectory(uploadDir);
+            string? frontUrl = null;
+            string? backUrl = null;
 
-            string? frontPath = null;
-            string? backPath = null;
-
-            // Save front image
             if (dto.FrontCardImage != null)
-            {
-                string fileName = $"{Guid.NewGuid()}_{dto.FrontCardImage.FileName}";
-                string path = Path.Combine(uploadDir, fileName);
-                using (var stream = new FileStream(path, FileMode.Create))
-                    await dto.FrontCardImage.CopyToAsync(stream);
-                frontPath = $"/uploads/studentCards/{fileName}";
-            }
+                frontUrl = await _fileUploadService.UploadStudnetAsync(dto.FrontCardImage);
 
-            // Save back image
             if (dto.BackCardImage != null)
-            {
-                string fileName = $"{Guid.NewGuid()}_{dto.BackCardImage.FileName}";
-                string path = Path.Combine(uploadDir, fileName);
-                using (var stream = new FileStream(path, FileMode.Create))
-                    await dto.BackCardImage.CopyToAsync(stream);
-                backPath = $"/uploads/studentCards/{fileName}";
-            }
+                backUrl = await _fileUploadService.UploadStudnetAsync(dto.BackCardImage);
 
-            // Map từ DTO sang Entity
             var verification = _mapper.Map<StudentVerification>(dto);
             verification.UserId = userId;
             verification.StudentEmail = userEmail;
-            verification.FrontCardImage = frontPath;
-            verification.BackCardImage = backPath;
+            verification.FrontCardImage = frontUrl;
+            verification.BackCardImage = backUrl;
             verification.Status = "Pending";
 
             await _uow.StudentVerifications.AddAsync(verification);
             await _uow.SaveAsync();
         }
+
 
         public async Task<bool> ApproveVerificationAsync(int verificationId)
         {
