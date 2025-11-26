@@ -53,7 +53,7 @@ namespace Service.Servicefolder
             return submissions.Where(s => allowedTeamIds.Contains(s.TeamId)).ToList();
         }
 
-       
+
         public async Task<SubmissionScoresResponseDto> CreateOrUpdateScoresAsync(int judgeId, List<ScoreCreateDto> dtos)
         {
             if (!dtos.Any())
@@ -103,7 +103,7 @@ namespace Service.Servicefolder
 
                 if (criterion == null)
                     throw new Exception($"Invalid criterion {dto.CriteriaId} for this submission.");
-                if (dto.ScoreValue > criterion.Weight && dto.ScoreValue >=0 )
+                if (dto.ScoreValue > criterion.Weight && dto.ScoreValue >= 0)
                     throw new Exception($"ScoreValue for CriteriaId {dto.CriteriaId} cannot exceed Weight {criterion.Weight}.");
                 // Kiểm tra score đã tồn tại
                 var existing = await _uow.Scores.FirstOrDefaultAsync(s =>
@@ -413,6 +413,468 @@ namespace Service.Servicefolder
                 .ToList();
 
             return grouped;
+        }
+
+        //public async Task<FinalScoreResponseDto> FinalScoringAsync(FinalScoreRequestDto request, int userId)
+        //{
+        //    // ------------------------------------------------
+        //    // 1. Validate Submission
+        //    // ------------------------------------------------
+        //    var submission = await _uow.Submissions.FirstOrDefaultAsync(s => s.SubmissionId == request.SubmissionId);
+        //    if (submission == null)
+        //        throw new Exception("Submission not found");
+
+        //    var phase = await _uow.HackathonPhases.FirstOrDefaultAsync(x => x.PhaseId == submission.PhaseId);
+        //    if (phase == null)
+        //        throw new Exception("Phase not found");
+
+        //    int hackathonId = phase.HackathonId;
+
+        //    // Lấy Final Phase
+        //    var allPhases = await _uow.HackathonPhases.GetAllAsync(x => x.HackathonId == hackathonId);
+        //    var finalPhase = allPhases.OrderByDescending(x => x.EndDate).First();
+
+        //    if (submission.PhaseId != finalPhase.PhaseId)
+        //        throw new Exception("Submission is not from Final Round");
+
+
+        //    // ------------------------------------------------
+        //    // 2. Lấy JudgeId từ token thông qua JudgeAssignments
+        //    // ------------------------------------------------
+        //    var judgeAssign = await _uow.JudgeAssignments.FirstOrDefaultAsync(x => x.JudgeId == userId);
+        //    if (judgeAssign == null)
+        //        throw new Exception("Judge not found");
+
+        //    int judgeId = userId;
+
+
+        //    // ------------------------------------------------
+        //    // 3. Kiểm tra Judge có được quyền chấm Team này không (track)
+        //    // ------------------------------------------------
+        //    var teamTrack = await _uow.TeamTrackSelections.FirstOrDefaultAsync(x => x.TeamId == submission.TeamId);
+        //    if (teamTrack == null)
+        //        throw new Exception("Team track not found");
+
+
+        //    bool canJudge = await _uow.JudgeAssignments.ExistsAsync(x =>
+        //        x.JudgeId == userId &&
+        //        x.TrackId == teamTrack.TrackId &&
+        //        x.HackathonId == hackathonId
+        //    );
+
+        //    if (!canJudge)
+        //        throw new Exception("Judge is not assigned to this track");
+
+
+        //    // ------------------------------------------------
+        //    // 4. Xóa toàn bộ Score cũ của Judge cho Submission này
+        //    // ------------------------------------------------
+        //    var oldScores = await _uow.Scores.GetAllAsync(x =>
+        //        x.SubmissionId == request.SubmissionId &&
+        //        x.JudgeId == judgeId
+        //    );
+
+        //    foreach (var s in oldScores)
+        //        _uow.Scores.Remove(s);
+
+
+        //    // ------------------------------------------------
+        //    // 5. Lưu Score mới theo từng criterion
+        //    // ------------------------------------------------
+        //    foreach (var item in request.CriteriaScores)
+        //    {
+        //        var newScore = new Score
+        //        {
+        //            SubmissionId = request.SubmissionId,
+        //            JudgeId = judgeId,
+        //            CriteriaId = item.CriterionId,
+        //            Score1 = item.Score,
+        //            Comment = item.Comment,
+        //            ScoredAt = DateTime.UtcNow
+        //        };
+
+        //        await _uow.Scores.AddAsync(newScore);
+        //    }
+
+        //    await _uow.SaveAsync();
+
+
+        //    // ------------------------------------------------
+        //    // 6. Tính Total Score = SUM(criteria score)
+        //    // ------------------------------------------------
+        //    var allScores = await _uow.Scores.GetAllAsync(x =>
+        //        x.SubmissionId == request.SubmissionId
+        //    );
+
+        //    decimal totalScore = allScores.Sum(x => x.Score1);
+
+
+        //    // ------------------------------------------------
+        //    // 7. Save Ranking
+        //    // ------------------------------------------------
+        //    var ranking = await _uow.Rankings.FirstOrDefaultAsync(x =>
+        //        x.TeamId == submission.TeamId &&
+        //        x.HackathonId == hackathonId
+        //    );
+
+        //    if (ranking == null)
+        //    {
+        //        ranking = new Ranking
+        //        {
+        //            TeamId = submission.TeamId,
+        //            HackathonId = hackathonId,
+        //            TotalScore = totalScore,
+        //              UpdatedAt = DateTime.UtcNow
+        //        };
+
+        //        await _uow.Rankings.AddAsync(ranking);
+        //    }
+        //    else
+        //    {
+        //        ranking.TotalScore = totalScore;
+        //        ranking.UpdatedAt = DateTime.UtcNow;
+        //        _uow.Rankings.Update(ranking);
+        //    }
+
+        //    await _uow.SaveAsync();
+
+
+        //    // ------------------------------------------------
+        //    // 8. Recalculate Rank
+        //    // ------------------------------------------------
+        //    var allRankings = (await _uow.Rankings.GetAllAsync(
+        //        x => x.HackathonId == hackathonId,
+        //        orderBy: q => q.OrderByDescending(r => r.TotalScore)
+        //    )).ToList();
+
+        //    int rank = 1;
+        //    foreach (var r in allRankings)
+        //    {
+        //        r.Rank = rank++;
+        //        _uow.Rankings.Update(r);
+        //    }
+
+        //    await _uow.SaveAsync();
+
+
+        //    // ------------------------------------------------
+        //    // 9. RETURN DTO
+        //    // ------------------------------------------------
+        //    return new FinalScoreResponseDto
+        //    {
+        //        SubmissionId = submission.SubmissionId,
+        //        TeamId = submission.TeamId,
+        //        JudgeId = judgeId,
+        //        TotalScore = totalScore,
+        //        Rank = ranking.Rank
+        //    };
+        //}
+
+        public async Task<FinalScoreResponseDto> FinalScoringAsync(FinalScoreRequestDto request, int userId)
+        {
+            // ------------------------------------------------
+            // 1. Validate Submission
+            // ------------------------------------------------
+            var submission = await _uow.Submissions.GetByIdAsync(request.SubmissionId);
+            if (submission == null)
+                throw new Exception("Submission not found");
+
+            var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId);
+            if (phase == null)
+                throw new Exception("Phase not found");
+
+            int hackathonId = phase.HackathonId;
+
+            // Lấy Final Phase
+            var allPhases = await _uow.HackathonPhases.GetAllAsync(x => x.HackathonId == hackathonId);
+            var finalPhase = allPhases.OrderByDescending(x => x.EndDate).FirstOrDefault();
+            if (submission.PhaseId != finalPhase.PhaseId)
+                throw new Exception("Submission is not from Final Round");
+
+            // ------------------------------------------------
+            // 2. Kiểm tra Judge có được phân công
+            // ------------------------------------------------
+            var judgeAssign = await _uow.JudgeAssignments.FirstOrDefaultAsync(x => x.JudgeId == userId);
+            if (judgeAssign == null)
+                throw new Exception("Judge not found");
+
+            int judgeId = userId;
+
+            // ------------------------------------------------
+            // 3. Kiểm tra Judge được phép chấm track của Team
+            // ------------------------------------------------
+            var teamTrack = await _uow.TeamTrackSelections.FirstOrDefaultAsync(x => x.TeamId == submission.TeamId);
+            if (teamTrack == null)
+                throw new Exception("Team track not found");
+
+            bool canJudge = await _uow.JudgeAssignments.ExistsAsync(x =>
+                x.JudgeId == userId &&
+                (x.TrackId == null || x.TrackId == teamTrack.TrackId) &&
+                x.HackathonId == hackathonId
+            );
+            if (!canJudge)
+                throw new Exception("Judge is not assigned to this track");
+
+            // ------------------------------------------------
+            // 4. Validate Scores
+            // ------------------------------------------------
+            foreach (var item in request.CriteriaScores)
+            {
+                var criterion = await _uow.Criteria.FirstOrDefaultAsync(c =>
+                    c.CriteriaId == item.CriterionId &&
+                    (c.TrackId == null || c.TrackId == teamTrack.TrackId));
+
+                if (criterion == null)
+                    throw new Exception($"Invalid criterion {item.CriterionId} for this submission.");
+
+                if (item.Score > criterion.Weight || item.Score < 0)
+                    throw new Exception($"Score for criterion {item.CriterionId} must be between 0 and {criterion.Weight}.");
+            }
+
+            // ------------------------------------------------
+            // 5. Xóa Score cũ của Judge cho Submission này
+            // ------------------------------------------------
+            var oldScores = await _uow.Scores.GetAllAsync(x =>
+                x.SubmissionId == request.SubmissionId &&
+                x.JudgeId == judgeId
+            );
+            foreach (var s in oldScores)
+                _uow.Scores.Remove(s);
+
+            // ------------------------------------------------
+            // 6. Lưu Score mới
+            // ------------------------------------------------
+            foreach (var item in request.CriteriaScores)
+            {
+                var score = new Score
+                {
+                    SubmissionId = submission.SubmissionId,
+                    JudgeId = judgeId,
+                    CriteriaId = item.CriterionId,
+                    Score1 = item.Score,
+                    Comment = item.Comment,
+                    ScoredAt = DateTime.UtcNow
+                };
+                await _uow.Scores.AddAsync(score);
+            }
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 7. Tính TotalScore trung bình tất cả Judge
+            // ------------------------------------------------
+            var allScores = await _uow.Scores.GetAllAsync(x => x.SubmissionId == submission.SubmissionId);
+            decimal totalScore = allScores
+                .GroupBy(s => s.JudgeId)
+                .Select(g => g.Sum(s => s.Score1))
+                .Average(); // trung bình tổng điểm mỗi judge
+
+            // ------------------------------------------------
+            // 8. Lưu Ranking
+            // ------------------------------------------------
+            var ranking = await _uow.Rankings.FirstOrDefaultAsync(x =>
+                x.TeamId == submission.TeamId &&
+                x.HackathonId == hackathonId
+            );
+
+            if (ranking == null)
+            {
+                ranking = new Ranking
+                {
+                    TeamId = submission.TeamId,
+                    HackathonId = hackathonId,
+                    TotalScore = totalScore,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _uow.Rankings.AddAsync(ranking);
+            }
+            else
+            {
+                ranking.TotalScore = totalScore;
+                ranking.UpdatedAt = DateTime.UtcNow;
+                _uow.Rankings.Update(ranking);
+            }
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 9. Recalculate Rank
+            // ------------------------------------------------
+            var allRankings = (await _uow.Rankings.GetAllAsync(
+                x => x.HackathonId == hackathonId,
+                orderBy: q => q.OrderByDescending(r => r.TotalScore)
+            )).ToList();
+
+            int rank = 1;
+            foreach (var r in allRankings)
+            {
+                r.Rank = rank++;
+                _uow.Rankings.Update(r);
+            }
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 10. Map Result với AutoMapper
+            // ------------------------------------------------
+            var result = _mapper.Map<FinalScoreResponseDto>(ranking);
+            result.SubmissionId = submission.SubmissionId;
+            result.JudgeId = judgeId;
+
+            return result;
+        }
+
+        public async Task<FinalScoreResponseDto> UpdateFinalScoreAsync(int userId, FinalScoreRequestDto request)
+        {
+            if (request.CriteriaScores == null || !request.CriteriaScores.Any())
+                throw new Exception("No scores provided.");
+
+            // ------------------------------------------------
+            // 1. Validate Submission
+            // ------------------------------------------------
+            var submission = await _uow.Submissions.GetByIdAsync(request.SubmissionId);
+            if (submission == null)
+                throw new Exception("Submission not found");
+
+            var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId);
+            if (phase == null)
+                throw new Exception("Phase not found");
+
+            int hackathonId = phase.HackathonId;
+
+            // Lấy Final Phase
+            var allPhases = await _uow.HackathonPhases.GetAllAsync(x => x.HackathonId == hackathonId);
+            var finalPhase = allPhases.OrderByDescending(x => x.EndDate).FirstOrDefault();
+            if (submission.PhaseId != finalPhase.PhaseId)
+                throw new Exception("Submission is not from Final Round");
+
+            // ------------------------------------------------
+            // 2. Kiểm tra Judge được phân công
+            // ------------------------------------------------
+            var judgeAssign = await _uow.JudgeAssignments.FirstOrDefaultAsync(x => x.JudgeId == userId);
+            if (judgeAssign == null)
+                throw new Exception("Judge not found");
+
+            int judgeId = userId;
+
+            // ------------------------------------------------
+            // 3. Kiểm tra Judge được phép chấm track của Team
+            // ------------------------------------------------
+            var teamTrack = await _uow.TeamTrackSelections.FirstOrDefaultAsync(x => x.TeamId == submission.TeamId);
+            if (teamTrack == null)
+                throw new Exception("Team track not found");
+
+            bool canJudge = await _uow.JudgeAssignments.ExistsAsync(x =>
+                x.JudgeId == userId &&
+                (x.TrackId == null || x.TrackId == teamTrack.TrackId) &&
+                x.HackathonId == hackathonId
+            );
+            if (!canJudge)
+                throw new Exception("Judge is not assigned to this track");
+
+            // ------------------------------------------------
+            // 4. Validate Scores
+            // ------------------------------------------------
+            foreach (var item in request.CriteriaScores)
+            {
+                var criterion = await _uow.Criteria.FirstOrDefaultAsync(c =>
+                    c.CriteriaId == item.CriterionId &&
+                    (c.TrackId == null || c.TrackId == teamTrack.TrackId));
+
+                if (criterion == null)
+                    throw new Exception($"Invalid criterion {item.CriterionId} for this submission.");
+
+                if (item.Score > criterion.Weight || item.Score < 0)
+                    throw new Exception($"Score for criterion {item.CriterionId} must be between 0 and {criterion.Weight}.");
+            }
+
+            // ------------------------------------------------
+            // 5. Xóa Score cũ của Judge cho Submission này
+            // ------------------------------------------------
+            var oldScores = await _uow.Scores.GetAllAsync(x =>
+                x.SubmissionId == request.SubmissionId &&
+                x.JudgeId == judgeId
+            );
+            foreach (var s in oldScores)
+                _uow.Scores.Remove(s);
+
+            // ------------------------------------------------
+            // 6. Lưu Score mới với comment
+            // ------------------------------------------------
+            foreach (var item in request.CriteriaScores)
+            {
+                var score = new Score
+                {
+                    SubmissionId = submission.SubmissionId,
+                    JudgeId = judgeId,
+                    CriteriaId = item.CriterionId,
+                    Score1 = item.Score,
+                    Comment = item.Comment,
+                    ScoredAt = DateTime.UtcNow
+                };
+                await _uow.Scores.AddAsync(score);
+            }
+
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 7. Tính TotalScore trung bình tất cả Judge
+            // ------------------------------------------------
+            var allScores = await _uow.Scores.GetAllAsync(x => x.SubmissionId == submission.SubmissionId);
+            decimal totalScore = allScores
+                .GroupBy(s => s.JudgeId)
+                .Select(g => g.Sum(s => s.Score1))
+                .Average();
+
+            // ------------------------------------------------
+            // 8. Lưu Ranking
+            // ------------------------------------------------
+            var ranking = await _uow.Rankings.FirstOrDefaultAsync(x =>
+                x.TeamId == submission.TeamId &&
+                x.HackathonId == hackathonId
+            );
+
+            if (ranking == null)
+            {
+                ranking = new Ranking
+                {
+                    TeamId = submission.TeamId,
+                    HackathonId = hackathonId,
+                    TotalScore = totalScore,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _uow.Rankings.AddAsync(ranking);
+            }
+            else
+            {
+                ranking.TotalScore = totalScore;
+                ranking.UpdatedAt = DateTime.UtcNow;
+                _uow.Rankings.Update(ranking);
+            }
+
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 9. Recalculate Rank
+            // ------------------------------------------------
+            var allRankings = (await _uow.Rankings.GetAllAsync(
+                x => x.HackathonId == hackathonId,
+                orderBy: q => q.OrderByDescending(r => r.TotalScore)
+            )).ToList();
+
+            int rank = 1;
+            foreach (var r in allRankings)
+            {
+                r.Rank = rank++;
+                _uow.Rankings.Update(r);
+            }
+            await _uow.SaveAsync();
+
+            // ------------------------------------------------
+            // 10. Map Result với AutoMapper
+            // ------------------------------------------------
+            var result = _mapper.Map<FinalScoreResponseDto>(ranking);
+            result.SubmissionId = submission.SubmissionId;
+            result.JudgeId = judgeId;
+
+            return result;
         }
 
     }

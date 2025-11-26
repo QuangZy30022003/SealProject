@@ -11,7 +11,7 @@ namespace Service.Interface
     {
         Task<IEnumerable<AssignedTeamDto>> ViewAssignedTeamsAsync(int mentorId);
 
-        Task<MentorAssignmentResponseDto> RegisterAsync(MentorAssignmentCreateDto dto);
+        Task<MentorAssignmentResponseDto> RegisterAsync(int userId, MentorAssignmentCreateDto dto);
         Task<MentorAssignmentResponseDto> ApproveAsync(int assignmentId);
         Task<MentorAssignmentResponseDto> RejectAsync(int assignmentId);
         Task<IEnumerable<MentorAssignmentResponseDto>> GetByMentorAsync(int mentorId);

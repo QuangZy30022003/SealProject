@@ -53,14 +53,15 @@ namespace Service.Servicefolder
                     throw new Exception("Phase not found");
             }
 
-            // 4️⃣ Check duplicate (Judge đã được gán cho Track đó chưa)
             bool exists = await _uow.JudgeAssignments.ExistsAsync(
-                x => x.JudgeId == dto.JudgeId &&
-                     x.HackathonId == dto.HackathonId &&
-                     x.TrackId == dto.TrackId
-            );
+        x => x.JudgeId == dto.JudgeId &&
+             x.HackathonId == dto.HackathonId &&
+             x.TrackId == dto.TrackId &&
+             x.PhaseId == dto.PhaseId
+    );
+
             if (exists)
-                throw new Exception("This judge is already assigned to this track.");
+                throw new Exception("This judge is already assigned to this track in the same phase.");
 
             // 5️⃣ Tạo mới
             var assignment = new JudgeAssignment

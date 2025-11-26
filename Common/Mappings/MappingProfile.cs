@@ -30,6 +30,7 @@ using Common.DTOs.JudgeAssignmentDto;
 using Common.DTOs.GroupDto;
 using Common.DTOs.QualifiedFinealTeamDto;
 using Common.DTOs.ChatDto;
+using Common.DTOs.RanksDTo;
 
 
 
@@ -303,6 +304,13 @@ namespace Common.Mappings
     .ForMember(dest => dest.GroupId,
         opt => opt.MapFrom(src => src.GroupId));
 
+
+            CreateMap<Ranking, FinalScoreResponseDto>();
+
+            //Ranking
+            CreateMap<Ranking, RankingDto>()
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+                .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
         }
     }
 }

@@ -18,23 +18,7 @@ namespace Seal.Controller
             _scoreService = scoreService;
         }
 
-        //// ✅ GET: Lấy các submissions mà Judge có thể chấm trong Phase
-        //[HttpGet("submissions/{phaseId}")]
-        //public async Task<IActionResult> GetSubmissions(int phaseId)
-        //{
-        //    var role = User.FindFirstValue(ClaimTypes.Role);
-        //    var userId = int.Parse(User.FindFirstValue("UserId"));
-
-        //    if (role == "Admin")
-        //    {
-        //        // Admin có thể xem tất cả submissions trong phase
-        //        var all = await _scoreService.GetSubmissionsForJudgeAsync(0, phaseId);
-        //        return Ok(all);
-        //    }
-
-        //    var result = await _scoreService.GetSubmissionsForJudgeAsync(userId, phaseId);
-        //    return Ok(result);
-        //}
+      
 
         // ✅ POST: Judge chấm điểm submission
         [Authorize(Roles = "Judge")]
@@ -68,14 +52,7 @@ namespace Seal.Controller
 
 
 
-        // ✅ GET: Lấy danh sách điểm đã chấm
-        //[HttpGet("myscores/{phaseId}")]
-        //public async Task<IActionResult> GetMyScores(int phaseId)
-        //{
-        //    var judgeId = int.Parse(User.FindFirstValue("UserId"));
-        //    var scores = await _scoreService.GetScoresByJudgeAsync(judgeId, phaseId);
-        //    return Ok(scores);
-        //}
+      
         [Authorize(Roles = "Judge")]
         [HttpPut("score")]
         public async Task<IActionResult> UpdateScores([FromBody] SubmissionScoreInputDto dto)
@@ -103,20 +80,7 @@ namespace Seal.Controller
             }
         }
 
-        //[HttpGet("submission/{submissionId}/scores-with-average")]
-        //[Authorize]
-        //public async Task<IActionResult> GetScoresWithTeamAverage(int submissionId)
-        //{
-        //    try
-        //    {
-        //        var result = await _scoreService.GetScoresWithTeamAverageBySubmissionAsync(submissionId);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
+ 
 
         [HttpGet("group/{groupId}/team-scores")]
         [Authorize(Roles = "Judge,Admin")]
@@ -147,6 +111,33 @@ namespace Seal.Controller
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPost]
+        [Authorize(Roles = "Judge")]
+        public async Task<IActionResult> FinalScoring(FinalScoreRequestDto request)
+        {
+            var judgeId = int.Parse(User.FindFirstValue("UserId"));
+            var result = await _scoreService.FinalScoringAsync(request, judgeId);
+            return Ok(result);
+        }
+
+        [HttpPut("{submissionId}/final-score")]
+        [Authorize(Roles = "Judge")]
+        public async Task<ActionResult<FinalScoreResponseDto>> UpdateFinalScore(int submissionId, [FromBody] FinalScoreRequestDto request)
+        {
+            try
+            {
+                // Lấy userId từ token
+                int userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                if (userId == 0) return Unauthorized();
+
+                var result = await _scoreService.UpdateFinalScoreAsync(userId, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
