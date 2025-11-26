@@ -81,5 +81,25 @@ namespace Common.DTOs.ScoreDto
         public decimal TotalScore { get; set; } // thay đổi tên cho rõ ràng
         public List<ScoreResponseDto> Scores { get; set; } = new List<ScoreResponseDto>();
     }
+    public class FinalScoreRequestDto
+    {
+        public int SubmissionId { get; set; }
+        public List<CriterionScoreDto> CriteriaScores { get; set; }
+    }
+
+    public class CriterionScoreDto
+    {
+        public int CriterionId { get; set; }
+        public decimal Score { get; set; }
+        public string? Comment { get; set; } // thêm comment
+    }
+    public class FinalScoreResponseDto
+    {
+        public int SubmissionId { get; set; }
+        public int TeamId { get; set; }
+        public int JudgeId { get; set; }
+        public decimal TotalScore { get; set; }
+        public int? Rank { get; set; }
+    }
 
 }

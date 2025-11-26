@@ -10,6 +10,7 @@ namespace Service.Interface
     public interface IFileUploadService
     {
         Task<string> UploadAsync(IFormFile file);
+        Task<string> UploadStudnetAsync(IFormFile file);
 
     }
 }

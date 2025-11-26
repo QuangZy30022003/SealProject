@@ -39,7 +39,27 @@ namespace Service.Servicefolder
                 Type = "upload",
                 AccessMode = "public" // ✅ thêm dòng này
             };
-            // DÙNG RawUploadAsync chứ KHÔNG dùng UploadAsync
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams, "auto");
+
+
+            return uploadResult?.SecureUrl?.ToString() ?? string.Empty;
+        }
+
+        public async Task<string> UploadStudnetAsync(IFormFile file)
+        {
+            using var stream = file.OpenReadStream();
+
+            var uploadParams = new RawUploadParams
+            {
+                File = new FileDescription($"{DateTime.UtcNow:yyyyMMddHHmmss}_{file.FileName}", stream),
+                Folder = "studentverification",
+                UseFilename = true,
+                UniqueFilename = false,
+                Overwrite = true,
+                Type = "upload",
+                AccessMode = "public" // ✅ thêm dòng này
+            };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams, "auto");
 
