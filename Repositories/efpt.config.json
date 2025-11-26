@@ -31,6 +31,18 @@
       "ObjectType": 0
     },
     {
+      "Name": "[dbo].[ChatGroups]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ChatMessageReads]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ChatMessages]",
+      "ObjectType": 0
+    },
+    {
       "Name": "[dbo].[Criteria]",
       "ObjectType": 0
     },

@@ -32,6 +32,7 @@ namespace Service
             service.AddScoped<ICriterionService, CriterionService>();
             service.AddScoped<IScoreService, ScoreService>();
 
+            service.AddScoped<IChatService, ChatService>();
             service.AddScoped<IPrizeService, PrizeService>();
 
             service.AddScoped<ITeamJoinRequestService, TeamJoinRequestService>();

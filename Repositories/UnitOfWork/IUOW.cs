@@ -25,6 +25,9 @@ namespace Repositories.UnitOfWork
         IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         IRepository<MentorAssignment> MentorAssignments { get; }
 
+        IRepository<ChatGroup> ChatGroups { get; }
+        IRepository<ChatMessage> ChatMessages { get; }
+        IRepository<ChatMessageRead> ChatMessageReads { get; }
 
         IRepository<Prize> Prizes { get; }
         IRepository<PrizeAllocation> PrizeAllocations { get; }

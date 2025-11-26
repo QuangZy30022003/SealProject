@@ -29,6 +29,7 @@ using Common.DTOs.TeamTrackDto;
 using Common.DTOs.JudgeAssignmentDto;
 using Common.DTOs.GroupDto;
 using Common.DTOs.QualifiedFinealTeamDto;
+using Common.DTOs.ChatDto;
 using Common.DTOs.RanksDTo;
 
 
@@ -54,6 +55,27 @@ namespace Common.Mappings
                 opt => opt.MapFrom(src => src.ChapterLeader != null
                     ? src.ChapterLeader.FullName
                     : "(No leader)"));
+
+            //chat
+            CreateMap<ChatMessage, ChatMessageDto>()
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender.FullName));
+            CreateMap<ChatMessage, ChatMessageDto>()
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender != null ? src.Sender.FullName : string.Empty))
+                .ForMember(dest => dest.ReadStatuses, opt => opt.MapFrom(src =>
+                    src.ChatMessageReads != null && src.ChatMessageReads.Any()
+                    ? src.ChatMessageReads
+                    : new List<ChatMessageRead>()))
+                    .AfterMap((src, dest) =>
+                    {
+                        // Đảm bảo ReadStatuses không null
+                        if (dest.ReadStatuses == null)
+                        {
+                            dest.ReadStatuses = new List<MessageReadStatusDto>();
+                        }
+                    });
+
+            CreateMap<ChatMessageRead, MessageReadStatusDto>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : string.Empty));
 
             // team
             CreateMap<CreateTeamDto, Team>()

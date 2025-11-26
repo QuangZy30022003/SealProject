@@ -23,6 +23,8 @@ public partial class Team
 
     public virtual Chapter Chapter { get; set; }
 
+    public virtual ICollection<ChatGroup> ChatGroups { get; set; } = new List<ChatGroup>();
+
     public virtual ICollection<FinalQualification> FinalQualifications { get; set; } = new List<FinalQualification>();
 
     public virtual ICollection<GroupTeam> GroupTeams { get; set; } = new List<GroupTeam>();

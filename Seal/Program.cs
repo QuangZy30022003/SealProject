@@ -10,8 +10,10 @@ using System.Text;
 using Common.Mappings;
 using Microsoft.Extensions.DependencyInjection;
 using Common;
+using Seal.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<SealDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -49,6 +51,37 @@ builder.Services.AddAuthentication(options =>
                 else
                 {
                     context.Token = authHeader; // token thuần
+                }
+            }
+            return Task.CompletedTask;
+        }
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // SignalR gửi token qua query string hoặc header
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+            {
+                context.Token = accessToken;
+            }
+            else
+            {
+                // Fallback cho header Authorization
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader))
+                {
+                    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                    }
+                    else
+                    {
+                        context.Token = authHeader;
+                    }
                 }
             }
             return Task.CompletedTask;
@@ -121,6 +154,7 @@ builder.Services
              .AddRepository()
              .AddService();
 var app = builder.Build();
+app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -136,6 +170,7 @@ app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<ChatHub>("/chathub");
 
 app.MapControllers();
 

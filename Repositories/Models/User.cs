@@ -37,6 +37,12 @@ public partial class User
 
     public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
 
+    public virtual ICollection<ChatGroup> ChatGroups { get; set; } = new List<ChatGroup>();
+
+    public virtual ICollection<ChatMessageRead> ChatMessageReads { get; set; } = new List<ChatMessageRead>();
+
+    public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+
     public virtual ICollection<Hackathon> Hackathons { get; set; } = new List<Hackathon>();
 
     public virtual ICollection<JudgeAssignment> JudgeAssignments { get; set; } = new List<JudgeAssignment>();

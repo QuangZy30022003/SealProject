@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Test - New Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .section h3 { margin-top: 0; color: #333; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 3px; }
+        button { padding: 8px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; background: #f9f9f9; }
+        .message { margin: 5px 0; padding: 8px; background: white; border-radius: 3px; }
+        .message strong { color: #007bff; }
+        .message small { color: #666; }
+        .status { padding: 5px 10px; border-radius: 3px; font-size: 12px; }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        
+        /* Notification Toast */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+            max-width: 400px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        #notification.success { border-left: 4px solid #28a745; }
+        #notification.error { border-left: 4px solid #dc3545; }
+        #notification.info { border-left: 4px solid #17a2b8; }
+        #notification.warning { border-left: 4px solid #ffc107; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Test - New Flow (ChatGroupId Only)</h1>
+    
+    <!-- Notification Toast -->
+    <div id="notification"></div>
+    
+    <!-- Connection Section -->
+    <div class="section">
+        <h3>1 Connection</h3>
+        <input type="text" id="tokenInput" placeholder="JWT Token" style="width: 500px;" />
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <span id="connectionStatus" class="status disconnected">Disconnected</span>
+    </div>
+
+    <!-- Get ChatGroup Section -->
+    <div class="section">
+        <h3>2 Get ChatGroup (Optional - if you don't have ChatGroupId)</h3>
+        <input type="number" id="getMentorId" placeholder="Mentor ID" />
+        <input type="number" id="getTeamId" placeholder="Team ID" />
+        <input type="number" id="getHackathonId" placeholder="Hackathon ID" />
+        <button onclick="getChatGroup()">Get ChatGroup</button>
+        <div id="chatGroupInfo" style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 3px; display: none;">
+            <strong>ChatGroup Found:</strong>
+            <div id="chatGroupDetails"></div>
+        </div>
+    </div>
+
+    <!-- Join Group Section -->
+    <div class="section">
+        <h3>3 Join ChatGroup</h3>
+        <input type="number" id="chatGroupId" placeholder="Chat Group ID" />
+        <button onclick="joinGroup()">Join Group</button>
+        <button onclick="loadMessages()">Load Messages</button>
+    </div>
+
+    <!-- Send Message Section -->
+    <div class="section">
+        <h3>4 Send Message (New Flow - Only ChatGroupId needed!)</h3>
+        <input type="number" id="sendChatGroupId" placeholder="Chat Group ID" style="width: 150px;" />
+        <input type="text" id="messageInput" placeholder="Type your message..." style="width: 400px;" />
+        <button onclick="sendMessage()">Send Message</button>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="section">
+        <h3>5 Messages</h3>
+        <div id="messages"></div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="section" style="background: #fff3cd; border-color: #ffc107;">
+        <h3> Instructions</h3>
+        <ol>
+            <li><strong>Get Token:</strong> Login to get JWT token</li>
+            <li><strong>Connect:</strong> Paste token and click Connect</li>
+            <li><strong>Get ChatGroup:</strong> Enter MentorId, TeamId, HackathonId to find ChatGroupId (or skip if you already have it)</li>
+            <li><strong>Join Group:</strong> Enter ChatGroupId and click Join</li>
+            <li><strong>Send Message:</strong> Enter ChatGroupId and message, then click Send</li>
+        </ol>
+        <p><strong>Note:</strong> ChatGroup is automatically created when mentor approves team assignment!</p>
+    </div>
+
+    <script>
+        let connection = null;
+        const API_BASE = 'https://localhost:7268/api';
+
+        // ========== NOTIFICATION SYSTEM ==========
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.className = type;
+            notif.style.display = 'block';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 3000);
+        }
+
+        // ========== CONNECTION ==========
+        function connect() {
+            const token = document.getElementById('tokenInput').value;
+            if (!token) {
+                showNotification('Please enter token', 'warning');
+                return;
+            }
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("https://localhost:7268/chathub", {
+                    accessTokenFactory: () => token
+                })
+                .withAutomaticReconnect()
+                .build();
+
+            // Listen for new messages
+            connection.on("ReceiveMessage", (message) => {
+                displayMessage(message);
+                console.log('Received message:', message);
+            });
+
+            // Listen for notifications
+            connection.on("NewMessageNotification", (notification) => {
+                console.log('Notification:', notification);
+                const notifText = notification.teamName 
+                    ? `New message from ${notification.teamName}` 
+                    : `New message from ${notification.mentorName}`;
+                showNotification(`${notifText}: ${notification.message}`, 'info');
+            });
+
+            // Listen for read receipts
+            connection.on("MessageRead", (data) => {
+                console.log('Message read:', data);
+                // Update UI to show read status (optional)
+            });
+
+            connection.start()
+                .then(() => {
+                    console.log('Connected to SignalR!');
+                    updateConnectionStatus(true);
+                    showNotification('Connected to SignalR!', 'success');
+                })
+                .catch(err => {
+                    console.error('Connection error:', err);
+                    updateConnectionStatus(false);
+                    showNotification('Connection failed: ' + err.message, 'error');
+                });
+
+            connection.onreconnecting(() => {
+                console.log('Reconnecting...');
+                updateConnectionStatus(false);
+            });
+
+            connection.onreconnected(() => {
+                console.log('Reconnected!');
+                updateConnectionStatus(true);
+            });
+
+            connection.onclose(() => {
+                console.log('Disconnected');
+                updateConnectionStatus(false);
+            });
+        }
+
+        function disconnect() {
+            if (connection) {
+                connection.stop();
+                console.log('Disconnected');
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (isConnected) {
+                statusEl.textContent = 'Connected ';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = 'Disconnected ';
+                statusEl.className = 'status disconnected';
+            }
+        }
+
+        // ========== GET CHATGROUP (NEW!) ==========
+        async function getChatGroup() {
+            const mentorId = parseInt(document.getElementById('getMentorId').value);
+            const teamId = parseInt(document.getElementById('getTeamId').value);
+            const hackathonId = parseInt(document.getElementById('getHackathonId').value);
+            const token = document.getElementById('tokenInput').value;
+
+            if (!mentorId || !teamId || !hackathonId || !token) {
+                showNotification('Please fill all fields', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/Chat/group?mentorId=${mentorId}&teamId=${teamId}&hackathonId=${hackathonId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Handle both formats: direct object OR wrapped in {success: true, data: {...}}
+                    const chatGroup = result.data || result;
+                    
+                    if (chatGroup && chatGroup.chatGroupId) {
+                        console.log('ChatGroup found:', chatGroup);
+                        
+                        // Display ChatGroup info
+                        document.getElementById('chatGroupInfo').style.display = 'block';
+                        document.getElementById('chatGroupDetails').innerHTML = `
+                            <div><strong>ChatGroupId:</strong> ${chatGroup.chatGroupId}</div>
+                            <div><strong>Group Name:</strong> ${chatGroup.groupName || 'N/A'}</div>
+                            <div><strong>Mentor:</strong> ${chatGroup.mentorName || 'N/A'}</div>
+                            <div><strong>Team:</strong> ${chatGroup.teamName || 'N/A'}</div>
+                            <div><strong>Hackathon:</strong> ${chatGroup.hackathonName || 'N/A'}</div>
+                        `;
+                        
+                        // Auto-fill ChatGroupId
+                        document.getElementById('chatGroupId').value = chatGroup.chatGroupId;
+                        document.getElementById('sendChatGroupId').value = chatGroup.chatGroupId;
+                        
+                        showNotification(`ChatGroup found! ID: ${chatGroup.chatGroupId}`, 'success');
+                    } else {
+                        showNotification('ChatGroup not found. Make sure mentor has approved the assignment!', 'error');
+                        console.error('Error:', result);
+                    }
+                } else {
+                    showNotification('ChatGroup not found. Make sure mentor has approved the assignment!', 'error');
+                    console.error('Error:', result);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ========== JOIN GROUP ==========
+        function joinGroup() {
+            const chatGroupId = parseInt(document.getElementById('chatGroupId').value);
+            if (!connection) {
+                showNotification('Please connect first!', 'warning');
+                return;
+            }
+            if (!chatGroupId) {
+                showNotification('Please enter Chat Group ID', 'warning');
+                return;
+            }
+
+            connection.invoke("JoinChatGroup", chatGroupId)
+                .then(() => {
+                    console.log('Joined group:', chatGroupId);
+                    showNotification(`Joined group ${chatGroupId}`, 'success');
+                    
+                    // Auto-fill send ChatGroupId
+                    document.getElementById('sendChatGroupId').value = chatGroupId;
+                })
+                .catch(err => {
+                    console.error('Join error:', err);
+                    showNotification('Join error: ' + err, 'error');
+                });
+        }
+
+        // ========== LOAD MESSAGES ==========
+        async function loadMessages() {
+            const chatGroupId = parseInt(document.getElementById('chatGroupId').value);
+            const token = document.getElementById('tokenInput').value;
+
+            if (!chatGroupId || !token) {
+                showNotification('Please enter Chat Group ID and token', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/Chat/group/${chatGroupId}/messages`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    console.log('Messages loaded:', result);
+                    
+                    // Clear and display messages
+                    document.getElementById('messages').innerHTML = '';
+                    
+                    // Handle both formats: array directly OR wrapped in {data: [...]}
+                    let messages = Array.isArray(result) ? result : (result.data || []);
+                    
+                    if (messages.length > 0) {
+                        messages.forEach(msg => displayMessage(msg));
+                        console.log(`Displayed ${messages.length} messages`);
+                    } else {
+                        document.getElementById('messages').innerHTML = '<p style="color: #999;">No messages yet. Be the first to send a message!</p>';
+                    }
+                } else {
+                    showNotification('Error loading messages', 'error');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ========== SEND MESSAGE (NEW FLOW!) ==========
+        async function sendMessage() {
+            const chatGroupId = parseInt(document.getElementById('sendChatGroupId').value);
+            const content = document.getElementById('messageInput').value;
+            const token = document.getElementById('tokenInput').value;
+
+            if (!chatGroupId || !content || !token) {
+                showNotification('Please fill Chat Group ID and message', 'warning');
+                return;
+            }
+
+            try {
+                // ✅ NEW FLOW: Only send ChatGroupId and Content!
+                const response = await fetch(`${API_BASE}/Chat/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        chatGroupId: chatGroupId,  // ✅ Only ChatGroupId!
+                        content: content
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    console.log('Message sent:', result);
+                    document.getElementById('messageInput').value = '';
+                    
+                    // Message will be received via SignalR "ReceiveMessage" event
+                } else {
+                    showNotification('Error sending message', 'error');
+                    console.error('Error:', result);
+                }
+            } catch (error) {
+                console.error('Send error:', error);
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ========== DISPLAY MESSAGE ==========
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message';
+            
+            const time = new Date(message.sentAt).toLocaleTimeString();
+            
+            // Hiển thị tên người đã đọc thay vì số lượng
+            let readStatus = '';
+            if (message.readStatuses && message.readStatuses.length > 0) {
+                const readers = message.readStatuses.map(r => r.userName).join(', ');
+                readStatus = `<small style="color: #28a745;" title="Read by: ${readers}">Seen by ${readers}</small>`;
+            }
+            
+            messageEl.innerHTML = `
+                <strong>${message.senderName}:</strong> ${message.content}
+                <small>(${time})</small>
+                ${readStatus}
+            `;
+            
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // ========== KEYBOARD SHORTCUTS ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // Press Enter to send message
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
