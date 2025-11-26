@@ -113,6 +113,33 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpPost]
+        [Authorize(Roles = "Judge")]
+        public async Task<IActionResult> FinalScoring(FinalScoreRequestDto request)
+        {
+            var judgeId = int.Parse(User.FindFirstValue("UserId"));
+            var result = await _scoreService.FinalScoringAsync(request, judgeId);
+            return Ok(result);
+        }
+
+        [HttpPut("{submissionId}/final-score")]
+        [Authorize(Roles = "Judge")]
+        public async Task<ActionResult<FinalScoreResponseDto>> UpdateFinalScore(int submissionId, [FromBody] FinalScoreRequestDto request)
+        {
+            try
+            {
+                // Lấy userId từ token
+                int userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                if (userId == 0) return Unauthorized();
+
+                var result = await _scoreService.UpdateFinalScoreAsync(userId, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
     }
 }
