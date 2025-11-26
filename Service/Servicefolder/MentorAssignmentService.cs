@@ -133,10 +133,10 @@ namespace Service.Servicefolder
             // 6. Send email
             string subject = "📩 Mentor Assignment Notification";
             string body = $@"
-<p>Dear <b>{mentor.FullName}</b>,</p>
-<p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Hackathon <b>{hackathon.HackathonId}</b>.</p>
-<p>Status: <b>{assignment.Status}</b></p>
-<p>Best regards,<br/>Seal System</p>";
+            <p>Dear <b>{mentor.FullName}</b>,</p>
+            <p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Hackathon <b>{hackathon.HackathonId}</b>.</p>
+            <p>Status: <b>{assignment.Status}</b></p>
+            <p>Best regards,<br/>Seal System</p>";
 
             await _emailService.SendEmailAsync(mentor.Email, subject, body);
 
@@ -165,7 +165,10 @@ namespace Service.Servicefolder
 
             await _uow.SaveAsync();
 
-            // Send email to Leader
+            // ✅ TỰ ĐỘNG TẠO CHATGROUP
+            await CreateChatGroupForAssignmentAsync(assignment);
+
+            // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
 
@@ -173,10 +176,10 @@ namespace Service.Servicefolder
             {
                 string subject = "Mentor Assignment Approved";
                 string body = $@"
-        <p>Dear {leader.FullName},</p>
-        <p>Your team <b>{team.TeamName}</b> has been approved by Mentor ID {assignment.MentorId}.</p>
-        <p>Congratulations! You can now start working with your mentor.</p>
-        <p>Best regards,<br/>Seal System</p>";
+                <p>Dear {leader.FullName},</p>
+                <p>Your team <b>{team.TeamName}</b> has been approved by Mentor ID {assignment.MentorId}.</p>
+                <p>Congratulations! You can now start working with your mentor.</p>
+                <p>Best regards,<br/>Seal System</p>";
 
                 await _emailService.SendEmailAsync(leader.Email, subject, body);
             }
@@ -205,11 +208,7 @@ namespace Service.Servicefolder
 
             await _uow.SaveAsync();
 
-            // ✅ TỰ ĐỘNG TẠO CHATGROUP
-            await CreateChatGroupForAssignmentAsync(assignment);
-
-            // Gửi mail cho TeamLeader
-            // Send email
+            // Send email TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
 
@@ -217,10 +216,10 @@ namespace Service.Servicefolder
             {
                 string subject = "Mentor Assignment Rejected";
                 string body = $@"
-        <p>Dear {leader.FullName},</p>
-        <p>Your mentor request for team <b>{team.TeamName}</b> was rejected.</p>
-        <p>You may try requesting another mentor.</p>
-        <p>Best regards,<br/>Seal System</p>";
+                <p>Dear {leader.FullName},</p>
+                <p>Your mentor request for team <b>{team.TeamName}</b> was rejected.</p>
+                <p>You may try requesting another mentor.</p>
+                <p>Best regards,<br/>Seal System</p>";
 
                 await _emailService.SendEmailAsync(leader.Email, subject, body);
             }
