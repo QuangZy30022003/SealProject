@@ -28,6 +28,10 @@ namespace Repositories.UnitOfWork
         public IRepository<TeamJoinRequest> TeamJoinRequests { get; }
         public IRepository<MentorAssignment> MentorAssignments { get; }
 
+        public IRepository<ChatGroup> ChatGroups { get; }
+        public IRepository<ChatMessage> ChatMessages { get; }
+        public IRepository<ChatMessageRead> ChatMessageReads { get; }
+
 
         public IRepository<JudgeAssignment> JudgeAssignments { get; }
         public IRepository<Submission> Submissions { get; }
@@ -88,6 +92,10 @@ namespace Repositories.UnitOfWork
             TeamInvitations = new GenericRepository<TeamInvitation>(_context);
             TeamJoinRequests = new GenericRepository<TeamJoinRequest>(_context);
             MentorAssignments = new GenericRepository<MentorAssignment>(_context);
+
+            ChatGroups = new GenericRepository<ChatGroup>(_context);
+            ChatMessages = new GenericRepository<ChatMessage>(_context);
+            ChatMessageReads = new GenericRepository<ChatMessageRead>(_context);
 
             Prizes = new GenericRepository<Prize>(_context);
             PrizeAllocations = new GenericRepository<PrizeAllocation>(_context);

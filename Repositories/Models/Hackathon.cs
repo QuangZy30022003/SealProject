@@ -25,6 +25,8 @@ public partial class Hackathon
 
     public virtual ICollection<Challenge> Challenges { get; set; } = new List<Challenge>();
 
+    public virtual ICollection<ChatGroup> ChatGroups { get; set; } = new List<ChatGroup>();
+
     public virtual User CreatedByNavigation { get; set; }
 
     public virtual ICollection<HackathonPhase> HackathonPhases { get; set; } = new List<HackathonPhase>();

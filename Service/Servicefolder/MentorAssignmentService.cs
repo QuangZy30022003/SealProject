@@ -166,6 +166,9 @@ namespace Service.Servicefolder
             _uow.MentorAssignments.Update(assignment);
             await _uow.SaveAsync();
 
+            // ✅ TỰ ĐỘNG TẠO CHATGROUP
+            await CreateChatGroupForAssignmentAsync(assignment);
+
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
@@ -194,6 +197,45 @@ namespace Service.Servicefolder
             );
 
             return _mapper.Map<IEnumerable<MentorAssignmentResponseDto>>(assignments);
+        }
+
+        // ✅ METHOD MỚI: Tạo ChatGroup
+        private async Task CreateChatGroupForAssignmentAsync(MentorAssignment assignment)
+        {
+            // Kiểm tra xem ChatGroup đã tồn tại chưa
+            var existingGroup = await _uow.ChatGroups.FirstOrDefaultAsync(
+                cg => cg.MentorId == assignment.MentorId &&
+                      cg.TeamId == assignment.TeamId &&
+                      cg.HackathonId == assignment.HackathonId);
+
+            if (existingGroup != null)
+            {
+                // Đã có rồi, không cần tạo nữa
+                return;
+            }
+
+            // Lấy thông tin để tạo GroupName
+            var mentor = await _uow.Users.GetByIdAsync(assignment.MentorId);
+            var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
+            var hackathon = await _uow.Hackathons.GetByIdAsync(assignment.HackathonId);
+
+            // Tạo ChatGroup mới
+            var chatGroup = new ChatGroup
+            {
+                MentorId = assignment.MentorId,
+                TeamId = assignment.TeamId,
+                HackathonId = assignment.HackathonId,
+                GroupName = $"{team?.TeamName} - {mentor?.FullName} - {hackathon?.Name}",
+                CreatedAt = DateTime.UtcNow,
+                LastMessageAt = null // Chưa có message
+            };
+
+            await _uow.ChatGroups.AddAsync(chatGroup);
+            await _uow.SaveAsync();
+
+            // Optional: Log hoặc gửi notification
+            // _logger.LogInformation("ChatGroup {ChatGroupId} created for Mentor {MentorId} and Team {TeamId}", 
+            //     chatGroup.ChatGroupId, assignment.MentorId, assignment.TeamId);
         }
     }
 }

@@ -8,10 +8,6 @@ namespace Repositories.Models;
 
 public partial class SealDbContext : DbContext
 {
-    public SealDbContext()
-    {
-    }
-
     public SealDbContext(DbContextOptions<SealDbContext> options)
         : base(options)
     {
@@ -24,6 +20,12 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<Challenge> Challenges { get; set; }
 
     public virtual DbSet<Chapter> Chapters { get; set; }
+
+    public virtual DbSet<ChatGroup> ChatGroups { get; set; }
+
+    public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+
+    public virtual DbSet<ChatMessageRead> ChatMessageReads { get; set; }
 
     public virtual DbSet<Criterion> Criteria { get; set; }
 
@@ -84,7 +86,6 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<Track> Tracks { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -171,6 +172,76 @@ public partial class SealDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        modelBuilder.Entity<ChatGroup>(entity =>
+        {
+            entity.HasKey(e => e.ChatGroupId).HasName("PK__ChatGrou__435956F88D68A577");
+
+            entity.HasIndex(e => new { e.MentorId, e.TeamId, e.HackathonId }, "UQ_ChatGroups").IsUnique();
+
+            entity.Property(e => e.ChatGroupId).HasColumnName("ChatGroupID");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.GroupName).HasMaxLength(200);
+            entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
+            entity.Property(e => e.LastMessageAt).HasColumnType("datetime");
+            entity.Property(e => e.MentorId).HasColumnName("MentorID");
+            entity.Property(e => e.TeamId).HasColumnName("TeamID");
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.ChatGroups)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Mentor).WithMany(p => p.ChatGroups)
+                .HasForeignKey(d => d.MentorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ChatGroups_Mentors_MentorID");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.ChatGroups)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.MessageId).HasName("PK__ChatMess__C87C037CEB981E6B");
+
+            entity.HasIndex(e => e.ChatGroupId, "IX_ChatMessages_ChatGroups");
+
+            entity.Property(e => e.MessageId).HasColumnName("MessageID");
+            entity.Property(e => e.ChatGroupId).HasColumnName("ChatGroupID");
+            entity.Property(e => e.Content)
+                .IsRequired()
+                .HasMaxLength(2000);
+            entity.Property(e => e.SenderId).HasColumnName("SenderID");
+            entity.Property(e => e.SentAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ChatGroup).WithMany(p => p.ChatMessages).HasForeignKey(d => d.ChatGroupId);
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.ChatMessages)
+                .HasForeignKey(d => d.SenderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ChatMessages_Senders_SenderID");
+        });
+
+        modelBuilder.Entity<ChatMessageRead>(entity =>
+        {
+            entity.HasKey(e => e.ChatMessageReadId).HasName("PK__ChatMess__B741EF1F27D13BD4");
+
+            entity.HasIndex(e => new { e.MessageId, e.UserId }, "IX_ChatMessageReads_ChatMessages_Users");
+
+            entity.HasIndex(e => new { e.MessageId, e.UserId }, "UQ_ChatMessageReads").IsUnique();
+
+            entity.Property(e => e.ChatMessageReadId).HasColumnName("ChatMessageReadID");
+            entity.Property(e => e.MessageId).HasColumnName("MessageID");
+            entity.Property(e => e.ReadAt).HasColumnType("datetime");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Message).WithMany(p => p.ChatMessageReads).HasForeignKey(d => d.MessageId);
+
+            entity.HasOne(d => d.User).WithMany(p => p.ChatMessageReads)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
         modelBuilder.Entity<Criterion>(entity =>
         {
             entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2D79FFCB23");
@@ -183,7 +254,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.TrackId).HasColumnName("TrackID");
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
 
-            entity.HasOne(d => d.Phase).WithMany(p => p.Criteria).HasForeignKey(d => d.PhaseId);
+            entity.HasOne(d => d.Phase).WithMany(p => p.Criteria)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Track).WithMany(p => p.Criteria).HasForeignKey(d => d.TrackId);
         });
@@ -196,7 +269,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
             entity.Property(e => e.Description).HasMaxLength(255);
 
-            entity.HasOne(d => d.Criteria).WithMany(p => p.CriterionDetails).HasForeignKey(d => d.CriteriaId);
+            entity.HasOne(d => d.Criteria).WithMany(p => p.CriterionDetails)
+                .HasForeignKey(d => d.CriteriaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<FinalQualification>(entity =>
@@ -217,7 +292,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.PhaseId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.FinalQualifications).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.FinalQualifications)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Track).WithMany(p => p.FinalQualifications)
                 .HasForeignKey(d => d.TrackId)
@@ -234,7 +311,9 @@ public partial class SealDbContext : DbContext
                 .HasMaxLength(50);
             entity.Property(e => e.TrackId).HasColumnName("TrackID");
 
-            entity.HasOne(d => d.Track).WithMany(p => p.Groups).HasForeignKey(d => d.TrackId);
+            entity.HasOne(d => d.Track).WithMany(p => p.Groups)
+                .HasForeignKey(d => d.TrackId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<GroupTeam>(entity =>
@@ -246,7 +325,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.GroupId).HasColumnName("GroupID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
-            entity.HasOne(d => d.Group).WithMany(p => p.GroupTeams).HasForeignKey(d => d.GroupId);
+            entity.HasOne(d => d.Group).WithMany(p => p.GroupTeams)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Team).WithMany(p => p.GroupTeams)
                 .HasForeignKey(d => d.TeamId)
@@ -269,7 +350,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Season).WithMany(p => p.Hackathons).HasForeignKey(d => d.SeasonId);
+            entity.HasOne(d => d.Season).WithMany(p => p.Hackathons)
+                .HasForeignKey(d => d.SeasonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<HackathonPhase>(entity =>
@@ -282,7 +365,9 @@ public partial class SealDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonPhases).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonPhases)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<HackathonRegistration>(entity =>
@@ -294,7 +379,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonRegistrations).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.HackathonRegistrations)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Team).WithMany(p => p.HackathonRegistrations)
                 .HasForeignKey(d => d.TeamId)
@@ -312,7 +399,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.TrackId).HasColumnName("TrackID");
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.JudgeAssignments)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Judge).WithMany(p => p.JudgeAssignments)
                 .HasForeignKey(d => d.JudgeId)
@@ -341,7 +430,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.MentorId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.MentorAssignments).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.MentorAssignments)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -351,7 +442,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Notifications).HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<PartnerProfile>(entity =>
@@ -364,7 +457,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Website).HasMaxLength(255);
 
-            entity.HasOne(d => d.User).WithMany(p => p.PartnerProfiles).HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.User).WithMany(p => p.PartnerProfiles)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<PenaltiesBonuse>(entity =>
@@ -389,7 +484,9 @@ public partial class SealDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PenaltiesBonuses_Phase");
 
-            entity.HasOne(d => d.Team).WithMany(p => p.PenaltiesBonuses).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.PenaltiesBonuses)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Prize>(entity =>
@@ -401,7 +498,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.PrizeName).HasMaxLength(100);
             entity.Property(e => e.PrizeType).HasMaxLength(50);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Prizes).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Prizes)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<PrizeAllocation>(entity =>
@@ -413,7 +512,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.Prize).WithMany(p => p.PrizeAllocations).HasForeignKey(d => d.PrizeId);
+            entity.HasOne(d => d.Prize).WithMany(p => p.PrizeAllocations)
+                .HasForeignKey(d => d.PrizeId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Team).WithMany(p => p.PrizeAllocations).HasForeignKey(d => d.TeamId);
 
@@ -431,7 +532,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.TotalScore).HasColumnType("decimal(6, 2)");
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Rankings).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Rankings)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Team).WithMany(p => p.Rankings)
                 .HasForeignKey(d => d.TeamId)
@@ -459,7 +562,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.Type).HasMaxLength(50);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.ScheduleEvents).HasForeignKey(d => d.HackathonId);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.ScheduleEvents)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Phase).WithMany(p => p.ScheduleEvents).HasForeignKey(d => d.PhaseId);
         });
@@ -484,7 +589,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.JudgeId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Submission).WithMany(p => p.Scores).HasForeignKey(d => d.SubmissionId);
+            entity.HasOne(d => d.Submission).WithMany(p => p.Scores)
+                .HasForeignKey(d => d.SubmissionId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<ScoreHistory>(entity =>
@@ -573,7 +680,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.SubmittedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.Submissions).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.Submissions)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Team>(entity =>
@@ -588,11 +697,11 @@ public partial class SealDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
 
-            entity.HasOne(d => d.Chapter).WithMany(p => p.Teams).HasForeignKey(d => d.ChapterId);
+            entity.HasOne(d => d.Chapter).WithMany(p => p.Teams)
+                .HasForeignKey(d => d.ChapterId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Hackathon).WithMany(p => p.Teams)
-                .HasForeignKey(d => d.HackathonId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.Teams).HasForeignKey(d => d.HackathonId);
 
             entity.HasOne(d => d.TeamLeader).WithMany(p => p.Teams)
                 .HasForeignKey(d => d.TeamLeaderId)
@@ -615,7 +724,9 @@ public partial class SealDbContext : DbContext
                 .HasForeignKey(d => d.InvitedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamInvitations).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.TeamInvitations)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<TeamJoinRequest>(entity =>
@@ -629,7 +740,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamJoinRequests).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.TeamJoinRequests)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.User).WithMany(p => p.TeamJoinRequests)
                 .HasForeignKey(d => d.UserId)
@@ -644,7 +757,9 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.RoleInTeam).HasMaxLength(50);
 
-            entity.HasOne(d => d.Team).WithMany(p => p.TeamMembers).HasForeignKey(d => d.TeamId);
+            entity.HasOne(d => d.Team).WithMany(p => p.TeamMembers)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.User).WithMany(p => p.TeamMembers)
                 .HasForeignKey(d => d.UserId)
@@ -657,6 +772,7 @@ public partial class SealDbContext : DbContext
 
             entity.HasOne(d => d.Team).WithMany(p => p.TeamTrackSelections)
                 .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TeamTrackSelections_Teams_TeamID");
 
             entity.HasOne(d => d.Track).WithMany(p => p.TeamTrackSelections)
@@ -675,7 +791,9 @@ public partial class SealDbContext : DbContext
                 .HasMaxLength(100);
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
 
-            entity.HasOne(d => d.Phase).WithMany(p => p.Tracks).HasForeignKey(d => d.PhaseId);
+            entity.HasOne(d => d.Phase).WithMany(p => p.Tracks)
+                .HasForeignKey(d => d.PhaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<User>(entity =>
