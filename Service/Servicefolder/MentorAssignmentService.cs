@@ -136,6 +136,9 @@ namespace Service.Servicefolder
             _uow.MentorAssignments.Update(assignment);
             await _uow.SaveAsync();
 
+            // ✅ TỰ ĐỘNG TẠO CHATGROUP
+            await CreateChatGroupForAssignmentAsync(assignment);
+
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
@@ -166,8 +169,7 @@ namespace Service.Servicefolder
             _uow.MentorAssignments.Update(assignment);
             await _uow.SaveAsync();
 
-            // ✅ TỰ ĐỘNG TẠO CHATGROUP
-            await CreateChatGroupForAssignmentAsync(assignment);
+            
 
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
