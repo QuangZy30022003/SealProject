@@ -43,6 +43,7 @@ namespace Service
             service.AddScoped<IJudgeAssignmentService, JudgeAssignmentService>();
             service.AddScoped<IGroupService, GroupService>();
             service.AddScoped<IQualificationService, QualificationService>();
+            service.AddScoped<IRankingService, RankingService>();
             return service;
 
         }

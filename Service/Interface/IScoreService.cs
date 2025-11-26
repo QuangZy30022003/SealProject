@@ -21,5 +21,8 @@ namespace Service.Interface
 
         Task<List<TeamScoreDto>> GetTeamScoresByGroupAsync(int groupId);
         Task<List<SubmissionScoresGroupedDto>> GetMyScoresGroupedBySubmissionAsync(int judgeId, int phaseId);
+        Task<FinalScoreResponseDto> FinalScoringAsync(FinalScoreRequestDto request, int userId);
+
+        Task<FinalScoreResponseDto> UpdateFinalScoreAsync(int userId, FinalScoreRequestDto request);
     }
 }
