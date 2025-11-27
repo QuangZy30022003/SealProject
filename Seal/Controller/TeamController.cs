@@ -1,5 +1,6 @@
 ﻿using Common;
 using Common.DTOs.TeamDto;
+using Common.Wrappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -109,6 +110,20 @@ namespace Seal.Controller
         {
             var result = await _teamService.GetTeamsByChapterIdAsync(chapterId);
             return Ok(result);
+        }
+
+        [HttpGet("{phaseId}/teams")]
+        public async Task<IActionResult> GetTeamsByPhase(int phaseId)
+        {
+            try
+            {
+                var teams = await _teamService.GetTeamsByPhaseIdAsync(phaseId);
+                return Ok(ApiResponse<object>.Ok(teams, "Teams retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
         }
     }
 }

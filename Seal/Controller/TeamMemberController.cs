@@ -1,5 +1,6 @@
 ﻿using Common;
 using Common.Wrappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
@@ -77,5 +78,31 @@ namespace Seal.Controller
                 return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
+        [HttpGet("{teamId}/is-leader")]
+        [Authorize]
+        public async Task<IActionResult> IsLeader(int teamId)
+        {
+            try
+            {
+                // Lấy đúng claim UserId từ JWT
+                var userIdClaim = User.FindFirst("UserId");
+                if (userIdClaim == null)
+                    return Unauthorized(ApiResponse<object>.Fail("Invalid token: UserId missing"));
+
+                int userId = int.Parse(userIdClaim.Value);
+
+                var isLeader = await _teamMemberService.CheckLeaderAsync(teamId, userId);
+
+                return Ok(ApiResponse<object>.Ok(
+                    new { isLeader },
+                    isLeader ? "User is a team leader." : "User is not a team leader."
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
+        }
+
     }
 }

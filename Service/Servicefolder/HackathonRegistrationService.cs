@@ -257,6 +257,28 @@
 
                 return dtoList;
             }
+        public async Task<object> GetPendingRegistrationsAsync(int hackathonId)
+        {
+            // 1️⃣ Kiểm tra hackathon tồn tại
+            var hackathonExists = await _uow.Hackathons.ExistsAsync(h => h.HackathonId == hackathonId);
+            if (!hackathonExists)
+                return "Hackathon not found.";
 
+            // 2️⃣ Lấy danh sách registration có status = Pending
+            var registrations = await _uow.HackathonRegistrations
+                .GetAllIncludingAsync(
+                    r => r.HackathonId == hackathonId && r.Status == "Pending",
+                    r => r.Team
+                );
+
+            if (registrations == null )
+                return "No pending registrations found for this hackathon.";
+
+            // 3️⃣ Map sang DTO
+            var dtoList = _mapper.Map<List<HackathonRegistrationDto>>(registrations);
+
+            return dtoList;
         }
+
     }
+}
