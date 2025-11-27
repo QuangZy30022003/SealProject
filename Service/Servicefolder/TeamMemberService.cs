@@ -102,5 +102,20 @@ namespace Service.Servicefolder
 
             return _mapper.Map<IEnumerable<TeamMemberDto>>(members);
         }
+
+        public async Task<bool> CheckLeaderAsync(int teamId, int userId)
+        {
+            var member = await _uow.TeamMembers.FirstOrDefaultAsync(
+                m => m.TeamId == teamId && m.UserId == userId
+            );
+
+            if (member == null)
+                throw new Exception("User is not in this team.");
+
+            // Điều kiện leader
+            return member.RoleInTeam.Equals("Leader", StringComparison.OrdinalIgnoreCase)
+                || member.RoleInTeam.Equals("TeamLeader", StringComparison.OrdinalIgnoreCase);
+        }
+
     }
 }

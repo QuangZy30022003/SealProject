@@ -18,5 +18,6 @@ namespace Service.Interface
         Task<string> RejectTeamAsync(int chapterId, int hackathonId, int teamId, string cancelReason);
 
         Task<List<HackathonRegistrationDto>> GetRegistrationsByHackathonAsync(int hackathonId);
+        Task<object> GetPendingRegistrationsAsync(int hackathonId);
     }
 }

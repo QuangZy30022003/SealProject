@@ -89,6 +89,17 @@ namespace Seal.Controller
             var registrations = await _service.GetRegistrationsByHackathonAsync(hackathonId);
             return Ok(registrations);
         }
+        [HttpGet("pending/{hackathonId}")]
+        [Authorize(Roles = "Admin,ChapterLeader")]
+        public async Task<IActionResult> GetPendingRegistrations(int hackathonId)
+        {
+            var result = await _service.GetPendingRegistrationsAsync(hackathonId);
+
+            if (result is string errorMessage)
+                return BadRequest(new { message = errorMessage });
+
+            return Ok(result);
+        }
 
     }
 }

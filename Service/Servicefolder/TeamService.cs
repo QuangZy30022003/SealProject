@@ -166,5 +166,60 @@ namespace Service.Servicefolder
             );
             return _mapper.Map<IEnumerable<TeamDto>>(teams);
         }
+
+        public async Task<IEnumerable<TeamDto>> GetTeamsByPhaseIdAsync(int phaseId)
+        {
+            var phase = await _uow.HackathonPhases.GetByIdAsync(phaseId);
+            if (phase == null)
+                throw new Exception("Phase not found.");
+
+            // Lấy tất cả phase cùng hackathon
+            var phases = await _uow.HackathonPhases.GetAllAsync(p => p.HackathonId == phase.HackathonId);
+
+            // Tìm phase cuối cùng (EndDate lớn nhất)
+            var lastPhase = phases
+                .Where(p => p.EndDate.HasValue)
+                .OrderByDescending(p => p.EndDate.Value)
+                .FirstOrDefault();
+
+            bool isLastPhase = lastPhase != null && lastPhase.PhaseId == phaseId;
+
+            IEnumerable<Team> teams;
+
+            if (isLastPhase)
+            {
+                // Phase cuối → lấy từ FinalQualification của phase trước (không phải phase cuối)
+                var previousPhase = phases
+                    .Where(p => p.PhaseId != phaseId)
+                    .OrderByDescending(p => p.EndDate)
+                    .FirstOrDefault();
+
+                if (previousPhase == null)
+                    throw new Exception("No previous phase found for final qualification.");
+
+                var finalTeams = await _uow.FinalQualifications.GetAllIncludingAsync(
+                    fq => fq.PhaseId == previousPhase.PhaseId,
+                    fq => fq.Team,
+                    fq => fq.Team.TeamLeader,
+                    fq => fq.Team.Chapter,
+                    fq => fq.Team.Hackathon
+                );
+
+                teams = finalTeams.Select(fq => fq.Team).Distinct();
+            }
+            else
+            {
+                // Phase bình thường → lấy team theo hackathon
+                teams = await _uow.Teams.GetAllIncludingAsync(
+                    t => t.HackathonId == phase.HackathonId,
+                    t => t.TeamLeader,
+                    t => t.Chapter,
+                    t => t.Hackathon
+                );
+            }
+
+            return _mapper.Map<IEnumerable<TeamDto>>(teams);
+        }
+
     }
 }
