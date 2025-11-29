@@ -18,10 +18,11 @@ namespace Common.DTOs.AppealDto
         public int? AdjustmentId { get; set; }
         public string? PenaltyType { get; set; }  // Penalty / Bonus
 
-        public int? ScoreId { get; set; }
-        public decimal? ScoreValue { get; set; }
+        public int? SubmissionId { get; set; }
+        public int? JudgeId { get; set; }
+        public string? JudgeName { get; set; }         // ✅ MỚI: Tên judge bị khiếu nại
 
-        public string Message { get; set; }
+        public string? Message { get; set; }
         public string? Reason { get; set; }
         public string Status { get; set; }
         public string? AdminResponse { get; set; }
