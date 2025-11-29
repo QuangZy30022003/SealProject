@@ -46,6 +46,7 @@ namespace Service
             service.AddScoped<IGroupService, GroupService>();
             service.AddScoped<IQualificationService, QualificationService>();
             service.AddScoped<IRankingService, RankingService>();
+            service.AddScoped<IMentorVerificationService, MentorVerificationService>();
             return service;
 
         }

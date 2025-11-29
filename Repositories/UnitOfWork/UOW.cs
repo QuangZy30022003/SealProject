@@ -76,6 +76,7 @@ namespace Repositories.UnitOfWork
         public IScoreRepository ScoreRepository { get; }
         public ICriterionDetailRepository CriterionDetailRepository { get; }
         public IPrizeRepository PrizeRepository { get; }
+        public IRepository<MentorVerification> MentorVerifications { get; }
 
 
         public UOW(SealDbContext context)
@@ -85,6 +86,7 @@ namespace Repositories.UnitOfWork
             Users = new GenericRepository<User>(_context);
             StudentVerifications = new GenericRepository<StudentVerification>(_context);
             Roles = new GenericRepository<Role>(_context);
+            MentorVerifications = new GenericRepository<MentorVerification>(_context);
 
             Chapters = new GenericRepository<Chapter>(_context);
             Teams = new GenericRepository<Team>(_context);

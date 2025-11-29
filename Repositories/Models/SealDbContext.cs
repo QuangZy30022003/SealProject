@@ -87,8 +87,41 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<MentorVerification> MentorVerification { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<MentorVerification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.FullName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.Position).HasMaxLength(200);
+            entity.Property(e => e.CV).HasMaxLength(500);
+            entity.Property(e => e.ReasonToBecomeMentor).HasMaxLength(2000);
+            entity.Property(e => e.RejectReason).HasMaxLength(2000);
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+
+            entity.HasOne(d => d.Hackathon)
+                .WithMany(p => p.MentorVerifications)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.MentorVerifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Chapter)
+                .WithMany()
+                .HasForeignKey(d => d.ChapterId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
         modelBuilder.Entity<Appeal>(entity =>
         {
             entity.HasKey(e => e.AppealId).HasName("PK__Appeals__BB684E10D09BAEB8");

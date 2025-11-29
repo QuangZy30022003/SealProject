@@ -31,8 +31,10 @@ using Common.DTOs.GroupDto;
 using Common.DTOs.QualifiedFinealTeamDto;
 using Common.DTOs.ChatDto;
 using Common.DTOs.RanksDTo;
+using Common.DTOs.MentorVerificationDto;
 using Common.Enums;
 using Common.DTOs.NotificationDto;
+
 
 
 namespace Common.Mappings
@@ -315,11 +317,17 @@ namespace Common.Mappings
             CreateMap<Ranking, RankingDto>()
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
+
+            // Mentor Verification
+            CreateMap<MentorVerification, MentorVerificationResponseDto>();
+            CreateMap<MentorVerificationCreateDto, MentorVerification>();
+
             // Notification
             CreateMap<Notification, NotificationDto>();
             CreateMap<CreateNotificationDto, Notification>()
                 .ForMember(dest => dest.SentAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(_ => false));
+
         }
     }
 }
