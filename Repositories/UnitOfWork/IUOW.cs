@@ -71,6 +71,8 @@ namespace Repositories.UnitOfWork
         IMentorAssignmentRepository MentorAssignmentRepository { get; }
         IScoreRepository ScoreRepository { get; }
         IPrizeRepository PrizeRepository { get; }
+        IRepository<MentorVerification> MentorVerifications { get; }
+
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<int> SaveAsync();
     }
