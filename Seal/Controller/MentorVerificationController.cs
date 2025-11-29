@@ -72,6 +72,14 @@ namespace Seal.Controller
                 return Forbid(ex.Message);
             }
         }
+        [HttpGet("hackathon/{hackathonId}/approved")]
+        [Authorize]
+
+        public async Task<IActionResult> GetApprovedMentorsByHackathon(int hackathonId)
+        {
+            var result = await _service.GetApprovedMentorsByHackathonAsync(hackathonId);
+            return Ok(result);
+        }
 
     }
 

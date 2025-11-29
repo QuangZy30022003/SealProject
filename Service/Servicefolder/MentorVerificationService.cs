@@ -135,5 +135,17 @@ namespace Service.Servicefolder
 
             return _mapper.Map<MentorVerificationResponseDto>(entity);
         }
+
+        public async Task<List<MentorVerificationResponseDto>> GetApprovedMentorsByHackathonAsync(int hackathonId)
+        {
+            var list = await _uow.MentorVerifications.GetAllAsync(
+                filter: x => x.HackathonId == hackathonId &&
+                             x.Status == "Approved",
+                includeProperties: "User,Chapter"
+            );
+
+            return _mapper.Map<List<MentorVerificationResponseDto>>(list);
+        }
+
     }
 }
