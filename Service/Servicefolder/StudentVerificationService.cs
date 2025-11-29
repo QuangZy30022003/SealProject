@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Common.DTOs.NotificationDto;
 using Common.DTOs.StudentVerification;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +22,14 @@ namespace Service.Servicefolder
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
         private readonly IFileUploadService _fileUploadService;
+        private readonly INotificationService _notificationService;
 
-        public StudentVerificationService(IUOW uow, IMapper mapper, IConfiguration config, IFileUploadService fileUploadService)
+        public StudentVerificationService(IUOW uow, IMapper mapper, IConfiguration config, IFileUploadService fileUploadService, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
-            _fileUploadService = fileUploadService; 
+            _fileUploadService = fileUploadService;
+            _notificationService = notificationService;
         }
 
         public async Task SubmitAsync(int userId, string userEmail, StudentVerificationDto dto)
@@ -72,6 +75,13 @@ namespace Service.Servicefolder
             _uow.StudentVerifications.Update(verification);
             await _uow.SaveAsync();
 
+            // ✅ GỬI NOTIFICATION
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = verification.UserId,
+                Message = "Your student verification has been approved! You can now create teams."
+            });
+
             return true;
         }
 
@@ -93,6 +103,13 @@ namespace Service.Servicefolder
 
             _uow.StudentVerifications.Update(verification);
             await _uow.SaveAsync();
+
+            // ✅ GỬI NOTIFICATION
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = verification.UserId,
+                Message = "Your student verification has been rejected. Please resubmit with correct documents."
+            });
 
             return true;
         }

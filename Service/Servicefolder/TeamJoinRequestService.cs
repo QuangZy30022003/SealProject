@@ -1,4 +1,5 @@
 using AutoMapper;
+using Common.DTOs.NotificationDto;
 using Common.DTOs.TeamJoinRequestDto;
 using Common.Enums;
 using Repositories.Models;
@@ -16,11 +17,13 @@ namespace Service.Servicefolder
     {
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public TeamJoinRequestService(IUOW uow, IMapper mapper)
+        public TeamJoinRequestService(IUOW uow, IMapper mapper, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<JoinRequestResponseDto> CreateJoinRequestAsync(CreateJoinRequestDto dto, int userId)
@@ -190,6 +193,21 @@ namespace Service.Servicefolder
                     TeamId = request.TeamId,
                     UserId = request.UserId,
                     RoleInTeam = "Member"
+                });
+                // ✅ GỬI NOTIFICATION KHI APPROVED
+                await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                {
+                    UserId = request.UserId,
+                    Message = $"Your request to join team {team.TeamName} has been approved!"
+                });
+            }
+            else if (dto.Status == JoinRequestStatus.Rejected)
+            {
+                // ✅ GỬI NOTIFICATION KHI REJECTED
+                await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                {
+                    UserId = request.UserId,
+                    Message = $"Your request to join team {team.TeamName} has been rejected. Reason: {dto.LeaderResponse}"
                 });
             }
 

@@ -27,15 +27,19 @@ public partial class Appeal
 
     public string AppealType { get; set; }
 
-    public int? ScoreId { get; set; }
-
     public string Reason { get; set; }
+
+    public int? SubmissionId { get; set; }
+
+    public int? JudgeId { get; set; }
 
     public virtual PenaltiesBonuse Adjustment { get; set; }
 
+    public virtual User Judge { get; set; }
+
     public virtual User ReviewedBy { get; set; }
 
-    public virtual Score Score { get; set; }
+    public virtual Submission Submission { get; set; }
 
     public virtual Team Team { get; set; }
 }

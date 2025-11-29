@@ -23,8 +23,6 @@ public partial class Score
 
     public bool RequiresReScore { get; set; }
 
-    public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
-
     public virtual Criterion Criteria { get; set; }
 
     public virtual User Judge { get; set; }

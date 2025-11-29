@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Common.DTOs.NotificationDto;
 using Common.DTOs.TeamInvitationDto;
 using Common.Enums;
 using Repositories.Models;
@@ -17,11 +18,13 @@ namespace Service.Servicefolder
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
-        public TeamInvitationService(IUOW uow, IMapper mapper, IEmailService emailService)
+        private readonly INotificationService _notificationService;
+        public TeamInvitationService(IUOW uow, IMapper mapper, IEmailService emailService, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
             _emailService = emailService;
+            _notificationService = notificationService;
         }
         public async Task<string> InviteMemberAsync(int teamId, string email, int inviterUserId)
         {
@@ -87,6 +90,13 @@ namespace Service.Servicefolder
 
             await _uow.TeamInvitations.AddAsync(invitation);
             await _uow.SaveAsync();
+
+            // ✅ GỬI NOTIFICATION
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = invitedUser.UserId,
+                Message = $"You have been invited to join team {team.TeamName}"
+            });
 
             var inviteLink = $"https://sealfall25.somee.com/api/TeamInvitation/accept-link?code={invitation.InvitationCode}";
             var subject = $"Lời mời tham gia nhóm: {team.TeamName}";

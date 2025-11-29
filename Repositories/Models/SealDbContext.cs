@@ -129,20 +129,23 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.AppealId).HasColumnName("AppealID");
             entity.Property(e => e.AdjustmentId).HasColumnName("AdjustmentID");
             entity.Property(e => e.AppealType).HasMaxLength(20);
+            entity.Property(e => e.JudgeId).HasColumnName("JudgeID");
             entity.Property(e => e.ReviewedById).HasColumnName("ReviewedByID");
-            entity.Property(e => e.ScoreId).HasColumnName("ScoreID");
             entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
 
             entity.HasOne(d => d.Adjustment).WithMany(p => p.Appeals)
                 .HasForeignKey(d => d.AdjustmentId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne(d => d.ReviewedBy).WithMany(p => p.Appeals)
+            entity.HasOne(d => d.Judge).WithMany(p => p.AppealJudges).HasForeignKey(d => d.JudgeId);
+
+            entity.HasOne(d => d.ReviewedBy).WithMany(p => p.AppealReviewedBies)
                 .HasForeignKey(d => d.ReviewedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne(d => d.Score).WithMany(p => p.Appeals).HasForeignKey(d => d.ScoreId);
+            entity.HasOne(d => d.Submission).WithMany(p => p.Appeals).HasForeignKey(d => d.SubmissionId);
 
             entity.HasOne(d => d.Team).WithMany(p => p.Appeals)
                 .HasForeignKey(d => d.TeamId)

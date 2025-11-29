@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.DTOs.JudgeAssignmentDto;
+using Common.DTOs.NotificationDto;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -15,11 +16,13 @@ namespace Service.Servicefolder
     {
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public JudgeAssignmentService(IUOW uow, IMapper mapper)
+        public JudgeAssignmentService(IUOW uow, IMapper mapper, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         // ✅ Admin tạo JudgeAssignment
@@ -77,6 +80,18 @@ namespace Service.Servicefolder
             await _uow.JudgeAssignments.AddAsync(assignment);
             await _uow.SaveAsync();
 
+            // ✅ GỬI NOTIFICATION CHO JUDGE
+            var trackName = await _uow.Tracks.GetByIdAsync(dto.TrackId.Value);
+            var phaseName = await _uow.HackathonPhases.GetByIdAsync(dto.PhaseId.Value);
+            var trackInfo = dto.TrackId.HasValue ? $" - Track: {trackName.Name}" : "";
+            var phaseInfo = dto.PhaseId.HasValue ? $" - Phase: {phaseName.PhaseName}" : "";
+
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = dto.JudgeId,
+                Message = $"You have been assigned as a judge for {hackathon.Name}{trackInfo}{phaseInfo}"
+            });
+
             return _mapper.Map<JudgeAssignmentResponseDto>(assignment);
         }
 
@@ -102,6 +117,14 @@ namespace Service.Servicefolder
             assignment.Status = "Blocked"; // hoặc "Inactive" tùy theo convention của bạn
             _uow.JudgeAssignments.Update(assignment);
             await _uow.SaveAsync();
+
+            var hackathon = await _uow.Hackathons.GetByIdAsync(assignment.HackathonId);
+
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = assignment.JudgeId,
+                Message = $"Your judge assignment for {hackathon.Name} has been removed."
+            });
 
             return true;
         }
