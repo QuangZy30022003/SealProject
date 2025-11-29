@@ -29,7 +29,9 @@ public partial class User
 
     public bool IsBlocked { get; set; }
 
-    public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
+    public virtual ICollection<Appeal> AppealJudges { get; set; } = new List<Appeal>();
+
+    public virtual ICollection<Appeal> AppealReviewedBies { get; set; } = new List<Appeal>();
 
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 

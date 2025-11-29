@@ -31,7 +31,8 @@ using Common.DTOs.GroupDto;
 using Common.DTOs.QualifiedFinealTeamDto;
 using Common.DTOs.ChatDto;
 using Common.DTOs.RanksDTo;
-
+using Common.Enums;
+using Common.DTOs.NotificationDto;
 
 
 namespace Common.Mappings
@@ -179,8 +180,8 @@ namespace Common.Mappings
              .ForMember(dest => dest.PenaltyType,
                  opt => opt.MapFrom(src => src.Adjustment != null ? src.Adjustment.Type : null))
 
-             .ForMember(dest => dest.ScoreValue,
-                opt => opt.MapFrom(src => src.Score != null ? src.Score.Score1 : (decimal?)null))
+             .ForMember(dest => dest.JudgeName,
+                opt => opt.MapFrom(src => src.Judge != null ? src.Judge.FullName : null))
 
              .ForMember(dest => dest.ReviewedByName,
                  opt => opt.MapFrom(src => src.ReviewedBy != null
@@ -188,7 +189,10 @@ namespace Common.Mappings
                      : null));
             CreateMap<CreateAppealDto, Appeal>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => "Pending"));
+                .ForMember(d => d.Status, opt => opt.MapFrom(_ => AppealStatus.Pending))
+                .ForMember(d => d.ReviewedBy, opt => opt.Ignore())
+                .ForMember(d => d.ReviewedAt, opt => opt.Ignore())
+                .ForMember(d => d.AdminResponse, opt => opt.Ignore());
 
             //Submission
             CreateMap<Submission, SubmissionResponseDto>()
@@ -311,6 +315,11 @@ namespace Common.Mappings
             CreateMap<Ranking, RankingDto>()
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
+            // Notification
+            CreateMap<Notification, NotificationDto>();
+            CreateMap<CreateNotificationDto, Notification>()
+                .ForMember(dest => dest.SentAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.IsRead, opt => opt.MapFrom(_ => false));
         }
     }
 }

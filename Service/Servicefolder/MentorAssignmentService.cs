@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.DTOs.AssignedTeamDto;
+using Common.DTOs.NotificationDto;
 using Microsoft.Extensions.Configuration;
 using Repositories.Models;
 using Repositories.UnitOfWork;
@@ -18,12 +19,14 @@ namespace Service.Servicefolder
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
-        public MentorAssignmentService(IUOW uow, IMapper mapper, IEmailService emailService, IConfiguration configuration)
+        private readonly INotificationService _notificationService;
+        public MentorAssignmentService(IUOW uow, IMapper mapper, IEmailService emailService, IConfiguration configuration, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
             _emailService = emailService;
             _configuration = configuration;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<AssignedTeamDto>> ViewAssignedTeamsAsync(int mentorId)
@@ -146,7 +149,12 @@ namespace Service.Servicefolder
 
         public async Task<MentorAssignmentResponseDto> ApproveAsync(int assignmentId)
         {
-            var assignment = await _uow.MentorAssignments.GetByIdAsync(assignmentId);
+            var assignment = await _uow.MentorAssignments.GetByIdIncludingAsync(
+                a => a.AssignmentId == assignmentId,
+                a => a.Mentor,
+                a => a.Team,
+                a => a.Hackathon
+            );
             if (assignment == null) throw new Exception("Assignment not found");
 
             assignment.Status = "Approved";
@@ -154,8 +162,11 @@ namespace Service.Servicefolder
             _uow.MentorAssignments.Update(assignment);
 
             // ⭐ Update HackathonRegistration status
-            var registration = await _uow.HackathonRegistrations
-                .FirstOrDefaultAsync(r => r.TeamId == assignment.TeamId);
+            var registration = await _uow.HackathonRegistrations.GetByIdIncludingAsync(
+                r => r.TeamId == assignment.TeamId,
+                r => r.Team,
+                r => r.Hackathon
+            );
 
             if (registration != null)
             {
@@ -168,6 +179,15 @@ namespace Service.Servicefolder
             // ✅ TỰ ĐỘNG TẠO CHATGROUP
             await CreateChatGroupForAssignmentAsync(assignment);
 
+            // ✅ GỬI NOTIFICATION CHO TẤT CẢ TEAM MEMBERS
+            var teamMembers = await _uow.TeamMembers.GetAllAsync(tm => tm.TeamId == assignment.TeamId);
+            var teamMemberIds = teamMembers.Select(tm => tm.UserId).ToList();
+
+            await _notificationService.CreateNotificationsAsync(
+                teamMemberIds,
+                $"Mentor {assignment.Mentor?.FullName ?? "Unknown"} has been assigned to your team"
+            );
+
             // Gửi mail cho TeamLeader
             var team = await _uow.Teams.GetByIdAsync(assignment.TeamId);
             var leader = team?.TeamLeader;
@@ -177,7 +197,7 @@ namespace Service.Servicefolder
                 string subject = "Mentor Assignment Approved";
                 string body = $@"
                 <p>Dear {leader.FullName},</p>
-                <p>Your team <b>{team.TeamName}</b> has been approved by Mentor ID {assignment.MentorId}.</p>
+                <p>Your team <b>{registration?.Team?.TeamName}</b> has been approved by Mentor {assignment.Mentor?.FullName}.</p>
                 <p>Congratulations! You can now start working with your mentor.</p>
                 <p>Best regards,<br/>Seal System</p>";
 
@@ -223,6 +243,13 @@ namespace Service.Servicefolder
 
                 await _emailService.SendEmailAsync(leader.Email, subject, body);
             }
+
+            // ✅ GỬI NOTIFICATION CHO TEAM LEADER
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = team.TeamLeaderId,
+                Message = "Mentor has rejected your request. Please request another mentor."
+            });
 
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }

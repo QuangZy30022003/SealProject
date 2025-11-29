@@ -23,6 +23,8 @@ public partial class Submission
 
     public bool IsFinal { get; set; }
 
+    public virtual ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
+
     public virtual HackathonPhase Phase { get; set; }
 
     public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();

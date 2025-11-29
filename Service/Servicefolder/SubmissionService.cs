@@ -15,11 +15,13 @@ namespace Service.Servicefolder
     {
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public SubmissionService(IUOW uow, IMapper mapper)
+        public SubmissionService(IUOW uow, IMapper mapper, INotificationService notificationService)
         {
             _uow = uow;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         // Tạo draft submission (mọi thành viên)
@@ -88,6 +90,17 @@ namespace Service.Servicefolder
 
             submission.IsFinal = true;
             await _uow.SaveAsync();
+
+            // ✅ GỬI NOTIFICATION CHO JUDGES
+            var judges = await _uow.JudgeAssignments.GetAllAsync(
+                j => j.PhaseId == submission.PhaseId);
+
+            var judgeIds = judges.Select(j => j.JudgeId).Distinct().ToList();
+
+            await _notificationService.CreateNotificationsAsync(
+                judgeIds,
+                $"New submission from {team.TeamName} is ready for scoring"
+            );
 
             return _mapper.Map<SubmissionResponseDto>(submission);
         }
