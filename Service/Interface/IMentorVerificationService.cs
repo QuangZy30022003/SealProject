@@ -14,6 +14,7 @@ namespace Service.Interface
         Task<List<MentorVerificationResponseDto>> GetAllAsync();
         Task<MentorVerificationResponseDto?> ApproveAsync(int id, int userId);
         Task<MentorVerificationResponseDto?> RejectAsync(int id, string rejectReason, int userId);
+        Task<List<MentorVerificationResponseDto>> GetApprovedMentorsByHackathonAsync(int hackathonId);
     }
 
 

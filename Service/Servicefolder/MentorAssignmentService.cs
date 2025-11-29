@@ -66,6 +66,15 @@ namespace Service.Servicefolder
             if (string.IsNullOrEmpty(mentor.Email))
                 throw new Exception("Mentor email not found!");
 
+            var verification = await _uow.MentorVerifications.FirstOrDefaultAsync(
+          mv => mv.UserId == dto.MentorId &&
+          mv.HackathonId == dto.HackathonId &&
+          mv.Status == "Approved"
+);
+
+            if (verification == null)
+                throw new Exception("This mentor is not verified for this hackathon!");
+
             // 2. Validate Team
             var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
             if (team == null)
@@ -85,8 +94,8 @@ namespace Service.Servicefolder
             if (registration == null)
                 throw new Exception("Team has not registered for this hackathon!");
 
-            if (!string.Equals(registration.Status, "Approved", StringComparison.OrdinalIgnoreCase))
-                throw new Exception("Team must be approved in this hackathon before requesting a mentor.");
+            //if (!string.Equals(registration.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+            //    throw new Exception("Team must be approved in this hackathon before requesting a mentor.");
 
             // 🔥 Check WaitingMentor
             if (!string.Equals(registration.Status, "WaitingMentor", StringComparison.OrdinalIgnoreCase))

@@ -34,6 +34,7 @@ using Common.DTOs.RanksDTo;
 using Common.DTOs.MentorVerificationDto;
 using Common.Enums;
 using Common.DTOs.NotificationDto;
+using Common.DTOs.PrizeAllocationsDto;
 
 
 
@@ -327,6 +328,14 @@ namespace Common.Mappings
             CreateMap<CreateNotificationDto, Notification>()
                 .ForMember(dest => dest.SentAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(_ => false));
+            // Prize allocation
+            CreateMap<PrizeAllocation, PrizeAllocationResultDto>()
+       .ForMember(dest => dest.PrizeName, opt => opt.MapFrom(src => src.Prize.PrizeName))
+       .ForMember(dest => dest.Reward, opt => opt.MapFrom(src => src.Prize.Reward)) // thêm dòng này
+       .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
+       .ForMember(dest => dest.LeaderName, opt => opt.Ignore()) // vẫn map thủ công
+       .ForMember(dest => dest.Rank, opt => opt.Ignore());      // vẫn map thủ công
+
 
         }
     }
