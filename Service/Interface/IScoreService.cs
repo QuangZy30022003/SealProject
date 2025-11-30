@@ -17,7 +17,7 @@ namespace Service.Interface
         Task UpdateAverageAndRankAsync(int submissionId);
         Task<SubmissionScoresResponseDto> UpdateScoresByCriteriaAsync(int judgeId, List<ScoreCreateDto> scores);
 
-        Task<List<ScoreWithAverageDto>> GetScoresWithTeamAverageBySubmissionAsync(int submissionId);
+  //      Task<List<ScoreWithAverageDto>> GetScoresWithTeamAverageBySubmissionAsync(int submissionId);
 
         Task<List<TeamScoreDto>> GetTeamScoresByGroupAsync(int groupId);
         Task<List<SubmissionScoresGroupedDto>> GetMyScoresGroupedBySubmissionAsync(int judgeId, int phaseId);
