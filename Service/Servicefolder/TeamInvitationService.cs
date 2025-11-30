@@ -264,5 +264,17 @@ namespace Service.Servicefolder
 
             return dto;
         }
+
+        public async Task<List<InvitationStatusDto>> GetTeamInvitationsByTeamIdAsync(int teamId)
+        {
+            var team = await _uow.Teams.GetByIdAsync(teamId);
+            if (team == null)
+                throw new Exception("Team not found.");
+
+            var invitations = await _uow.TeamInvitations.GetAllAsync(i => i.TeamId == teamId);
+            var dtos = _mapper.Map<List<InvitationStatusDto>>(invitations);
+
+            return dtos;
+        }
     }
 }

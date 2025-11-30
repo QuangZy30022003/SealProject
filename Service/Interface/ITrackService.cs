@@ -17,5 +17,6 @@ namespace Service.Interface
 
         Task<TrackRespone?> GetTrackByIdAsync(int id);
         Task<RandomChallengeTrackResponse?> AssignRandomChallengesToTrackAsync(RandomChallengeTrackRequest request);
+        Task<List<TrackRespone>> GetTracksByPhaseIdAsync(int phaseId);
     }
 }

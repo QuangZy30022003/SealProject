@@ -221,5 +221,29 @@ namespace Service.Servicefolder
             return _mapper.Map<IEnumerable<TeamDto>>(teams);
         }
 
+        public async Task<IEnumerable<TeamDto>> GetUserTeamsAsync(int userId)
+        {
+            // Lấy team mà user là leader
+            var leaderTeams = await _uow.Teams.GetAllIncludingAsync(
+                t => t.TeamLeaderId == userId,
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+
+            // Lấy team mà user là member
+            var memberTeams = await _uow.Teams.GetAllIncludingAsync(
+                t => t.TeamMembers.Any(tm => tm.UserId == userId),
+                t => t.TeamLeader,
+                t => t.Chapter,
+                t => t.Hackathon
+            );
+
+            // Combine và remove duplicates
+            var allTeams = leaderTeams.Union(memberTeams).Distinct();
+
+            return _mapper.Map<IEnumerable<TeamDto>>(allTeams);
+        }
+
     }
 }

@@ -13,5 +13,6 @@ namespace Service.Interface
         Task<InvitationResult> AcceptInvitationAsync(Guid invitationCode, int userId);
         Task<InvitationResult> RejectInvitationAsync(Guid invitationCode, int userId);
         Task<InvitationStatusDto> GetInvitationStatusAsync(Guid invitationCode);
+        Task<List<InvitationStatusDto>> GetTeamInvitationsByTeamIdAsync(int teamId);
     }
 }

@@ -115,5 +115,21 @@ namespace Seal.Controller
             }
         }
 
+        // GET: api/TeamInvitation/team/{teamId}
+        [Authorize]
+        [HttpGet("team/{teamId}")]
+        public async Task<IActionResult> GetTeamInvitations(int teamId)
+        {
+            try
+            {
+                var result = await _invitationService.GetTeamInvitationsByTeamIdAsync(teamId);
+                return Ok(ApiResponse<List<InvitationStatusDto>>.Ok(result, "Team invitations retrieved successfully."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
+        }
+
     }
 }

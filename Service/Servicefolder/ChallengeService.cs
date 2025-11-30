@@ -146,5 +146,18 @@ namespace Service.Servicefolder
             return _mapper.Map<List<ChallengeDto>>(filtered);
         }
 
+        public async Task<List<ChallengeDto>> GetChallengesByTrackIdAsync(int trackId)
+        {
+            var challenges = await _uow.ChallengeRepository.GetAllIncludingAsync(
+                c => c.TrackId == trackId,
+                c => c.User
+            );
+
+            if (challenges == null || !challenges.Any())
+                return new List<ChallengeDto>();
+
+            return _mapper.Map<List<ChallengeDto>>(challenges);
+        }
+
     }
 }

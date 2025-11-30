@@ -19,6 +19,7 @@ namespace Service.Interface
 
         Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto);
         Task<List<ChallengeDto>> GetCompletedChallengesByHackathonAsync(int hackathonId);
+        Task<List<ChallengeDto>> GetChallengesByTrackIdAsync(int trackId);
 
     }
 }
