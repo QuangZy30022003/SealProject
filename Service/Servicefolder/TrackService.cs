@@ -146,5 +146,14 @@ namespace Service.Servicefolder
                 }).ToList()
             };
         }
+
+        public async Task<List<TrackRespone>> GetTracksByPhaseIdAsync(int phaseId)
+        {
+            var tracks = await _uow.Tracks.GetAllIncludingAsync(
+                t => t.PhaseId == phaseId,
+                t => t.Challenges
+            );
+            return _mapper.Map<List<TrackRespone>>(tracks);
+        }
     }
 }

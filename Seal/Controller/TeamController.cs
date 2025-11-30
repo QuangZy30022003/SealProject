@@ -125,5 +125,21 @@ namespace Seal.Controller
                 return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
+
+        [Authorize]
+        [HttpGet("my-teams")]
+        public async Task<IActionResult> GetMyTeams()
+        {
+            try
+            {
+                var userId = _userContext.GetCurrentUserId();
+                var teams = await _teamService.GetUserTeamsAsync(userId);
+                return Ok(ApiResponse<object>.Ok(teams, "User teams retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
+        }
     }
 }

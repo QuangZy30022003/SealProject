@@ -74,5 +74,19 @@ namespace Seal.Controller
 
             return Ok(result);
         }
+
+        [HttpGet("phase/{phaseId}")]
+        public async Task<IActionResult> GetTracksByPhase(int phaseId)
+        {
+            try
+            {
+                var result = await _trackService.GetTracksByPhaseIdAsync(phaseId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
