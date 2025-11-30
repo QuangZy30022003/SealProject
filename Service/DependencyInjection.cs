@@ -48,6 +48,7 @@ namespace Service
             service.AddScoped<IRankingService, RankingService>();
             service.AddScoped<IMentorVerificationService, MentorVerificationService>();
             service.AddScoped<IPrizeAllocationService, PrizeAllocationService>();
+            service.AddScoped<IAppealScoreService, AppealScoreService>();
             return service;
 
         }

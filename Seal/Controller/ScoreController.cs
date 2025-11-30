@@ -12,10 +12,12 @@ namespace Seal.Controller
     public class ScoreController : ControllerBase
     {
         private readonly IScoreService _scoreService;
+        private readonly IAppealScoreService _appealScoreService;
 
-        public ScoreController(IScoreService scoreService)
+        public ScoreController(IScoreService scoreService, IAppealScoreService appealScoreService)
         {
             _scoreService = scoreService;
+            _appealScoreService = appealScoreService;
         }
 
       
@@ -141,5 +143,20 @@ namespace Seal.Controller
             }
         }
 
+        [HttpPost("re-score/{appealId}")]
+        [Authorize(Roles = "Judge")]
+        public async Task<IActionResult> ReScoreAppeal(int appealId, [FromBody] FinalScoreRequestDto request)
+        {
+            try
+            {
+                int userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                var result = await _appealScoreService.ReScoreAppealAsync(appealId, request, userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
