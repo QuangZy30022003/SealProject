@@ -35,6 +35,7 @@ using Common.DTOs.MentorVerificationDto;
 using Common.Enums;
 using Common.DTOs.NotificationDto;
 using Common.DTOs.PrizeAllocationsDto;
+using Common.DTOs.AuditLogDtos;
 
 
 
@@ -341,7 +342,25 @@ namespace Common.Mappings
        .ForMember(dest => dest.LeaderName, opt => opt.Ignore()) // vẫn map thủ công
        .ForMember(dest => dest.Rank, opt => opt.Ignore());      // vẫn map thủ công
 
+            // History Score
+            CreateMap<ScoreHistory, ScoreHistoryDto>()
+                     .ForMember(dest => dest.SubmissionTitle,
+                         opt => opt.MapFrom(src => src.Submission.Title))
 
+                     .ForMember(dest => dest.CriteriaName,
+                         opt => opt.MapFrom(src => src.Criteria.Name))
+
+                     .ForMember(dest => dest.ChangedByName,
+                         opt => opt.MapFrom(src =>
+                             src.ChangedBy != null && src.Judge != null
+                                 ? src.Judge.FullName
+                                 : null
+                         ));
+            //Users
+            CreateMap<User, User>();
+            //Auditlogs 
+            CreateMap<AuditLog, AuditLogDto>()
+           .ForMember(x => x.UserName, opt => opt.MapFrom(u => u.User.FullName));
         }
     }
 }

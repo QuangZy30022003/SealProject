@@ -1,3 +1,5 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Repositories.Interface;
 using Repositories.Models;
@@ -5,7 +7,9 @@ using Repositories.Repos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Repositories.UnitOfWork
@@ -13,6 +17,7 @@ namespace Repositories.UnitOfWork
     public class UOW : IUOW
     {
         private readonly SealDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public IRepository<User> Users { get; }
         public IRepository<Role> Roles { get; }
@@ -79,10 +84,10 @@ namespace Repositories.UnitOfWork
         public IRepository<MentorVerification> MentorVerifications { get; }
 
 
-        public UOW(SealDbContext context)
+        public UOW(SealDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-
+            _httpContextAccessor = httpContextAccessor;
             Users = new GenericRepository<User>(_context);
             StudentVerifications = new GenericRepository<StudentVerification>(_context);
             Roles = new GenericRepository<Role>(_context);
@@ -147,10 +152,96 @@ namespace Repositories.UnitOfWork
             Submissions = new GenericRepository<Submission>(_context);
         }
 
-        public async Task<int> SaveAsync()
+        //public async Task<int> SaveAsync()
+        //{
+        //    return await _context.SaveChangesAsync();
+        //}
+        public async Task<int> SaveAsync(int? explicitUserId = null)
         {
+            int? userId = explicitUserId ?? GetCurrentUserId();
+
+            var entries = _context.ChangeTracker
+                .Entries()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                if (userId == null)
+                    continue;
+
+                object filteredData(object obj)
+                {
+                    if (obj == null) return null;
+
+                    var type = obj.GetType();
+                    var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .Where(p =>
+                            p.PropertyType.IsPrimitive ||
+                            p.PropertyType == typeof(string) ||
+                            p.PropertyType == typeof(DateTime) ||
+                            p.PropertyType == typeof(decimal) ||
+                            p.PropertyType == typeof(Guid) ||
+                            Nullable.GetUnderlyingType(p.PropertyType)?.IsPrimitive == true
+                        );
+
+                    var dict = new Dictionary<string, object>();
+                    foreach (var prop in props)
+                    {
+                        var value = prop.GetValue(obj);
+                        if (value != null) // chỉ lưu giá trị khác null
+                            dict[prop.Name] = value;
+                    }
+                    return dict;
+                }
+
+                var audit = new AuditLog
+                {
+                    UserId = userId.Value,
+                    Action = entry.State.ToString().ToUpper(),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                if (entry.State == EntityState.Added)
+                {
+                    audit.Details = JsonSerializer.Serialize(
+                        filteredData(entry.CurrentValues.ToObject()),
+                        new JsonSerializerOptions { WriteIndented = true }
+                    );
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    var oldValues = filteredData(entry.OriginalValues.ToObject());
+                    var newValues = filteredData(entry.CurrentValues.ToObject());
+
+                    audit.Details = JsonSerializer.Serialize(
+                        new { Before = oldValues, After = newValues },
+                        new JsonSerializerOptions { WriteIndented = true }
+                    );
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    audit.Details = JsonSerializer.Serialize(
+                        filteredData(entry.OriginalValues.ToObject()),
+                        new JsonSerializerOptions { WriteIndented = true }
+                    );
+                }
+
+                await AuditLogs.AddAsync(audit);
+            }
+
             return await _context.SaveChangesAsync();
         }
+
+        private int? GetCurrentUserId()
+        {
+            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("UserId")?.Value;
+            if (int.TryParse(userIdClaim, out var id))
+                return id;
+
+            return null; // trả null nếu claim không tồn tại
+        }
+
         public void Dispose()
         {
             _context.Dispose();
