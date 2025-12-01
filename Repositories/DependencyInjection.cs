@@ -15,6 +15,7 @@ namespace Repositories
         public static IServiceCollection AddRepository(this IServiceCollection service)
         {
             service.AddScoped<IUOW, UOW>();
+            service.AddHttpContextAccessor();
             return service;
         }
     }

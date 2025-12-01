@@ -73,6 +73,6 @@ namespace Repositories.UnitOfWork
         IRepository<MentorVerification> MentorVerifications { get; }
 
         Task<IDbContextTransaction> BeginTransactionAsync();
-        Task<int> SaveAsync();
+        Task<int> SaveAsync(int? explicitUserId = null);
     }
 }
