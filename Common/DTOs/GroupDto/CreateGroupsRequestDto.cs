@@ -8,8 +8,10 @@ namespace Common.DTOs.GroupDto
 {
     public class CreateGroupsRequestDto
     {
+        public int PhaseId { get; set; }   // NEW
         public int TeamsPerGroup { get; set; }
     }
+
     public class GroupDto
     {
         public int GroupId { get; set; }         // ID của group

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
+using Service.Servicefolder;
 
 namespace Seal.Controller
 {
@@ -99,6 +100,20 @@ namespace Seal.Controller
                 return BadRequest(new { message = errorMessage });
 
             return Ok(result);
+        }
+        [HttpGet("my-registrations")]
+        [Authorize]
+        public async Task<IActionResult> GetMyRegistrations()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { message = "Invalid token" });
+
+            int userId = int.Parse(userIdClaim);
+
+            var registrations = await _service.GetMyRegistrationsAsync(userId);
+
+            return Ok(registrations);
         }
 
     }

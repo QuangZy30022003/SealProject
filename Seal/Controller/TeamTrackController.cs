@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.TeamTrackDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
 
@@ -14,6 +15,7 @@ namespace Seal.Controller
         {
             _teamTrackService = teamTrackService;
         }
+        [Authorize]
 
         [HttpPost("select")]
         public async Task<IActionResult> SelectTrack([FromBody] TeamSelectTrackRequest request)

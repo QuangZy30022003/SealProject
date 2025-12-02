@@ -36,6 +36,7 @@ namespace Seal.Controller
         }
 
         [HttpPut("approve/{id}")]
+        [Authorize(Roles = "Admin,ChapterLeader")]
         public async Task<IActionResult> Approve(int id)
         {
             try
@@ -52,6 +53,7 @@ namespace Seal.Controller
         }
 
         [HttpPut("reject/{id}")]
+        [Authorize(Roles = "Admin,ChapterLeader")]
         public async Task<IActionResult> Reject(int id)
         {
             try
@@ -66,5 +68,14 @@ namespace Seal.Controller
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("verifications/pending-or-rejected")]
+        [Authorize(Roles = "Admin,ChapterLeader")]
+        public async Task<IActionResult> GetPendingOrRejectedVerifications()
+        {
+            var verifications = await _service.GetPendingOrRejectedVerificationsAsync();
+            return Ok(verifications);
+        }
+
     }
 }

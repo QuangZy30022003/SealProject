@@ -14,5 +14,6 @@ namespace Service.Interface
         Task<bool> RejectVerificationAsync(int verificationId);
 
         Task<bool> ApproveVerificationAsync(int verificationId);
+        Task<List<StudentVerificationAdminDto>> GetPendingOrRejectedVerificationsAsync();
     }
 }

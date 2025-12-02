@@ -28,12 +28,45 @@ namespace Service.Servicefolder
             if (dto.TeamsPerGroup <= 0)
                 throw new ArgumentException("TeamsPerGroup must be greater than 0");
 
-            // Lấy tất cả team track selection
-            var allTeamSelections = (await _uow.TeamTrackSelections.GetAllAsync()).ToList();
-            var trackIds = allTeamSelections.Select(t => t.TrackId).Distinct();
+            // 1️⃣ Lấy track trong phase
+            var tracksInPhase = await _uow.Tracks.GetAllAsync(t => t.PhaseId == dto.PhaseId);
+            var trackIds = tracksInPhase.Select(t => t.TrackId).ToList();
+
+            if (!trackIds.Any())
+                throw new Exception("No tracks found for this phase.");
+
+            // 2️⃣ Xóa group cũ + groupTeam cũ
+            var oldGroups = await _uow.Groups.GetAllAsync(g => trackIds.Contains(g.TrackId));
+
+            if (oldGroups.Any())
+            {
+                var oldGroupIds = oldGroups.Select(g => g.GroupId).ToList();
+
+                // Xóa GroupTeam trước
+                var oldGroupTeams = await _uow.GroupsTeams.GetAllAsync(gt => oldGroupIds.Contains(gt.GroupId));
+                foreach (var gt in oldGroupTeams)
+                    _uow.GroupsTeams.Remove(gt);
+
+                // Xóa Group
+                foreach (var g in oldGroups)
+                    _uow.Groups.Remove(g);
+
+                await _uow.SaveAsync(); // Lưu để dọn sạch dữ liệu
+            }
+
+            // 3️⃣ Lấy team đã chọn track trong phase
+            var allTeamSelections = await _uow.TeamTrackSelections
+                .GetAllAsync(t => trackIds.Contains(t.TrackId));
+
+            if (!allTeamSelections.Any())
+                throw new Exception("No teams selected tracks in this phase.");
 
             var createdGroups = new List<Group>();
+            var createdGroupTeams = new List<GroupTeam>();
 
+            char groupNameChar = 'A';
+
+            // 4️⃣ Chia nhóm theo Track
             foreach (var trackId in trackIds)
             {
                 var teamIds = allTeamSelections
@@ -42,10 +75,10 @@ namespace Service.Servicefolder
                     .Select(t => t.TeamId)
                     .ToList();
 
-                if (!teamIds.Any()) continue;
+                if (!teamIds.Any())
+                    continue;
 
                 int groupCount = (int)Math.Ceiling(teamIds.Count / (double)dto.TeamsPerGroup);
-                var groupNameChar = 'A';
 
                 for (int i = 0; i < groupCount; i++)
                 {
@@ -57,7 +90,6 @@ namespace Service.Servicefolder
                     };
 
                     await _uow.Groups.AddAsync(group);
-                    await _uow.SaveAsync(); // cần lưu để có GroupId
                     createdGroups.Add(group);
 
                     var teamsInGroup = teamIds
@@ -67,31 +99,38 @@ namespace Service.Servicefolder
 
                     foreach (var teamId in teamsInGroup)
                     {
-                        var groupTeam = new GroupTeam
+                        createdGroupTeams.Add(new GroupTeam
                         {
-                            GroupId = group.GroupId,
+                            Group = group,
                             TeamId = teamId,
                             JoinedAt = DateTime.UtcNow
-                        };
-                        await _uow.GroupsTeams.AddAsync(groupTeam);
+                        });
                     }
 
                     groupNameChar++;
                 }
             }
 
+            // 5️⃣ Lưu tất cả GroupTeam mới
+            foreach (var gt in createdGroupTeams)
+                await _uow.GroupsTeams.AddAsync(gt);
+
             await _uow.SaveAsync();
 
-            // Map sang DTO và thêm danh sách teamId
+            // 6️⃣ Map DTO
             var result = _mapper.Map<List<GroupDto>>(createdGroups);
+
             foreach (var g in result)
             {
-                var teams = (await _uow.GroupsTeams.GetAllAsync(gt => gt.GroupId == g.GroupId)).Select(t => t.TeamId).ToList();
-                g.TeamIds = teams;
+                g.TeamIds = createdGroupTeams
+                    .Where(x => x.GroupId == g.GroupId)
+                    .Select(x => x.TeamId)
+                    .ToList();
             }
 
             return result;
         }
+
 
         public async Task<List<GroupDto>> GetGroupsByHackathonAsync(int hackathonId)
         {

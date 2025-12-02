@@ -19,5 +19,6 @@ namespace Service.Interface
 
         Task<List<HackathonRegistrationDto>> GetRegistrationsByHackathonAsync(int hackathonId);
         Task<object> GetPendingRegistrationsAsync(int hackathonId);
+        Task<List<HackathonRegistrationDto>> GetMyRegistrationsAsync(int userId);
     }
 }
