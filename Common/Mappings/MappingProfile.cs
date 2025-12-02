@@ -169,6 +169,10 @@ namespace Common.Mappings
             .ForMember(dest => dest.BackCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"));
 
+            CreateMap<StudentVerification, StudentVerificationAdminDto>()
+           .ForMember(dest => dest.FrontCardImage, opt => opt.MapFrom(src => src.FrontCardImage))
+           .ForMember(dest => dest.BackCardImage, opt => opt.MapFrom(src => src.BackCardImage));
+
             // PenaltiesBonuse
             CreateMap<PenaltiesBonuse, PenaltiesBonuseResponseDto>()
     .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : null));
