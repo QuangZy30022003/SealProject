@@ -334,7 +334,8 @@ namespace Common.Mappings
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
             // Mentor Verification
-            CreateMap<MentorVerification, MentorVerificationResponseDto>();
+            CreateMap<MentorVerification, MentorVerificationResponseDto>().
+                ForMember(dest => dest.ChapterName, opt => opt.MapFrom(src => src.Chapter.ChapterName));
             CreateMap<MentorVerificationCreateDto, MentorVerification>();
 
             // Notification
@@ -366,7 +367,8 @@ namespace Common.Mappings
                          ));
             //Users
             CreateMap<User, User>();
-            //Auditlogs 
+            //Auditlogs ]
+
             CreateMap<AuditLog, AuditLogDto>()
            .ForMember(x => x.UserName, opt => opt.MapFrom(u => u.User.FullName));
         }
