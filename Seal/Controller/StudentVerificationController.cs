@@ -71,6 +71,7 @@ namespace Seal.Controller
 
         [HttpGet("verifications/pending-or-rejected")]
         [Authorize(Roles = "Admin,ChapterLeader")]
+
         public async Task<IActionResult> GetPendingOrRejectedVerifications()
         {
             var verifications = await _service.GetPendingOrRejectedVerificationsAsync();

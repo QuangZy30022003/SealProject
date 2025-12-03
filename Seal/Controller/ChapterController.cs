@@ -21,7 +21,7 @@ namespace Seal.Controller
             _userContext = userContext;
         }
 
-        [Authorize(Roles = "ChapterLeader")]
+        [Authorize(Roles = "ChapterLeader,Admin")]
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] CreateChapterDto dto)
         {
@@ -52,7 +52,7 @@ namespace Seal.Controller
             var result = await _chapterService.GetAllAsync();
             return Ok(result);
         }
-        [Authorize(Roles = "ChapterLeader")]
+        [Authorize(Roles = "ChapterLeader,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateChapterDto dto)
         {
@@ -65,7 +65,7 @@ namespace Seal.Controller
 
             return Ok(result);
         }
-        [Authorize(Roles = "ChapterLeader")]
+        [Authorize(Roles = "ChapterLeader,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

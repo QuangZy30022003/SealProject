@@ -100,7 +100,7 @@ namespace Service.Servicefolder
         {
             var assignments = await _uow.JudgeAssignments
                 .GetAllIncludingAsync(x => x.HackathonId == hackathonId,
-                                      x => x.Judge, x => x.Track, x => x.Phase);
+                                      x => x.Judge, x => x.Track, x => x.Phase, x => x.Hackathon);
             return _mapper.Map<List<JudgeAssignmentResponseDto>>(assignments);
         }
 

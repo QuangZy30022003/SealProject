@@ -144,7 +144,7 @@ namespace Seal.Controller
         }
 
         [HttpPost("re-score/{appealId}")]
-        [Authorize(Roles = "Judge")]
+        [Authorize(Roles = "Judge, Admin")]
         public async Task<IActionResult> ReScoreAppeal(int appealId, [FromBody] FinalScoreRequestDto request)
         {
             try
