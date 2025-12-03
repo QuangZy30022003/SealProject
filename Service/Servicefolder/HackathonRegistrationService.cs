@@ -270,7 +270,7 @@
             public async Task<List<HackathonRegistrationDto>> GetRegistrationsByHackathonAsync(int hackathonId)
             {
                 var registrations = await _uow.HackathonRegistrations
-                    .GetAllIncludingAsync(r => r.HackathonId == hackathonId, r => r.Team);
+                    .GetAllIncludingAsync(r => r.HackathonId == hackathonId, r => r.Team, r => r.Hackathon);
 
                 // Map sang DTO
                 var dtoList = _mapper.Map<List<HackathonRegistrationDto>>(registrations);
@@ -288,7 +288,8 @@
                 var registrations = await _uow.HackathonRegistrations
                     .GetAllIncludingAsync(
                         r => r.HackathonId == hackathonId && r.Status == "Pending",
-                        r => r.Team
+                        r => r.Team,
+                        r => r.Hackathon
                     );
 
                 if (registrations == null)
