@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.SeasonDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
 
@@ -30,6 +31,8 @@ namespace Seal.Controller
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Create([FromBody] SeasonRequest dto)
         {
             var result = await _seasonService.CreateAsync(dto);
@@ -40,6 +43,8 @@ namespace Seal.Controller
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Update(int id, [FromBody] SeasonUpdateDto dto)
         {
             var result = await _seasonService.UpdateAsync(id, dto);
@@ -50,6 +55,8 @@ namespace Seal.Controller
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _seasonService.DeleteAsync(id);

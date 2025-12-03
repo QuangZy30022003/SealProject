@@ -305,6 +305,10 @@ namespace Common.Mappings
         opt => opt.MapFrom(src => src.HackathonId))
     .ForMember(dest => dest.TrackId,
         opt => opt.MapFrom(src => src.TrackId));
+            CreateMap<JudgeAssignment, JudgeAssignmentResponseDto>()
+    .ForMember(dest => dest.JudgeName, opt => opt.MapFrom(src => src.Judge.FullName))
+    .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track.Name))
+    .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
             //group
             CreateMap<Group, GroupDto>();
