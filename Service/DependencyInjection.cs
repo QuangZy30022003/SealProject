@@ -51,6 +51,7 @@ namespace Service
             service.AddScoped<IAppealScoreService, AppealScoreService>();
             service.AddScoped<IScoreHistoryService, ScoreHistoryService>();
             service.AddScoped<IAuditLogService, AuditLogService>();
+            service.AddScoped<IPartnerProfileService, PartnerProfileService>();
             return service;
 
         }
