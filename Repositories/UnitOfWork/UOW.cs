@@ -150,6 +150,7 @@ namespace Repositories.UnitOfWork
 
             JudgeAssignments = new GenericRepository<JudgeAssignment>(_context);
             Submissions = new GenericRepository<Submission>(_context);
+            PartnerProfiles = new GenericRepository<PartnerProfile>(_context);
         }
 
         //public async Task<int> SaveAsync()

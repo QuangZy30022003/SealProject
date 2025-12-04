@@ -158,6 +158,15 @@ namespace Service.Servicefolder
 
             return _mapper.Map<List<ChallengeDto>>(challenges);
         }
+        public async Task<List<ChallengeDto>> GetMyChallengesByHackathonAsync(int userId, int hackathonId)
+        {
+            var challenges = await _uow.ChallengeRepository.GetAllIncludingAsync(
+                c => c.UserId == userId && c.HackathonId == hackathonId,
+                c => c.User
+            );
+
+            return _mapper.Map<List<ChallengeDto>>(challenges);
+        }
 
     }
 }

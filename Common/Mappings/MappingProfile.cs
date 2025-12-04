@@ -36,6 +36,7 @@ using Common.Enums;
 using Common.DTOs.NotificationDto;
 using Common.DTOs.PrizeAllocationsDto;
 using Common.DTOs.AuditLogDtos;
+using Common.DTOs.PartnerProfileDto;
 
 
 
@@ -371,6 +372,11 @@ namespace Common.Mappings
 
             CreateMap<AuditLog, AuditLogDto>()
            .ForMember(x => x.UserName, opt => opt.MapFrom(u => u.User.FullName));
+
+            // PARTNER PROFILES
+            CreateMap<PartnerProfile, PartnerProfileDto>();
+            CreateMap<PartnerProfileCreateDto, PartnerProfile>();
+            CreateMap<PartnerProfileUpdateDto, PartnerProfile>();
         }
     }
 }

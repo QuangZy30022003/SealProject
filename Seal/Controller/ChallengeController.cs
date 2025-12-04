@@ -105,5 +105,21 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+        // GET: api/challenge/my/hackathon/5
+        [Authorize(Roles = "Partner, Admin")]
+        [HttpGet("my/challenges/{hackathonId}")]
+        public async Task<IActionResult> GetMyChallengesByHackathon(int hackathonId)
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (userIdClaim == null)
+                return Unauthorized("Không tìm thấy UserId trong token");
+
+            int userId = int.Parse(userIdClaim);
+
+            var result = await _service.GetMyChallengesByHackathonAsync(userId, hackathonId);
+
+            return Ok(result);
+        }
+
     }
 }

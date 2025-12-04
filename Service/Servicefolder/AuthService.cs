@@ -248,6 +248,23 @@ namespace Service.Servicefolder
             // 7️⃣ Trả kết quả
             return (accessToken, refreshToken, user.IsVerified);
         }
+        public async Task<PartnerProfileBasicDto?> GetByUserIdAsync(int userId)
+        {
+            var entity = await _uow.PartnerProfiles
+                                   .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (entity == null)
+                return null;
+
+            return new PartnerProfileBasicDto
+            {
+                ProfileId = entity.PartnerProfileId,
+                CompanyName = entity.CompanyName,
+                Description = entity.Description,
+                Website = entity.Website,
+                LogoUrl = entity.LogoUrl
+            };
+        }
 
     }
 }

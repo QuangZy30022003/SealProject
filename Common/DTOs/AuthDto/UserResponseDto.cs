@@ -14,6 +14,17 @@ namespace Common.DTOs.AuthDto
         public string? RoleName { get; set; }
         public bool IsVerified { get; set; }
         public bool IsBlocked { get; set; }
-        public DateTime? CreatedAt { get; set; } 
+        public DateTime? CreatedAt { get; set; }
+
+        public PartnerProfileBasicDto? PartnerProfile { get; set; }
+    }
+
+    public class PartnerProfileBasicDto
+    {
+        public int ProfileId { get; set; }
+        public string CompanyName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Website { get; set; }
+        public string? LogoUrl { get; set; }
     }
 }

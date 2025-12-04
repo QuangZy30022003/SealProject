@@ -103,6 +103,24 @@ namespace Seal.Controller
             }
         }
 
+        //[Authorize]
+        //[HttpGet("me")]
+        //public async Task<IActionResult> GetCurrentUser()
+        //{
+        //    var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+        //    if (userIdClaim == null)
+        //        return Unauthorized(new { message = "Invalid token" });
+
+        //    var userId = int.Parse(userIdClaim.Value);
+
+        //    var user = await _authService.GetUserByIdAsync(userId);
+
+        //    if (user == null)
+        //        return NotFound(new { message = "User not found" });
+
+        //    return Ok(user);
+        //}
+
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
@@ -118,8 +136,16 @@ namespace Seal.Controller
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
+            // Nếu là partner → lấy profile
+            if (user.RoleName == "Partner")
+            {
+                var profile = await _authService.GetByUserIdAsync(userId);
+                user.PartnerProfile = profile; // mapping DTO trả về PartnerProfileBasicDto
+            }
+
             return Ok(user);
         }
+
 
         //[Authorize]
         [HttpGet("users/{id}")]
