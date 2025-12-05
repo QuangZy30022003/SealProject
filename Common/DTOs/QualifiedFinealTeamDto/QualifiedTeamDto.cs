@@ -14,4 +14,13 @@ namespace Common.DTOs.QualifiedFinealTeamDto
         public int GroupId { get; set; }
     }
 
+    public class QualifiedTeamDtos
+    {
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
+        public int GroupId { get; set; }
+        public string GroupName { get; set; }
+
+        public string TrackName { get; set; }
+    }
 }

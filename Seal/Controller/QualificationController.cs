@@ -19,6 +19,24 @@ namespace Seal.Controller
             var result = await _qualificationService.GenerateQualifiedTeamsAsync(phaseId, quantity);
             return Ok(result);
         }
+        [Authorize]
+        [HttpGet("{phaseId}/final-qualified")]
+        public async Task<IActionResult> GetFinalQualifiedTeams(int phaseId)
+        {
+            try
+            {
+                var result = await _qualificationService.GetFinalQualifiedTeamsAsync(phaseId);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred", detail = ex.Message });
+            }
+        }
 
     }
 }

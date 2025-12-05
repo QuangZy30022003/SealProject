@@ -328,9 +328,16 @@ namespace Common.Mappings
 
 
             CreateMap<Ranking, FinalScoreResponseDto>();
-
-            //Ranking
-            CreateMap<Ranking, RankingDto>()
+            CreateMap<FinalQualification, QualifiedTeamDtos>()
+          .ForMember(dest => dest.TeamName,
+                     opt => opt.MapFrom(src => src.Team != null ? src.Team.TeamName : ""))
+          .ForMember(dest => dest.TeamId,
+                     opt => opt.MapFrom(src => src.TeamId))
+          .ForMember(dest => dest.GroupId,
+                     opt => opt.MapFrom(src => src.GroupId));
+        
+        //Ranking
+        CreateMap<Ranking, RankingDto>()
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
