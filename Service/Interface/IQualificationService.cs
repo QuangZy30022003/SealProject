@@ -10,5 +10,6 @@ namespace Service.Interface
     public interface IQualificationService
     {
         Task<List<QualifiedTeamDto>> GenerateQualifiedTeamsAsync(int phaseId, int quantity);
-        }
+        Task<List<QualifiedTeamDtos>> GetFinalQualifiedTeamsAsync(int phaseId);
+    }
 }

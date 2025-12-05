@@ -101,7 +101,27 @@ namespace Service.Servicefolder
                 throw new ArgumentException(
                     $"Hackathon dates must fall within the season ({seasonStart:yyyy-MM-dd} - {seasonEnd:yyyy-MM-dd})"
                 );
+            var phases = await _uow.HackathonPhases.GetAllAsync(p => p.HackathonId == id);
 
+            if (phases.Any())
+            {
+                // Tìm min - max phase date
+                var minPhaseStart = phases.Min(p => p.StartDate);
+                var maxPhaseEnd = phases.Max(p => p.EndDate);
+
+                // Phase dùng DateTime? nên convert ra DateOnly
+                var minPhaseStartDateOnly = DateOnly.FromDateTime(minPhaseStart.Value);
+                var maxPhaseEndDateOnly = DateOnly.FromDateTime(maxPhaseEnd.Value);
+
+                // 1. Nếu user cố đổi ngày mà không bao trọn phases → không cho đổi
+                if (dto.StartDate > minPhaseStartDateOnly || dto.EndDate < maxPhaseEndDateOnly)
+                {
+                    throw new ArgumentException(
+                        $"Cannot update Hackathon dates because existing phases ({minPhaseStartDateOnly:yyyy-MM-dd} → {maxPhaseEndDateOnly:yyyy-MM-dd}) " +
+                        $"must lie within Hackathon date range."
+                    );
+                }
+            }
 
             hackathon.Name = dto.Name;
             hackathon.SeasonId = dto.SeasonId;
@@ -120,13 +140,25 @@ namespace Service.Servicefolder
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _uow.Hackathons.GetByIdAsync(id);
-            if (entity == null) return false;
+            var hackathon = await _uow.Hackathons.GetByIdAsync(id);
+            if (hackathon == null) return false;
 
-            _uow.Hackathons.Remove(entity);
+            var now = DateTime.UtcNow;
+
+            // Chuyển DateOnly? sang DateTime?
+            DateTime? startDate = hackathon.StartDate?.ToDateTime(TimeOnly.MinValue);
+            DateTime? endDate = hackathon.EndDate?.ToDateTime(TimeOnly.MaxValue);
+
+            // Validate
+            if (startDate.HasValue && now >= startDate.Value)
+                throw new InvalidOperationException("Cannot delete a hackathon that has already started or ended.");
+
+            // Nếu chưa bắt đầu → cho phép xóa
+            _uow.Hackathons.Remove(hackathon);
             await _uow.SaveAsync();
             return true;
         }
+
 
         public async Task<HackathonResponseDto?> UpdateStatusAsync(int id, string status)
         {

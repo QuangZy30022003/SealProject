@@ -90,6 +90,65 @@ namespace Service.Servicefolder
             // 5. map ra DTO để trả về client
             return _mapper.Map<List<QualifiedTeamDto>>(topTeams);
         }
+        public async Task<List<QualifiedTeamDtos>> GetFinalQualifiedTeamsAsync(int phaseId)
+        {
+            // 1) Phase người dùng truyền vào
+            var inputPhase = await _uow.HackathonPhases.GetByIdAsync(phaseId);
+            if (inputPhase == null)
+                throw new ArgumentException("Phase not found");
+
+            var hackathonId = inputPhase.HackathonId;
+
+            // 2) Lấy tất cả phase của hackathon
+            var allPhases = await _uow.HackathonPhases
+                .GetAllAsync(p => p.HackathonId == hackathonId);
+
+            if (!allPhases.Any())
+                throw new Exception("No phases found for this hackathon");
+
+            // Convert helper (DateOnly? + DateTime? → DateTime?)
+            DateTime? ToDate(object d)
+            {
+                if (d == null) return null;
+                if (d is DateOnly dd) return new DateTime(dd.Year, dd.Month, dd.Day);
+                if (d is DateTime dt) return dt;
+                return null;
+            }
+
+            // 3) Tìm final phase = phase có EndDate lớn nhất
+            var finalPhase = allPhases
+                .Where(p => ToDate(p.EndDate).HasValue)
+                .OrderByDescending(p => ToDate(p.EndDate).Value)
+                .FirstOrDefault();
+
+            if (finalPhase == null)
+                throw new Exception("No valid final phase found");
+
+            // 4) Kiểm tra user có nhập final phase hay không
+            if (finalPhase.PhaseId != phaseId)
+                throw new Exception("This is not the final phase");
+
+            // 5) Lấy danh sách final qualified
+            var finals = await _uow.FinalQualifications.GetAllIncludingAsync(
+  f => f.Team.HackathonId == hackathonId,
+  f => f.Team,
+                f => f.Group,
+                f => f.Track
+            );
+
+            // 6) Map thủ công để chắc chắn không lỗi
+            return finals.Select(f => new QualifiedTeamDtos
+            {
+                TeamId = f.TeamId,
+                TeamName = f.Team?.TeamName,
+
+                GroupId = f.GroupId,
+                GroupName = f.Group?.GroupName,
+
+                TrackName = f.Track?.Name
+            }).ToList();
+        }
+
 
     }
 }
