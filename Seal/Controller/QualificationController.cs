@@ -14,9 +14,9 @@ namespace Seal.Controller
         // ✅ GET: Lấy danh sách các đội đã đủ điều kiện vào vòng tiếp theo
         [Authorize(Roles = "Admin")]
         [HttpPost("phase/{phaseId}/top-teams")]
-        public async Task<IActionResult> GetTopTeams(int phaseId, [FromQuery] int quantity)
+        public async Task<IActionResult> GetTopTeams(int phaseId)
         {
-            var result = await _qualificationService.GenerateQualifiedTeamsAsync(phaseId, quantity);
+            var result = await _qualificationService.GenerateQualifiedTeamsAsync(phaseId);
             return Ok(result);
         }
         [Authorize]

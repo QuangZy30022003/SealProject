@@ -22,8 +22,9 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        public async Task<List<QualifiedTeamDto>> GenerateQualifiedTeamsAsync(int phaseId, int quantity)
+        public async Task<List<QualifiedTeamDto>> GenerateQualifiedTeamsAsync(int phaseId)
         {
+            const int quantity = 8; // MẶC ĐỊNH 8
             // 1. Lấy tất cả group thuộc phase
             var groups = await _uow.Groups.GetAllIncludingAsync(
                 g => g.Track.PhaseId == phaseId,
