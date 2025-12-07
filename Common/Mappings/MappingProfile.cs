@@ -143,7 +143,19 @@ namespace Common.Mappings
       .ForMember(dest => dest.Prizes, opt => opt.MapFrom(src => src.Prizes));
 
             CreateMap<HackathonPhase, HackathonPhaseDtos>();
-            CreateMap<Prize, PrizeDto>();
+            CreateMap<CreatePrizeDTO, Prize>()
+    .ForMember(dest => dest.PrizeType, opt => opt.MapFrom(src => src.PrizeType.ToString()));
+
+            CreateMap<UpdatePrizeDTO, Prize>()
+                .ForMember(dest => dest.PrizeType, opt => opt.MapFrom(src => src.PrizeType.ToString()));
+
+            CreateMap<Prize, PrizeDTO>()
+                .ForMember(dest => dest.PrizeType,
+                    opt => opt.MapFrom(src => Enum.Parse<PrizeType>(src.PrizeType)));
+
+            CreateMap<Prize, PrizeDTO>()
+    .ForMember(dest => dest.PrizeType,
+               opt => opt.MapFrom(src => src.PrizeType.ToString()));
 
             //Hackathon
 

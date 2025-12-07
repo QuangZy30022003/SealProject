@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Common.DTOs.PrizeDto
     public class PrizeDTO
     {
         public int PrizeId { get; set; }
-        public string? PrizeName { get; set; }
+        public string PrizeName { get; set; }
         public string? PrizeType { get; set; }
         public int? Rank { get; set; }
         public string? Reward { get; set; }
@@ -19,7 +20,7 @@ namespace Common.DTOs.PrizeDto
     public class CreatePrizeDTO
     {
         public string PrizeName { get; set; }
-        public string? PrizeType { get; set; }
+        public PrizeType PrizeType { get; set; }
         public int? Rank { get; set; }
         public string? Reward { get; set; }
         public int HackathonId { get; set; }
@@ -29,7 +30,7 @@ namespace Common.DTOs.PrizeDto
     {
         public int PrizeId { get; set; }
         public string PrizeName { get; set; }
-        public string? PrizeType { get; set; }
+        public PrizeType PrizeType { get; set; }
         public int? Rank { get; set; }
         public string? Reward { get; set; }
     }
