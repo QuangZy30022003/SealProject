@@ -19,5 +19,7 @@ public partial class Chapter
 
     public virtual User ChapterLeader { get; set; }
 
+    public virtual ICollection<MentorVerification> MentorVerifications { get; set; } = new List<MentorVerification>();
+
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

@@ -29,8 +29,6 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<Criterion> Criteria { get; set; }
 
-    public virtual DbSet<CriterionDetail> CriterionDetails { get; set; }
-
     public virtual DbSet<FinalQualification> FinalQualifications { get; set; }
 
     public virtual DbSet<Group> Groups { get; set; }
@@ -46,6 +44,8 @@ public partial class SealDbContext : DbContext
     public virtual DbSet<JudgeAssignment> JudgeAssignments { get; set; }
 
     public virtual DbSet<MentorAssignment> MentorAssignments { get; set; }
+
+    public virtual DbSet<MentorVerification> MentorVerifications { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
@@ -87,44 +87,11 @@ public partial class SealDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<MentorVerification> MentorVerification { get; set; }
-
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<MentorVerification>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.FullName).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.Phone).HasMaxLength(20);
-            entity.Property(e => e.Position).HasMaxLength(200);
-            entity.Property(e => e.CV).HasMaxLength(500);
-            entity.Property(e => e.ReasonToBecomeMentor).HasMaxLength(2000);
-            entity.Property(e => e.RejectReason).HasMaxLength(2000);
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-
-            entity.HasOne(d => d.Hackathon)
-                .WithMany(p => p.MentorVerifications)
-                .HasForeignKey(d => d.HackathonId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(d => d.User)
-                .WithMany(p => p.MentorVerifications)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(d => d.Chapter)
-                .WithMany()
-                .HasForeignKey(d => d.ChapterId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
-
         modelBuilder.Entity<Appeal>(entity =>
         {
-            entity.HasKey(e => e.AppealId).HasName("PK__Appeals__BB684E10D09BAEB8");
+            entity.HasKey(e => e.AppealId).HasName("PK__Appeals__BB684E108B9FCF5C");
 
             entity.Property(e => e.AppealId).HasColumnName("AppealID");
             entity.Property(e => e.AdjustmentId).HasColumnName("AdjustmentID");
@@ -154,7 +121,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__AuditLog__5E5499A851FDD747");
+            entity.HasKey(e => e.LogId).HasName("PK__AuditLog__5E5499A87BCC98C1");
 
             entity.Property(e => e.LogId).HasColumnName("LogID");
             entity.Property(e => e.Action).HasMaxLength(200);
@@ -167,7 +134,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Challenge>(entity =>
         {
-            entity.HasKey(e => e.ChallengeId).HasName("PK__Challeng__C7AC81288D87AACE");
+            entity.HasKey(e => e.ChallengeId).HasName("PK__Challeng__C7AC8128BFFF7E59");
 
             entity.Property(e => e.ChallengeId).HasColumnName("ChallengeID");
             entity.Property(e => e.FilePath).HasMaxLength(255);
@@ -194,7 +161,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Chapter>(entity =>
         {
-            entity.HasKey(e => e.ChapterId).HasName("PK__Chapters__0893A34A0347C581");
+            entity.HasKey(e => e.ChapterId).HasName("PK__Chapters__0893A34A1C668A63");
 
             entity.Property(e => e.ChapterId).HasColumnName("ChapterID");
             entity.Property(e => e.ChapterLeaderId).HasColumnName("ChapterLeaderID");
@@ -210,7 +177,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ChatGroup>(entity =>
         {
-            entity.HasKey(e => e.ChatGroupId).HasName("PK__ChatGrou__435956F88D68A577");
+            entity.HasKey(e => e.ChatGroupId).HasName("PK__ChatGrou__435956F8BB412F63");
 
             entity.HasIndex(e => new { e.MentorId, e.TeamId, e.HackathonId }, "UQ_ChatGroups").IsUnique();
 
@@ -238,7 +205,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ChatMessage>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__ChatMess__C87C037CEB981E6B");
+            entity.HasKey(e => e.MessageId).HasName("PK__ChatMess__C87C037C44EC8E5C");
 
             entity.HasIndex(e => e.ChatGroupId, "IX_ChatMessages_ChatGroups");
 
@@ -260,7 +227,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ChatMessageRead>(entity =>
         {
-            entity.HasKey(e => e.ChatMessageReadId).HasName("PK__ChatMess__B741EF1F27D13BD4");
+            entity.HasKey(e => e.ChatMessageReadId).HasName("PK__ChatMess__B741EF1F59574673");
 
             entity.HasIndex(e => new { e.MessageId, e.UserId }, "IX_ChatMessageReads_ChatMessages_Users");
 
@@ -280,7 +247,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Criterion>(entity =>
         {
-            entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2D79FFCB23");
+            entity.HasKey(e => e.CriteriaId).HasName("PK__Criteria__FE6ADB2D6ACB4700");
 
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
             entity.Property(e => e.Name)
@@ -297,22 +264,9 @@ public partial class SealDbContext : DbContext
             entity.HasOne(d => d.Track).WithMany(p => p.Criteria).HasForeignKey(d => d.TrackId);
         });
 
-        modelBuilder.Entity<CriterionDetail>(entity =>
-        {
-            entity.HasKey(e => e.CriterionDetailId).HasName("PK__Criterio__137EE6C0A645D748");
-
-            entity.Property(e => e.CriterionDetailId).HasColumnName("CriterionDetailID");
-            entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
-            entity.Property(e => e.Description).HasMaxLength(255);
-
-            entity.HasOne(d => d.Criteria).WithMany(p => p.CriterionDetails)
-                .HasForeignKey(d => d.CriteriaId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
         modelBuilder.Entity<FinalQualification>(entity =>
         {
-            entity.HasKey(e => e.QualificationId).HasName("PK__FinalQua__C95C128ACEAC333C");
+            entity.HasKey(e => e.QualificationId).HasName("PK__FinalQua__C95C128A6794CBA6");
 
             entity.Property(e => e.QualificationId).HasColumnName("QualificationID");
             entity.Property(e => e.GroupId).HasColumnName("GroupID");
@@ -339,7 +293,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Group>(entity =>
         {
-            entity.HasKey(e => e.GroupId).HasName("PK__Groups__149AF30A4BC05DE8");
+            entity.HasKey(e => e.GroupId).HasName("PK__Groups__149AF30A4AB40CD2");
 
             entity.Property(e => e.GroupId).HasColumnName("GroupID");
             entity.Property(e => e.GroupName)
@@ -354,7 +308,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<GroupTeam>(entity =>
         {
-            entity.HasKey(e => e.GroupTeamId).HasName("PK__GroupTea__4A9DC8BC85FFB1AE");
+            entity.HasKey(e => e.GroupTeamId).HasName("PK__GroupTea__4A9DC8BC82E34907");
 
             entity.Property(e => e.GroupTeamId).HasColumnName("GroupTeamID");
             entity.Property(e => e.AverageScore).HasColumnType("decimal(6, 2)");
@@ -372,7 +326,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Hackathon>(entity =>
         {
-            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEB2997061C");
+            entity.HasKey(e => e.HackathonId).HasName("PK__Hackatho__A9C9EEEB8EF36FE7");
 
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
             entity.Property(e => e.Description).HasMaxLength(200);
@@ -393,7 +347,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<HackathonPhase>(entity =>
         {
-            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D4245717ABB");
+            entity.HasKey(e => e.PhaseId).HasName("PK__Hackatho__5BA26D42FF4BFDB7");
 
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -408,7 +362,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<HackathonRegistration>(entity =>
         {
-            entity.HasKey(e => e.RegistrationId).HasName("PK__Hackatho__6EF58830440A03C3");
+            entity.HasKey(e => e.RegistrationId).HasName("PK__Hackatho__6EF58830C147FD9E");
 
             entity.Property(e => e.RegistrationId).HasColumnName("RegistrationID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -426,7 +380,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<JudgeAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__JudgeAss__32499E5771E14642");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__JudgeAss__32499E57FEC670EA");
 
             entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -450,7 +404,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<MentorAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__MentorAs__32499E5754CB8DE0");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__MentorAs__32499E57E0EC659A");
 
             entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -471,9 +425,49 @@ public partial class SealDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
+        modelBuilder.Entity<MentorVerification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__MentorVe__3214EC07189D92F5");
+
+            entity.ToTable("MentorVerification");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Cv).HasColumnName("CV");
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.FullName)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.Phone)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Position).HasMaxLength(255);
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Chapter).WithMany(p => p.MentorVerifications)
+                .HasForeignKey(d => d.ChapterId)
+                .HasConstraintName("FK_MentorVerification_Chapter");
+
+            entity.HasOne(d => d.Hackathon).WithMany(p => p.MentorVerifications)
+                .HasForeignKey(d => d.HackathonId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MentorVerification_Hackathon");
+
+            entity.HasOne(d => d.User).WithMany(p => p.MentorVerifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MentorVerification_User");
+        });
+
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E329E1246A7");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E326E379965");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -485,7 +479,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<PartnerProfile>(entity =>
         {
-            entity.HasKey(e => e.PartnerProfileId).HasName("PK__PartnerP__886A31EE7DAD7C2D");
+            entity.HasKey(e => e.PartnerProfileId).HasName("PK__PartnerP__886A31EE7BFE95CF");
 
             entity.Property(e => e.PartnerProfileId).HasColumnName("PartnerProfileID");
             entity.Property(e => e.CompanyName).HasMaxLength(255);
@@ -500,7 +494,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<PenaltiesBonuse>(entity =>
         {
-            entity.HasKey(e => e.AdjustmentId).HasName("PK__Penaltie__E60DB8B36E1134ED");
+            entity.HasKey(e => e.AdjustmentId).HasName("PK__Penaltie__E60DB8B381DC17A4");
 
             entity.Property(e => e.AdjustmentId).HasColumnName("AdjustmentID");
             entity.Property(e => e.Points).HasColumnType("decimal(5, 2)");
@@ -527,7 +521,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Prize>(entity =>
         {
-            entity.HasKey(e => e.PrizeId).HasName("PK__Prizes__5C36F4BB61863623");
+            entity.HasKey(e => e.PrizeId).HasName("PK__Prizes__5C36F4BB8E89EB13");
 
             entity.Property(e => e.PrizeId).HasColumnName("PrizeID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -541,7 +535,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<PrizeAllocation>(entity =>
         {
-            entity.HasKey(e => e.AllocationId).HasName("PK__PrizeAll__B3C6D6ABEBAB69DC");
+            entity.HasKey(e => e.AllocationId).HasName("PK__PrizeAll__B3C6D6AB9C6FA0B7");
 
             entity.Property(e => e.AllocationId).HasColumnName("AllocationID");
             entity.Property(e => e.PrizeId).HasColumnName("PrizeID");
@@ -561,7 +555,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Ranking>(entity =>
         {
-            entity.HasKey(e => e.RankingId).HasName("PK__Rankings__018A6AF9C7734B01");
+            entity.HasKey(e => e.RankingId).HasName("PK__Rankings__018A6AF9A8914E2B");
 
             entity.Property(e => e.RankingId).HasColumnName("RankingID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -579,7 +573,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3AB6B0B51E");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3AB3480D26");
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName)
@@ -589,7 +583,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ScheduleEvent>(entity =>
         {
-            entity.HasKey(e => e.EventId).HasName("PK__Schedule__7944C8705F47F2BF");
+            entity.HasKey(e => e.EventId).HasName("PK__Schedule__7944C870C8306164");
 
             entity.Property(e => e.EventId).HasColumnName("EventID");
             entity.Property(e => e.HackathonId).HasColumnName("HackathonID");
@@ -607,7 +601,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Score>(entity =>
         {
-            entity.HasKey(e => e.ScoreId).HasName("PK__Scores__7DD229F15B60B1A9");
+            entity.HasKey(e => e.ScoreId).HasName("PK__Scores__7DD229F1CC12CDE6");
 
             entity.Property(e => e.ScoreId).HasColumnName("ScoreID");
             entity.Property(e => e.CriteriaId).HasColumnName("CriteriaID");
@@ -632,7 +626,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<ScoreHistory>(entity =>
         {
-            entity.HasKey(e => e.HistoryId).HasName("PK__ScoreHis__4D7B4ABD4DE4ECF3");
+            entity.HasKey(e => e.HistoryId).HasName("PK__ScoreHis__4D7B4ABDBE331A6B");
 
             entity.ToTable("ScoreHistory");
 
@@ -658,7 +652,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Season>(entity =>
         {
-            entity.HasKey(e => e.SeasonId).HasName("PK__Season__C1814E1828AA9ABD");
+            entity.HasKey(e => e.SeasonId).HasName("PK__Season__C1814E184AB3E147");
 
             entity.ToTable("Season");
 
@@ -673,7 +667,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<StudentVerification>(entity =>
         {
-            entity.HasKey(e => e.VerificationId).HasName("PK__StudentV__306D490733384AD0");
+            entity.HasKey(e => e.VerificationId).HasName("PK__StudentV__306D4907C424B90D");
 
             entity.Property(e => e.BackCardImage).HasMaxLength(500);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
@@ -701,7 +695,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Submission>(entity =>
         {
-            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE10510993E12");
+            entity.HasKey(e => e.SubmissionId).HasName("PK__Submissi__449EE1053ECC45AC");
 
             entity.Property(e => e.SubmissionId).HasColumnName("SubmissionID");
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
@@ -723,7 +717,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Team>(entity =>
         {
-            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE7B9D5E6F270");
+            entity.HasKey(e => e.TeamId).HasName("PK__Teams__123AE7B950743E41");
 
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.ChapterId).HasColumnName("ChapterID");
@@ -746,7 +740,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamInvitation>(entity =>
         {
-            entity.HasKey(e => e.InvitationId).HasName("PK__TeamInvi__033C8D2F6D9E16D5");
+            entity.HasKey(e => e.InvitationId).HasName("PK__TeamInvi__033C8D2FC8A99D5C");
 
             entity.Property(e => e.InvitationId)
                 .ValueGeneratedNever()
@@ -767,7 +761,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamJoinRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__TeamJoin__33A8519AF3721BAA");
+            entity.HasKey(e => e.RequestId).HasName("PK__TeamJoin__33A8519A7E7CB240");
 
             entity.Property(e => e.RequestId).HasColumnName("RequestID");
             entity.Property(e => e.LeaderResponse).HasMaxLength(500);
@@ -787,7 +781,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamMember>(entity =>
         {
-            entity.HasKey(e => new { e.TeamId, e.UserId }).HasName("PK__TeamMemb__C3426B731462618C");
+            entity.HasKey(e => new { e.TeamId, e.UserId }).HasName("PK__TeamMemb__C3426B73A2F999A7");
 
             entity.Property(e => e.TeamId).HasColumnName("TeamID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -804,7 +798,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<TeamTrackSelection>(entity =>
         {
-            entity.HasKey(e => e.TeamTrackSelectionId).HasName("PK__TeamTrac__84FCC0CC3381D806");
+            entity.HasKey(e => e.TeamTrackSelectionId).HasName("PK__TeamTrac__84FCC0CC6740DD1B");
 
             entity.HasOne(d => d.Team).WithMany(p => p.TeamTrackSelections)
                 .HasForeignKey(d => d.TeamId)
@@ -819,7 +813,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<Track>(entity =>
         {
-            entity.HasKey(e => e.TrackId).HasName("PK__Tracks__7A74F8C08EB02D6D");
+            entity.HasKey(e => e.TrackId).HasName("PK__Tracks__7A74F8C0D39036CB");
 
             entity.Property(e => e.TrackId).HasColumnName("TrackID");
             entity.Property(e => e.Name)
@@ -834,7 +828,7 @@ public partial class SealDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC3EDA84A8");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCACD2A16B32");
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email)

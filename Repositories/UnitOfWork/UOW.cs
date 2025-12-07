@@ -48,7 +48,6 @@ namespace Repositories.UnitOfWork
 
 
         public IRepository<Criterion> Criteria { get; }
-        public IRepository<CriterionDetail> CriterionDetail { get; }
 
 
         public IRepository<Prize> Prizes { get; }
@@ -79,7 +78,6 @@ namespace Repositories.UnitOfWork
         public IHackathonPhaseRepository HackathonPhaseRepository { get; }
         public IMentorAssignmentRepository MentorAssignmentRepository { get; }
         public IScoreRepository ScoreRepository { get; }
-        public ICriterionDetailRepository CriterionDetailRepository { get; }
         public IPrizeRepository PrizeRepository { get; }
         public IRepository<MentorVerification> MentorVerifications { get; }
 
@@ -123,7 +121,6 @@ namespace Repositories.UnitOfWork
             ScoreHistorys = new GenericRepository<ScoreHistory>(_context);
 
             Criteria = new GenericRepository<Criterion>(_context);
-            CriterionDetail = new GenericRepository<CriterionDetail>(_context);
 
             Tracks = new GenericRepository<Track>(_context);
             TeamTrackSelections = new GenericRepository<TeamTrackSelection>(_context);
@@ -144,7 +141,6 @@ namespace Repositories.UnitOfWork
 
             ScoreRepository = new ScoreRepository(_context);
 
-            CriterionDetailRepository = new CriterionDetailRepository(_context);
 
             PrizeRepository = new PrizeRepository(_context);
 

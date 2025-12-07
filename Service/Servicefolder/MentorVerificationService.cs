@@ -46,7 +46,7 @@ namespace Service.Servicefolder
             if (cvFile != null)
             {
                 var cvUrl = await _fileUploadService.UploadStudnetAsync(cvFile);
-                entity.CV = cvUrl;
+                entity.Cv = cvUrl;
             }
 
             // Set ChapterId only, không set ChapterName

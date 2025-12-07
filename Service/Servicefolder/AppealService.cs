@@ -32,6 +32,14 @@ namespace Service.Servicefolder
             if (!isMember)
                 throw new Exception("You are not a member of this team.");
 
+            // 1.5️ Check user is TeamLeader
+            var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
+            if (team == null)
+                throw new Exception("Team not found.");
+            
+            if (team.TeamLeaderId != currentUserId)
+                throw new Exception("Only the team leader can create appeals.");
+
             // 2) Validate appeal type and required fields
             if (dto.AppealType == AppealType.Penalty)
             {

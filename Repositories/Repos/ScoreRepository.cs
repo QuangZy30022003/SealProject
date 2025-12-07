@@ -35,7 +35,6 @@ namespace Repositories.Repos
         {
             return await _dbSet
                 .Include(s => s.Criteria)
-                    .ThenInclude(c => c.CriterionDetails) // ✅ lấy tiêu chí con qua Criterion
                 .Include(s => s.Judge)
                 .Where(s => s.SubmissionId == submissionId)
                 .ToListAsync();
