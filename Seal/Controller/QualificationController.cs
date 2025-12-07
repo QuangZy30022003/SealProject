@@ -4,6 +4,8 @@ using Service.Interface;
 
 namespace Seal.Controller
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class QualificationController : ControllerBase
     {
         private readonly IQualificationService _qualificationService;
