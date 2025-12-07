@@ -17,8 +17,6 @@ public partial class Criterion
 
     public decimal Weight { get; set; }
 
-    public virtual ICollection<CriterionDetail> CriterionDetails { get; set; } = new List<CriterionDetail>();
-
     public virtual HackathonPhase Phase { get; set; }
 
     public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();

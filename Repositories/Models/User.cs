@@ -51,6 +51,8 @@ public partial class User
 
     public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
 
+    public virtual ICollection<MentorVerification> MentorVerifications { get; set; } = new List<MentorVerification>();
+
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual ICollection<PartnerProfile> PartnerProfiles { get; set; } = new List<PartnerProfile>();
@@ -76,7 +78,4 @@ public partial class User
     public virtual ICollection<TeamMember> TeamMembers { get; set; } = new List<TeamMember>();
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
-
-    public virtual ICollection<MentorVerification> MentorVerifications { get; set; } = new List<MentorVerification>();
-
 }

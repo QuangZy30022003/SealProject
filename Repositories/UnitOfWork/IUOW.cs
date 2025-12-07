@@ -52,7 +52,6 @@ namespace Repositories.UnitOfWork
 
 
         IRepository<Criterion> Criteria { get; }
-        IRepository<CriterionDetail> CriterionDetail { get; }
 
 
         IRepository<Track> Tracks { get; }

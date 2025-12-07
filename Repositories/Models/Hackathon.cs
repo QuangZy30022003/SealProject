@@ -37,6 +37,8 @@ public partial class Hackathon
 
     public virtual ICollection<MentorAssignment> MentorAssignments { get; set; } = new List<MentorAssignment>();
 
+    public virtual ICollection<MentorVerification> MentorVerifications { get; set; } = new List<MentorVerification>();
+
     public virtual ICollection<Prize> Prizes { get; set; } = new List<Prize>();
 
     public virtual ICollection<Ranking> Rankings { get; set; } = new List<Ranking>();
@@ -46,6 +48,4 @@ public partial class Hackathon
     public virtual Season Season { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
-    public virtual ICollection<MentorVerification> MentorVerifications { get; set; } = new List<MentorVerification>();
-
 }
