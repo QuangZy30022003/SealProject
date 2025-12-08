@@ -1,15 +1,16 @@
 ﻿using AutoMapper;
 using Common.DTOs.ChatDto;
+using Common.Wrappers;
 using Microsoft.AspNetCore.SignalR;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
+using Service.Hubs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Seal.Hubs;
 
 
 namespace Service.Servicefolder
@@ -28,6 +29,17 @@ namespace Service.Servicefolder
 
         public async Task<ChatMessageDto> SendMessageAsync(SendMessageDto dto, int senderId)
         {
+            // 0. Validate input
+            if (string.IsNullOrWhiteSpace(dto.Content))
+                throw new ArgumentException("Message content cannot be empty");
+
+            if (dto.Content.Length > 5000)
+                throw new ArgumentException("Message is too long (max 5000 characters)");
+
+            // Check if user is blocked
+            if (await IsUserBlockedAsync(senderId))
+                throw new UnauthorizedAccessException("Your account has been blocked");
+
             // 1. Lấy ChatGroup (phải tồn tại rồi vì đã tạo khi approve)
             var chatGroup = await _uow.ChatGroups.GetByIdIncludingAsync(
                 cg => cg.ChatGroupId == dto.ChatGroupId,
@@ -39,11 +51,7 @@ namespace Service.Servicefolder
                 throw new Exception("Chat Group not found");
 
             // 2. Kiểm tra sender có quyền gửi message không
-            var isMentor = chatGroup.MentorId == senderId;
-            var isTeamMember = await _uow.TeamMembers.ExistsAsync(
-                tm => tm.TeamId == chatGroup.TeamId && tm.UserId == senderId);
-
-            if (!isMentor && !isTeamMember)
+            if (!await ValidateUserAccessAsync(dto.ChatGroupId, senderId))
                 throw new UnauthorizedAccessException("You are not authorized to send messages in this group.");
 
             // 3. Cập nhật LastMessageAt
@@ -142,25 +150,19 @@ namespace Service.Servicefolder
         public async Task<IEnumerable<ChatMessageDto>> GetMessagesAsync(int chatGroupId)
         {
             // Lấy messages với đầy đủ read statuses
-            // Sửa: Dùng query trực tiếp với ThenInclude để include nested properties
             var messages = await _uow.ChatMessages.GetAllIncludingAsync(
                 m => m.ChatGroupId == chatGroupId,
                 m => m.Sender,
                 m => m.ChatMessageReads);
 
-            // Load User cho mỗi ChatMessageRead (batch load để tối ưu)
+            // Batch load users (OPTIMIZED - single query instead of N queries)
             var userIds = messages
                 .SelectMany(m => m.ChatMessageReads?.Select(r => r.UserId) ?? Enumerable.Empty<int>())
                 .Distinct()
                 .ToList();
 
-            var users = new Dictionary<int, User>();
-            foreach (var userId in userIds)
-            {
-                var user = await _uow.Users.GetByIdAsync(userId);
-                if (user != null)
-                    users[userId] = user;
-            }
+            var users = (await _uow.Users.GetAllAsync(u => userIds.Contains(u.UserId)))
+                .ToDictionary(u => u.UserId);
 
             // Gán User vào ChatMessageRead
             foreach (var message in messages)
@@ -175,9 +177,55 @@ namespace Service.Servicefolder
                 }
             }
 
-            // Sửa: Cần ToList() trước khi map để tránh lỗi OrderedEnumerable
             var orderedMessages = messages.OrderBy(m => m.SentAt).ToList();
             return _mapper.Map<IEnumerable<ChatMessageDto>>(orderedMessages);
+        }
+
+        public async Task<PagedResult<ChatMessageDto>> GetMessagesPaginatedAsync(int chatGroupId, int page = 1, int pageSize = 50)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 50;
+
+            // Get total count
+            var totalCount = await _uow.ChatMessages.CountAsync(m => m.ChatGroupId == chatGroupId);
+
+            // Get paginated messages (latest first, then reverse for display)
+            var messages = await _uow.ChatMessages.GetAllIncludingAsync(
+                m => m.ChatGroupId == chatGroupId,
+                m => m.Sender,
+                m => m.ChatMessageReads);
+
+            var pagedMessages = messages
+                .OrderByDescending(m => m.SentAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .OrderBy(m => m.SentAt) // Reverse for chronological order
+                .ToList();
+
+            // Batch load users
+            var userIds = pagedMessages
+                .SelectMany(m => m.ChatMessageReads?.Select(r => r.UserId) ?? Enumerable.Empty<int>())
+                .Distinct()
+                .ToList();
+
+            var users = (await _uow.Users.GetAllAsync(u => userIds.Contains(u.UserId)))
+                .ToDictionary(u => u.UserId);
+
+            // Assign users to read statuses
+            foreach (var message in pagedMessages)
+            {
+                if (message.ChatMessageReads != null)
+                {
+                    foreach (var read in message.ChatMessageReads)
+                    {
+                        if (users.ContainsKey(read.UserId))
+                            read.User = users[read.UserId];
+                    }
+                }
+            }
+
+            var messageDtos = _mapper.Map<List<ChatMessageDto>>(pagedMessages);
+            return PagedResult<ChatMessageDto>.Create(messageDtos, page, pageSize, totalCount);
         }
         // ========== LẤY CHATGROUPS THEO MENTOR ==========
         // Mentor xem danh sách teams đang chat
@@ -251,6 +299,10 @@ namespace Service.Servicefolder
             if (chatGroup == null)
                 throw new Exception("Chat group not found.");
 
+            // Get user info for broadcast
+            var user = await _uow.Users.GetByIdAsync(userId);
+            var userName = user?.FullName ?? "Unknown User";
+
             // Lấy tất cả messages chưa đọc (không phải của user này và chưa có ChatMessageRead)
             var unreadMessages = await _uow.ChatMessages.GetAllIncludingAsync(
                 m => m.ChatGroupId == chatGroupId &&
@@ -280,12 +332,13 @@ namespace Service.Servicefolder
                 await _uow.ChatMessageReads.AddRangeAsync(readRecords);
                 await _uow.SaveAsync();
 
-                // Broadcast read receipt qua SignalR
+                // Broadcast read receipt qua SignalR with UserName
                 await _hubContext.Clients.Group($"ChatGroup_{chatGroupId}")
                     .SendAsync("MessageRead", new
                     {
                         ChatGroupId = chatGroupId,
                         UserId = userId,
+                        UserName = userName,
                         MessageIds = messageIds,
                         ReadAt = System.DateTime.UtcNow
                     });
@@ -336,6 +389,29 @@ namespace Service.Servicefolder
             return result;
         }
 
+        // ========== VALIDATION METHODS ==========
+        
+        public async Task<bool> ValidateUserAccessAsync(int chatGroupId, int userId)
+        {
+            var chatGroup = await _uow.ChatGroups.GetByIdAsync(chatGroupId);
+            if (chatGroup == null)
+                return false;
 
+            // Check if user is mentor
+            if (chatGroup.MentorId == userId)
+                return true;
+
+            // Check if user is team member
+            var isTeamMember = await _uow.TeamMembers.ExistsAsync(
+                tm => tm.TeamId == chatGroup.TeamId && tm.UserId == userId);
+
+            return isTeamMember;
+        }
+
+        public async Task<bool> IsUserBlockedAsync(int userId)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            return user?.IsBlocked ?? false;
+        }
     }
 }
