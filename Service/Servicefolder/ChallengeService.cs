@@ -39,9 +39,9 @@ namespace Service.Servicefolder
 
         public async Task<ChallengeDto> CreateAsync(ChallengeCreateUnifiedDto dto, int userId)
         {
-            // ✅ Validate: ít nhất 1 trong 2 phải có
-            if (dto.File == null )
-                throw new ArgumentException("Bạn phải cung cấp file ");
+            // ✅ Validate: file is required
+            if (dto.File == null)
+                throw new ArgumentException("You must provide a file");
 
             string? fileUrl = null;
 
@@ -68,20 +68,22 @@ namespace Service.Servicefolder
         }
 
 
-        public async Task<bool> PartnerDeleteAsync(int id, int userId)
+        public async Task<string?> PartnerDeleteAsync(int id, int userId)
         {
             var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-            if (entity == null) return false;
+            if (entity == null)
+                return "Challenge not found";
 
-            if (entity.UserId != userId) return false;
+            if (entity.UserId != userId)
+                return "You do not have permission to delete this challenge";
 
-            // Không cho xóa nếu Complete hoặc Cancel
+            // Cannot delete if Complete or Cancel
             if (entity.Status == "Complete" || entity.Status == "Cancel")
-                return false;
+                return $"Cannot delete challenge with status '{entity.Status}'";
 
             _uow.ChallengeRepository.Remove(entity);
             await _uow.SaveAsync();
-            return true;
+            return null; // Success
         }
 
 
@@ -100,28 +102,28 @@ namespace Service.Servicefolder
         {
             var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
             if (entity == null)
-                return "Challenge không tồn tại";
+                return "Challenge not found";
 
             if (entity.UserId != userId)
-                return "Bạn không phải chủ sở hữu challenge này";
+                return "You are not the owner of this challenge";
 
             if (entity.Status == "Complete" || entity.Status == "Cancel")
-                return "Challenge đã Complete hoặc Cancel, không thể update";
+                return "Challenge is Complete or Cancelled, cannot update";
 
             entity.Title = dto.Title;
             entity.Description = dto.Description;
             entity.HackathonId = dto.HackathonId;
 
-            // ✅ Upload file mới (nếu có)
+            // ✅ Upload new file (if provided)
             if (dto.File != null)
             {
                 var fileUrl = await _fileUploadService.UploadAsync(dto.File);
                 entity.FilePath = fileUrl;
             }
 
-            // ✅ Validate: cả 2 không thể trống
+            // ✅ Validate: file is required
             if (string.IsNullOrEmpty(entity.FilePath))
-                return "Challenge phải có file.";
+                return "Challenge must have a file";
 
             _uow.ChallengeRepository.Update(entity);
             await _uow.SaveAsync();
@@ -137,7 +139,7 @@ namespace Service.Servicefolder
 
             if (challenges == null || !challenges.Any())
                 return new List<ChallengeDto>();
-            
+
             // Challenge đã được dùng (TrackId != null)
             var filtered = challenges
                 .Where(c => c.TrackId == null)
