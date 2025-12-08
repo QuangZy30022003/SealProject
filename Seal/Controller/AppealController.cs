@@ -83,5 +83,20 @@ namespace Seal.Controller
                 return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("phase/{phaseId}")]
+        public async Task<IActionResult> GetAppealsByPhase(int phaseId)
+        {
+            try
+            {
+                var result = await _appealService.GetAppealsByPhaseAsync(phaseId);
+                return Ok(ApiResponse<IEnumerable<AppealResponseDto>>.Ok(result, "Appeals retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            }
+        }
     }
 }

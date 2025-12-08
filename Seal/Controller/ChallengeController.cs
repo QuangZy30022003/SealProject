@@ -86,10 +86,7 @@ namespace Seal.Controller
         {
             var result = await _service.GetCompletedChallengesByHackathonAsync(hackathonId);
 
-            if (result == null || result.Count == 0)
-                return NotFound("No completed challenges found for this hackathon.");
-
-            return Ok(result);
+            return Ok(result ?? new List<ChallengeDto>());
         }
 
         [HttpGet("track/{trackId}")]

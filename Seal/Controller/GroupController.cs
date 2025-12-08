@@ -56,10 +56,7 @@ namespace Seal.Controller
             {
                 var result = await _groupService.GetGroupsByHackathonAsync(hackathonId);
 
-                if (result == null || result.Count == 0)
-                    return NotFound(new { message = "No groups found for this hackathon." });
-
-                return Ok(result);
+                return Ok(result ?? new List<GroupDto>());
             }
             catch (Exception ex)
             {
