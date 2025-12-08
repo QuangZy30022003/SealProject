@@ -37,6 +37,7 @@ using Common.DTOs.NotificationDto;
 using Common.DTOs.PrizeAllocationsDto;
 using Common.DTOs.AuditLogDtos;
 using Common.DTOs.PartnerProfileDto;
+using Common.DTOs.ScheduleEventDto;
 
 
 
@@ -396,6 +397,13 @@ namespace Common.Mappings
             CreateMap<PartnerProfile, PartnerProfileDto>();
             CreateMap<PartnerProfileCreateDto, PartnerProfile>();
             CreateMap<PartnerProfileUpdateDto, PartnerProfile>();
+
+            // SCHEDULE EVENTS
+            CreateMap<ScheduleEvent, ScheduleEventDto>()
+                .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null))
+                .ForMember(dest => dest.PhaseName, opt => opt.MapFrom(src => src.Phase != null ? src.Phase.PhaseName : null));
+            CreateMap<ScheduleEventCreateDto, ScheduleEvent>();
+            CreateMap<ScheduleEventUpdateDto, ScheduleEvent>();
         }
     }
 }

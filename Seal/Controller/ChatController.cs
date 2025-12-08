@@ -1,6 +1,7 @@
 ﻿using Common;
 using Common.DTOs.ChatDto;
 using Common.Wrappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interface;
@@ -9,6 +10,7 @@ namespace Seal.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
@@ -35,16 +37,27 @@ namespace Seal.Controller
         }
 
         [HttpGet("group/{chatGroupId}/messages")]
-        public async Task<IActionResult> GetMessages(int chatGroupId)
+        public async Task<IActionResult> GetMessages(int chatGroupId, [FromQuery] int? page, [FromQuery] int? pageSize)
         {
             try
             {
+                // If pagination params provided, use paginated version
+                if (page.HasValue || pageSize.HasValue)
+                {
+                    var pagedResult = await _chatService.GetMessagesPaginatedAsync(
+                        chatGroupId, 
+                        page ?? 1, 
+                        pageSize ?? 50);
+                    return Ok(ApiResponse<PagedResult<ChatMessageDto>>.Ok(pagedResult, "Messages retrieved successfully"));
+                }
+
+                // Otherwise return all messages (backward compatibility)
                 var result = await _chatService.GetMessagesAsync(chatGroupId);
-                return Ok(result);
+                return Ok(ApiResponse<IEnumerable<ChatMessageDto>>.Ok(result, "Messages retrieved successfully"));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
 
