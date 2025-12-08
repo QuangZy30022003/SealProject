@@ -48,10 +48,14 @@ namespace Seal.Controller
         public async Task<IActionResult> Delete(int id)
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;
-            if (userIdClaim == null) return Unauthorized("Không tìm thấy UserId trong token");
+            if (userIdClaim == null) return Unauthorized("UserId not found in token");
+
             int userId = int.Parse(userIdClaim);
-            var result = await _service.PartnerDeleteAsync(id, userId);
-            if (!result) return NotFound();
+            var errorMessage = await _service.PartnerDeleteAsync(id, userId);
+
+            if (errorMessage != null)
+                return BadRequest(new { message = errorMessage });
+
             return NoContent();
         }
 
@@ -69,7 +73,7 @@ namespace Seal.Controller
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;
             if (userIdClaim == null)
-                return Unauthorized("Không tìm thấy UserId trong token");
+                return Unauthorized("UserId not found in token");
 
             int userId = int.Parse(userIdClaim);
 
@@ -109,7 +113,7 @@ namespace Seal.Controller
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;
             if (userIdClaim == null)
-                return Unauthorized("Không tìm thấy UserId trong token");
+                return Unauthorized("UserId not found in token");
 
             int userId = int.Parse(userIdClaim);
 

@@ -14,7 +14,7 @@ namespace Service.Interface
         Task<ChallengeDto?> GetByIdAsync(int id);
         Task<ChallengeDto> CreateAsync(ChallengeCreateUnifiedDto dto, int userId);
 
-        Task<bool> PartnerDeleteAsync(int id, int userId);
+        Task<string?> PartnerDeleteAsync(int id, int userId);
         Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto);
 
         Task<string?> PartnerUpdateAsync(int id, int userId, ChallengePartnerUpdateDto dto);
