@@ -70,6 +70,10 @@ namespace Service.Servicefolder
 
                 if (adj.TeamId != dto.TeamId)
                     throw new Exception("You cannot appeal adjustment belonging to another team.");
+
+                // ✅ Kiểm tra deadline appeal cho penalty (7 ngày sau khi penalty được tạo)
+                if (adj.CreatedAt.AddDays(7) < DateTime.UtcNow)
+                    throw new Exception("Appeal deadline has passed. You can only appeal within 7 days of penalty creation.");
             }
             else // Score appeal
             {
@@ -88,6 +92,18 @@ namespace Service.Servicefolder
 
                 if (!hasScore)
                     throw new Exception("Score not found for this Submission + Judge.");
+
+                // ✅ Kiểm tra deadline appeal cho score (7 ngày sau khi phase kết thúc)
+                var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId);
+                if (phase == null)
+                    throw new Exception("Phase not found.");
+
+                if (phase.EndDate.HasValue)
+                {
+                    var appealDeadline = phase.EndDate.Value.AddDays(7);
+                    if (DateTime.UtcNow > appealDeadline)
+                        throw new Exception($"Appeal deadline has passed. You can only appeal within 7 days after phase ends (deadline: {appealDeadline:yyyy-MM-dd HH:mm}).");
+                }
             }
 
             // 4) Prevent duplicate pending appeals
@@ -159,6 +175,31 @@ namespace Service.Servicefolder
             var appeals = await _uow.Appeals.GetAllAsync(
                 includeProperties: "Team,Adjustment,Submission,Judge,ReviewedBy"
             );
+            return _mapper.Map<IEnumerable<AppealResponseDto>>(appeals);
+        }
+
+        public async Task<IEnumerable<AppealResponseDto>> GetAppealsByPhaseAsync(int phaseId)
+        {
+            // Validate phase exists
+            var phase = await _uow.HackathonPhases.GetByIdAsync(phaseId);
+            if (phase == null)
+                throw new Exception("Phase not found.");
+
+            // Lấy tất cả submission trong phase
+            var submissions = await _uow.Submissions.GetAllAsync(s => s.PhaseId == phaseId);
+            var submissionIds = submissions.Select(s => s.SubmissionId).ToList();
+
+            // Lấy tất cả penalty/bonus trong phase
+            var penalties = await _uow.PenaltiesBonuses.GetAllAsync(p => p.PhaseId == phaseId);
+            var penaltyIds = penalties.Select(p => p.AdjustmentId).ToList();
+
+            // Lấy appeals liên quan đến phase này (cả score appeals và penalty appeals)
+            var appeals = await _uow.Appeals.GetAllAsync(
+                a => (a.SubmissionId.HasValue && submissionIds.Contains(a.SubmissionId.Value)) ||
+                     (a.AdjustmentId.HasValue && penaltyIds.Contains(a.AdjustmentId.Value)),
+                includeProperties: "Team,Adjustment,Submission,Judge,ReviewedBy"
+            );
+
             return _mapper.Map<IEnumerable<AppealResponseDto>>(appeals);
         }
 

@@ -21,10 +21,9 @@ namespace Seal.Controller
         public async Task<IActionResult> GetAssignedTeams(int mentorId)
         {
             var result = await _service.ViewAssignedTeamsAsync(mentorId);
-            if (!result.Any())
-                return NotFound(new { message = "No teams assigned to this mentor" });
+            
 
-            return Ok(result);
+            return Ok(result ?? new List<AssignedTeamDto>());
         }
 
         [HttpPost]
