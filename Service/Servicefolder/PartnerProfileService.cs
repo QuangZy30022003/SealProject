@@ -128,5 +128,15 @@ namespace Service.Servicefolder
 
             return _mapper.Map<PartnerProfileDto>(entity);
         }
+        public async Task<PartnerProfileDto> AdminGetByUserIdAsync(int userId)
+        {
+            var entity = await _uow.PartnerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (entity == null)
+                throw new Exception("Partner profile not found.");
+
+            return _mapper.Map<PartnerProfileDto>(entity);
+        }
+
     }
-    }
+}

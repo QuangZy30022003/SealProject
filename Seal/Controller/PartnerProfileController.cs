@@ -80,5 +80,22 @@ namespace Seal.Controller
                 ? Ok("Deleted")
                 : NotFound("Profile not found");
         }
+
+        // ADMIN GET PROFILE BY USER ID
+        [HttpGet("user/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminGetById(int id)
+        {
+            try
+            {
+                var result = await _service.AdminGetByUserIdAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { });
+            }
+        }
+
     }
 }

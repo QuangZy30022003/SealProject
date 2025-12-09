@@ -16,6 +16,7 @@ namespace Service.Interface
         Task<PartnerProfileDto> GetByUserIdAsync(int userId);
         Task<IEnumerable<PartnerProfileDto>> GetAllAsync();
         Task<PartnerProfileDto> GetMyProfileAsync(int userId);
+        Task<PartnerProfileDto> AdminGetByUserIdAsync(int userId);
 
     }
 
