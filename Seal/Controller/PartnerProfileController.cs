@@ -93,7 +93,7 @@ namespace Seal.Controller
             }
             catch (Exception ex)
             {
-                return Ok(new { });
+                return Ok(new List<object>());
             }
         }
 

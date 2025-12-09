@@ -82,7 +82,6 @@ namespace Seal.Controller
             }
         }
 
- 
 
         [HttpGet("group/{groupId}/team-scores")]
         [Authorize(Roles = "Judge,Admin")]
@@ -95,7 +94,7 @@ namespace Seal.Controller
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return Ok(new List<object>());
             }
         }
         [HttpGet("myscores/grouped/{phaseId}")]
