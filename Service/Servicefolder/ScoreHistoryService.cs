@@ -39,6 +39,44 @@ namespace Service.Servicefolder
 
             return _mapper.Map<List<ScoreHistoryDto>>(ordered);
         }
+
+        public async Task<List<ScoreHistoryDto>> GetHistoryBySubmissionAsync(int submissionId)
+        {
+            var histories = await _uow.ScoreHistorys.GetAllIncludingAsync(
+                h => h.SubmissionId == submissionId,
+                h => h.Criteria,
+                h => h.Judge,
+                h => h.Submission,
+                h => h.Submission.Team,
+                h => h.Submission.Phase,
+                h => h.Score
+            );
+
+            var ordered = histories
+                .OrderByDescending(h => h.ChangedAt)
+                .ToList();
+
+            return _mapper.Map<List<ScoreHistoryDto>>(ordered);
+        }
+        public async Task<List<ScoreHistoryDto>> GetHistoryByJudgeAsync(int judgeId)
+        {
+            var histories = await _uow.ScoreHistorys.GetAllIncludingAsync(
+                h => h.JudgeId == judgeId,
+                h => h.Criteria,
+                h => h.Judge,
+                h => h.Submission,
+                h => h.Submission.Team,
+                h => h.Submission.Phase,
+                h => h.Score
+            );
+
+            var ordered = histories
+                .OrderByDescending(h => h.ChangedAt)
+                .ToList();
+
+            return _mapper.Map<List<ScoreHistoryDto>>(ordered);
+        }
+
     }
 
 }

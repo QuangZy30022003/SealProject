@@ -26,4 +26,14 @@ namespace Common.DTOs.JudgeAssignmentDto
         public DateTime AssignedAt { get; set; }
         public string Status { get; set; }
     }
+
+    public class HackathonAssignedDto
+    {
+        public int HackathonId { get; set; }
+        public string HackathonName { get; set; }
+        public string Status { get; set; }
+        public string? TrackName { get; set; }
+        public string? PhaseName { get; set; }
+        public DateTime AssignedAt { get; set; }
+    }
 }

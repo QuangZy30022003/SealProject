@@ -145,6 +145,17 @@ namespace Service.Servicefolder
 
             return true;
         }
+        public async Task<List<HackathonAssignedDto>> GetAssignedHackathonsAsync(int judgeId)
+        {
+            var assignments = await _uow.JudgeAssignments.GetAllIncludingAsync(
+                x => x.JudgeId == judgeId && x.Status == "Active",
+                x => x.Hackathon,
+                x => x.Track,
+                x => x.Phase
+            );
+
+            return _mapper.Map<List<HackathonAssignedDto>>(assignments);
+        }
 
     }
 }

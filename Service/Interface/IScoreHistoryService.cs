@@ -10,5 +10,8 @@ namespace Service.Interface
     public interface IScoreHistoryService
     {
         Task<List<ScoreHistoryDto>> GetHistoryByHackathonAsync(int hackathonId);
+        Task<List<ScoreHistoryDto>> GetHistoryBySubmissionAsync(int submissionId);
+        Task<List<ScoreHistoryDto>> GetHistoryByJudgeAsync(int judgeId);
+
     }
 }
