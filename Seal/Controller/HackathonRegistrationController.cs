@@ -97,7 +97,7 @@ namespace Seal.Controller
             var result = await _service.GetPendingRegistrationsAsync(hackathonId);
 
             if (result is string errorMessage)
-                return BadRequest(new { message = errorMessage });
+                return Ok(new { message = errorMessage });
 
             return Ok(result);
         }

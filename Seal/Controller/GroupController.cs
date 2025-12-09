@@ -70,11 +70,14 @@ namespace Seal.Controller
             try
             {
                 var result = await _groupService.GetGroupTeamsByGroupIdAsync(groupId);
+                if (result == null)
+                    return Ok(new List<object>());
+
                 return Ok(result);
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException )
             {
-                return BadRequest(new { message = ex.Message });
+                return Ok(new List<object>());
             }
             catch (Exception ex)
             {

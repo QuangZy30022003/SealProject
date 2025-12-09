@@ -216,6 +216,40 @@ namespace Seal.Controller
                 isVerified = result.isVerified
             });
         }
+        [Authorize(Roles = "Admin")]
+        [HttpPut("admin/update-user/{id}")]
+        public async Task<IActionResult> AdminUpdateUser(int id, [FromBody] UpdateUserDto dto)
+        {
+            try
+            {
+                var success = await _authService.AdminUpdateUserAsync(id, dto);
+                if (!success)
+                    return NotFound(new { message = "User not found" });
+
+                return Ok(new { message = "User updated successfully by admin" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPut("admin/change-role/{id}")]
+        public async Task<IActionResult> ChangeUserRole(int id, [FromBody] ChangeRoleDto dto)
+        {
+            try
+            {
+                var success = await _authService.ChangeUserRoleAsync(id, dto.RoleId);
+                if (!success)
+                    return NotFound(new { message = "User not found" });
+
+                return Ok(new { message = "Role changed successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
     }
 }
