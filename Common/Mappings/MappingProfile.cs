@@ -150,13 +150,9 @@ namespace Common.Mappings
             CreateMap<UpdatePrizeDTO, Prize>()
                 .ForMember(dest => dest.PrizeType, opt => opt.MapFrom(src => src.PrizeType.ToString()));
 
-            CreateMap<Prize, PrizeDTO>()
-                .ForMember(dest => dest.PrizeType,
-                    opt => opt.MapFrom(src => Enum.Parse<PrizeType>(src.PrizeType)));
+            CreateMap<Prize, PrizeDto>()
+      .ForMember(dest => dest.PrizeType, opt => opt.MapFrom(src => src.PrizeType));
 
-            CreateMap<Prize, PrizeDTO>()
-    .ForMember(dest => dest.PrizeType,
-               opt => opt.MapFrom(src => src.PrizeType.ToString()));
 
             //Hackathon
 
@@ -323,6 +319,10 @@ namespace Common.Mappings
     .ForMember(dest => dest.JudgeName, opt => opt.MapFrom(src => src.Judge.FullName))
     .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track.Name))
     .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
+            CreateMap<JudgeAssignment, HackathonAssignedDto>()
+    .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name))
+    .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track != null ? src.Track.Name : null))
+    .ForMember(dest => dest.PhaseName, opt => opt.MapFrom(src => src.Phase != null ? src.Phase.PhaseName : null));
 
             //group
             CreateMap<Group, GroupDto>();
@@ -381,6 +381,16 @@ namespace Common.Mappings
                          opt => opt.MapFrom(src => src.Criteria.Name))
 
                      .ForMember(dest => dest.ChangedByName,
+                         opt => opt.MapFrom(src =>
+                             src.ChangedBy != null && src.Judge != null
+                                 ? src.Judge.FullName
+                                 : null
+                         ));
+
+            CreateMap<ScoreHistory, ScoreHistoryDto>()
+    .ForMember(dest => dest.SubmissionTitle, opt => opt.MapFrom(src => src.Submission.Title))
+    .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
+  .ForMember(dest => dest.ChangedByName,
                          opt => opt.MapFrom(src =>
                              src.ChangedBy != null && src.Judge != null
                                  ? src.Judge.FullName

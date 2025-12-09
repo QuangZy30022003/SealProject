@@ -23,5 +23,21 @@ namespace Seal.Controller
             var result = await _service.GetHistoryByHackathonAsync(hackathonId);
             return Ok(result);
         }
+
+        [HttpGet("submission/{submissionId}")]
+        [Authorize(Roles = "Admin,Judge")]
+        public async Task<IActionResult> GetBySubmission(int submissionId)
+        {
+            var result = await _service.GetHistoryBySubmissionAsync(submissionId);
+            return Ok(result);
+        }
+        [HttpGet("judge/{judgeId}")]
+        [Authorize(Roles = "Admin,Judge")]
+        public async Task<IActionResult> GetByJudge(int judgeId)
+        {
+            var result = await _service.GetHistoryByJudgeAsync(judgeId);
+            return Ok(result);
+        }
+
     }
 }

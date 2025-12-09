@@ -17,5 +17,7 @@ namespace Service.Interface
         Task<bool> DeleteAsync(int id);
         Task<HackathonResponseDto?> UpdateStatusAsync(int id, string status);
 
+        Task<IEnumerable<HackathonResponseDto>> GetBySeasonAsync(int seasonId);
+
     }
 }

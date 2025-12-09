@@ -179,6 +179,16 @@ namespace Service.Servicefolder
 
             return _mapper.Map<HackathonResponseDto>(hackathon);
         }
+        public async Task<IEnumerable<HackathonResponseDto>> GetBySeasonAsync(int seasonId)
+        {
+            var entities = await _uow.Hackathons.GetAllIncludingAsync(
+                h => h.SeasonId == seasonId,
+                h => h.Season     // MUST include this
+            );
+
+            return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
+        }
+
 
     }
 }

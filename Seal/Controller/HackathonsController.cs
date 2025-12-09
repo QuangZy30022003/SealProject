@@ -123,6 +123,16 @@ namespace Seal.Controller
                 return StatusCode(500, new { message = "An unexpected error occurred." });
             }
         }
+        [HttpGet("season/{seasonId}")]
+        public async Task<IActionResult> GetBySeason(int seasonId)
+        {
+            var result = await _service.GetBySeasonAsync(seasonId);
+
+            if (!result.Any())
+                return NotFound(new { message = "No hackathons found for this season." });
+
+            return Ok(result);
+        }
 
     }
 }

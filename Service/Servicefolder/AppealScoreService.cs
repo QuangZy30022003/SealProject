@@ -50,20 +50,20 @@ namespace Service.Servicefolder
                 if (existing == null)
                     throw new Exception($"No existing score found for CriteriaId {dto.CriterionId}.");
 
-                // Lưu lịch sử điểm cũ
-                var history = new ScoreHistory
-                {
-                    ScoreId = existing.ScoreId,
-                    SubmissionId = existing.SubmissionId,
-                    JudgeId = existing.JudgeId,
-                    CriteriaId = existing.CriteriaId,
-                    OldScore = (int)existing.Score1,
-                    OldComment = existing.Comment,
-                    ChangedAt = DateTime.UtcNow,
-                    ChangeReason = "Re-scored via approved appeal",
-                    ChangedBy = userId
-                };
-                await _uow.ScoreHistorys.AddAsync(history);
+                //// Lưu lịch sử điểm cũ
+                //var history = new ScoreHistory
+                //{
+                //    ScoreId = existing.ScoreId,
+                //    SubmissionId = existing.SubmissionId,
+                //    JudgeId = existing.JudgeId,
+                //    CriteriaId = existing.CriteriaId,
+                //    OldScore = (int)existing.Score1,
+                //    OldComment = existing.Comment,
+                //    ChangedAt = DateTime.UtcNow,
+                //    ChangeReason = "Re-scored via approved appeal",
+                //    ChangedBy = userId
+                //};
+                //await _uow.ScoreHistorys.AddAsync(history);
 
                 // Cập nhật score mới
                 existing.Score1 = dto.Score;

@@ -70,6 +70,16 @@ namespace Seal.Controller
                 return BadRequest(ex.Message);
             }
         }
+        [Authorize(Roles = "Judge")]
+        [HttpGet("Hackathon-my-assignments")]
+        public async Task<IActionResult> GetMyAssignments()
+        {
+            var judgeId = int.Parse(User.FindFirst("UserId")!.Value);
+
+            var result = await _service.GetAssignedHackathonsAsync(judgeId);
+
+            return Ok(result);
+        }
 
     }
 }
