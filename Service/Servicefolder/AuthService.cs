@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Core;
 using Common.DTOs.AuthDto;
 using Common.Helper;
 using Google.Apis.Auth;
@@ -264,6 +265,35 @@ namespace Service.Servicefolder
                 Website = entity.Website,
                 LogoUrl = entity.LogoUrl
             };
+        }
+        public async Task<bool> AdminUpdateUserAsync(int userId, UpdateUserDto dto)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null) return false;
+
+            if (!string.IsNullOrEmpty(dto.FullName))
+                user.FullName = dto.FullName;
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return true;
+        }
+        public async Task<bool> ChangeUserRoleAsync(int userId, int newRoleId)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null) return false;
+
+            var role = await _uow.Roles.GetByIdAsync(newRoleId);
+            if (role == null)
+                throw new ArgumentException("Role not found");
+
+            user.RoleId = newRoleId;
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return true;
         }
 
     }

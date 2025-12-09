@@ -10,4 +10,9 @@ namespace Common.DTOs.AuthDto
     {
         public string FullName { get; set; } = null!;
     }
+    public class ChangeRoleDto
+    {
+        public int RoleId { get; set; }
+    }
+
 }

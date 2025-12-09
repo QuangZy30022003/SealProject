@@ -24,6 +24,8 @@ namespace Service.Interface
         Task<(string accessToken, string refreshToken, bool isVerified)> LoginWithGoogleAsyncs(string idToken);
 
         Task<PartnerProfileBasicDto?> GetByUserIdAsync(int userId);
+        Task<bool> AdminUpdateUserAsync(int userId, UpdateUserDto dto);
+        Task<bool> ChangeUserRoleAsync(int userId, int newRoleId);
     }
 }
 
