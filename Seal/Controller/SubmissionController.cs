@@ -86,9 +86,17 @@ namespace Seal.Controller
         [HttpGet("team/{teamId}")]
         public async Task<IActionResult> GetByTeam(int teamId)
         {
-            var result = await _submissionService.GetSubmissionsByTeamAsync(teamId);
-            return Ok(result);
+            try
+            {
+                var result = await _submissionService.GetSubmissionsByTeamAsync(teamId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new List<object>());
+            }
         }
+
 
         [HttpGet("phase/{phaseId}")]
         public async Task<IActionResult> GetByPhase(int phaseId)

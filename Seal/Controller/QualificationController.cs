@@ -30,9 +30,9 @@ namespace Seal.Controller
                 var result = await _qualificationService.GetFinalQualifiedTeamsAsync(phaseId);
                 return Ok(result);
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException )
             {
-                return BadRequest(new { message = ex.Message });
+                return Ok(new List<object>());
             }
             catch (Exception ex)
             {
