@@ -1,0 +1,68 @@
+name: Deploy to Somee
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Inject Google OAuth credentials into appsettings.json
+      run: |
+        $appsettingsPath = "Seal/appsettings.json"
+        $json = Get-Content $appsettingsPath | ConvertFrom-Json
+        $json.Authentication.Google.ClientId = "${{ secrets.GOOGLE_CLIENT_ID }}"
+        $json.Authentication.Google.ClientSecret = "${{ secrets.GOOGLE_CLIENT_SECRET }}"
+        $json | ConvertTo-Json -Depth 10 | Set-Content $appsettingsPath
+        Write-Host "Injected Google OAuth credentials into appsettings.json"
+    
+    - name: Publish
+      run: dotnet publish Seal/Seal.csproj -c Release -o ./publish
+    
+    - name: Remove unnecessary folders (Somee limitation)
+      run: |
+        Remove-Item -Recurse -Force ./publish/runtimes -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force ./publish/wwwroot -ErrorAction SilentlyContinue
+    
+    - name: List files to upload
+      run: Get-ChildItem -Path ./publish -Recurse | Select-Object FullName
+    
+    - name: Stop app on Somee (via FTP marker file)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./
+        server-dir: www.SealFall25.somee.com/
+        files: |
+          app_offline.htm
+        state-name: .ftp-deploy-sync-state.json
+        dangerous-clean-slate: false
+      continue-on-error: true
+    
+    - name: Upload to Somee via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: www.SealFall25.somee.com/
+        state-name: .ftp-deploy-sync-state.json
+        dangerous-clean-slate: false
