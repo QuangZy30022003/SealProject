@@ -110,7 +110,7 @@
 
     <script>
         let connection = null;
-        const API_BASE = 'https://localhost:7268/api';
+        const API_BASE = 'https://sealfall25.somee.com:7268/api';
 
         // ========== NOTIFICATION SYSTEM ==========
         function showNotification(message, type = 'info') {
@@ -134,7 +134,7 @@
             }
 
             connection = new signalR.HubConnectionBuilder()
-                .withUrl("https://localhost:7268/chathub", {
+                .withUrl("https://sealfall25.somee.com:7268/chathub", {
                     accessTokenFactory: () => token
                 })
                 .withAutomaticReconnect()
