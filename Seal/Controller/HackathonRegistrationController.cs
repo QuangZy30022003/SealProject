@@ -23,7 +23,7 @@ namespace Seal.Controller
         {
             int userId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
 
-            var result = await _service.RegisterTeamAsync(userId, dto.HackathonId, dto.Link);
+            var result = await _service.RegisterTeamAsync(userId, dto.HackathonId,dto.TeamId, dto.Link);
 
             if (result.StartsWith("Team successfully"))
                 return Ok(new { message = result });
@@ -36,7 +36,7 @@ namespace Seal.Controller
         {
             int userId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
 
-            var result = await _service.CancelRegistrationAsync(userId, dto.HackathonId, dto.CancelReason);
+            var result = await _service.CancelRegistrationAsync(userId, dto.HackathonId, dto.CancelReason, dto.TeamId);
 
             if (result.Contains("cancelled", StringComparison.OrdinalIgnoreCase))
                 return Ok(new { message = result });
@@ -49,7 +49,7 @@ namespace Seal.Controller
         {
             int userId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
 
-            var result = await _service.RestoreRegistrationAsync(userId, dto.HackathonId);
+            var result = await _service.RestoreRegistrationAsync(userId, dto.HackathonId, dto.TeamId);
 
             if (result.Contains("restored", StringComparison.OrdinalIgnoreCase))
                 return Ok(new { message = result });

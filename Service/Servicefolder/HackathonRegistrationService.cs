@@ -66,7 +66,7 @@ namespace Service.Servicefolder
 
             // 6 Kiểm tra đã đăng ký chưa
             bool alreadyRegistered = await _uow.HackathonRegistrations.ExistsAsync(
-                r => r.HackathonId == hackathonId && r.TeamId == team.TeamId
+                r => r.HackathonId == hackathonId && r.TeamId == teamId
             );
             if (alreadyRegistered)
                 return "Team has already registered for this hackathon.";
@@ -75,7 +75,7 @@ namespace Service.Servicefolder
             var registration = new HackathonRegistration
             {
                 HackathonId = hackathonId,
-                TeamId = team.TeamId,
+                TeamId = teamId,
                 Link = link ?? "",
                 RegisteredAt = DateTime.UtcNow,
                 Status = "Pending"
