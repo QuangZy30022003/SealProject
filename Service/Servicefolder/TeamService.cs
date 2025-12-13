@@ -129,6 +129,9 @@ namespace Service.Servicefolder
                 team.TeamName = dto.TeamName;
             }
 
+            await EnsureTeamEditableAsync(id);
+
+
             _uow.Teams.Update(team);
             await _uow.SaveAsync();
 
@@ -150,6 +153,8 @@ namespace Service.Servicefolder
 
             if (team.TeamLeaderId != userId)
                 throw new UnauthorizedAccessException("You are not the leader of this team.");
+
+            await EnsureTeamEditableAsync(id);
 
             _uow.Teams.Remove(team);
             await _uow.SaveAsync();
@@ -244,6 +249,18 @@ namespace Service.Servicefolder
 
             return _mapper.Map<IEnumerable<TeamDto>>(allTeams);
         }
+
+        private async Task EnsureTeamEditableAsync(int teamId)
+        {
+            var registration = await _uow.HackathonRegistrations
+                .FirstOrDefaultAsync(r => r.TeamId == teamId);
+
+            if (registration != null && registration.Status != "Cancelled")
+                throw new InvalidOperationException(
+                    "This team cannot be modified because it has registered for a hackathon."
+                );
+        }
+
 
     }
 }
