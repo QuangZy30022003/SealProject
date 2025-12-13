@@ -142,23 +142,26 @@ namespace Service.Servicefolder
             if (memberCount >= 5)
                 rejectReason = "Team is full (maximum 5 members).";
 
-            // 2.2️ Check user đã ở team khác chưa
-            var existingMember = await _uow.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == request.UserId);
-            if (existingMember != null)
-                rejectReason = "User is already a member of another team.";
+            // 2.2 Check hackathon consistency
+            var userOtherTeams = await _uow.Teams.GetAllAsync(t => (t.TeamLeaderId == request.UserId || t.TeamMembers.Any(tm => tm.UserId == request.UserId)) && t.TeamId != request.TeamId);
 
-            // 2.3️ Check hackathon consistency
-            var userOtherTeam = await _uow.Teams.FirstOrDefaultAsync(t =>
-                (t.TeamLeaderId == request.UserId || t.TeamMembers.Any(tm => tm.UserId == request.UserId)) &&
-                t.TeamId != request.TeamId);
-
-            if (userOtherTeam != null)
+            foreach (var otherTeam in userOtherTeams)
             {
-                if (userOtherTeam.HackathonId != null && team.HackathonId == userOtherTeam.HackathonId)
-                    rejectReason = "User is already in another team for the same hackathon.";
-
-                if (userOtherTeam.HackathonId == null && team.HackathonId == null)
+                // Case 1: cả 2 cùng chưa đăng ký hackathon
+                if (otherTeam.HackathonId == null && team.HackathonId == null)
+                {
                     rejectReason = "User is already in another unregistered team.";
+                    break;
+                }
+
+                // Case 2: cùng hackathon
+                if (otherTeam.HackathonId != null &&
+                    team.HackathonId != null &&
+                    otherTeam.HackathonId == team.HackathonId)
+                {
+                    rejectReason = "User is already in another team for the same hackathon.";
+                    break;
+                }
             }
 
             // 3️ Nếu có lỗi → auto reject
