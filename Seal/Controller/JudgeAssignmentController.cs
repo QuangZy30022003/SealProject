@@ -80,6 +80,20 @@ namespace Seal.Controller
 
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet("phase/{phaseId}")]
+        public async Task<IActionResult> GetByPhase(int phaseId)
+        {
+            try
+            {
+                var result = await _service.GetByPhaseAsync(phaseId);
+                return Ok(result); // luôn trả 200 + []
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }

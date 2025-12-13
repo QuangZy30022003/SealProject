@@ -50,7 +50,14 @@ namespace Service.Servicefolder
 
             await _uow.Submissions.AddAsync(submission);
             await _uow.SaveAsync();
+            var fullSubmission = (await _uow.Submissions.GetAllIncludingAsync(
+        s => s.SubmissionId == submission.SubmissionId,
+        s => s.Team,
+        s => s.Team.TeamTrackSelections,
+        s => s.Phase
+    )).First();
 
+            await LoadTracksAsync(fullSubmission);
             return _mapper.Map<SubmissionResponseDto>(submission);
         }
 
@@ -70,7 +77,14 @@ namespace Service.Servicefolder
             submission.Title = dto.Title;
             submission.FilePath = dto.FilePath;
             await _uow.SaveAsync();
+            var fullSubmission = (await _uow.Submissions.GetAllIncludingAsync(
+        s => s.SubmissionId == submission.SubmissionId,
+        s => s.Team,
+        s => s.Team.TeamTrackSelections,
+        s => s.Phase
+    )).First();
 
+            await LoadTracksAsync(fullSubmission);
             return _mapper.Map<SubmissionResponseDto>(submission);
         }
 
@@ -88,9 +102,32 @@ namespace Service.Servicefolder
             if (team.TeamLeaderId != currentUserId)
                 throw new Exception("Not authorized to set final submission");
 
-            submission.IsFinal = true;
-            await _uow.SaveAsync();
+            var existingFinal = (await _uow.Submissions.GetAllAsync(s =>
+       s.TeamId == dto.TeamId &&
+       s.PhaseId == submission.PhaseId &&
+       s.IsFinal == true))
+       .FirstOrDefault();
 
+            // 🔴 2. Nếu có final cũ → hạ xuống false
+            if (existingFinal != null)
+            {
+                existingFinal.IsFinal = false;
+                _uow.Submissions.Update(existingFinal);
+            }
+
+            // 🔴 3. Set submission mới là final
+            submission.IsFinal = true;
+            _uow.Submissions.Update(submission);
+
+            await _uow.SaveAsync();
+            var fullSubmission = (await _uow.Submissions.GetAllIncludingAsync(
+        s => s.SubmissionId == submission.SubmissionId,
+        s => s.Team,
+        s => s.Team.TeamTrackSelections,
+        s => s.Phase
+    )).First();
+
+            await LoadTracksAsync(fullSubmission);
             // ✅ GỬI NOTIFICATION CHO JUDGES
             var judges = await _uow.JudgeAssignments.GetAllAsync(
                 j => j.PhaseId == submission.PhaseId);
@@ -260,6 +297,26 @@ namespace Service.Servicefolder
             }
 
             return _mapper.Map<List<SubmissionResponseDto>>(submissions);
+        }
+
+
+        private async Task LoadTracksAsync(Submission submission)
+        {
+            if (submission.Team?.TeamTrackSelections == null ||
+                !submission.Team.TeamTrackSelections.Any())
+                return;
+
+            var trackIds = submission.Team.TeamTrackSelections
+                .Select(t => t.TrackId)
+                .Distinct()
+                .ToList();
+
+            var tracks = await _uow.Tracks.GetAllAsync(t => trackIds.Contains(t.TrackId));
+
+            foreach (var sel in submission.Team.TeamTrackSelections)
+            {
+                sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+            }
         }
 
     }

@@ -250,6 +250,51 @@ namespace Seal.Controller
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        {
+            try
+            {
+                var result = await _authService.LoginAsync(request.Email, request.Password);
+
+                return Ok(new
+                {
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    isVerified = result.isVerified
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpPut("set-password")]
+        public async Task<IActionResult> SetPassword([FromBody] UpdatePasswordDto dto)
+        {
+            if (dto.NewPassword != dto.ConfirmPassword)
+                return BadRequest(new { message = "Password confirmation does not match" });
+
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+            if (userIdClaim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            try
+            {
+                var success = await _authService.UpdatePasswordAsync(userId, dto.NewPassword);
+                if (!success)
+                    return NotFound(new { message = "User not found" });
+
+                return Ok(new { message = "Password updated successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
 
     }
 }

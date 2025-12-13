@@ -91,7 +91,9 @@ namespace Service.Servicefolder
         {
             var assignments = await _uow.JudgeAssignments
                 .GetAllIncludingAsync(x => x.HackathonId == hackathonId,
-                                       x => x.Phase, x => x.Hackathon);
+                x => x.Judge,      // ✅ FIX: load User
+                x => x.Hackathon,
+                x => x.Phase);
             return _mapper.Map<List<JudgeAssignmentResponseDto>>(assignments);
         }
 
@@ -145,6 +147,21 @@ namespace Service.Servicefolder
             );
 
             return _mapper.Map<List<HackathonAssignedDto>>(assignments);
+        }
+        public async Task<List<JudgeAssignmentResponseDto>> GetByPhaseAsync(int phaseId)
+        {
+            // ❌ Không throw nữa
+            var phase = await _uow.HackathonPhases.GetByIdAsync(phaseId);
+            if (phase == null)
+                return new List<JudgeAssignmentResponseDto>();
+
+            var assignments = await _uow.JudgeAssignments.GetAllIncludingAsync(
+                x => x.PhaseId == phaseId,
+                x => x.Judge,
+                x => x.Hackathon
+            );
+
+            return _mapper.Map<List<JudgeAssignmentResponseDto>>(assignments);
         }
 
     }

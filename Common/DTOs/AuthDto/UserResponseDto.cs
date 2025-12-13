@@ -27,4 +27,10 @@ namespace Common.DTOs.AuthDto
         public string? Website { get; set; }
         public string? LogoUrl { get; set; }
     }
+    public class UpdatePasswordDto
+    {
+        public string NewPassword { get; set; } = null!;
+        public string ConfirmPassword { get; set; } = null!;
+    }
+
 }

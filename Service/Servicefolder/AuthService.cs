@@ -295,6 +295,59 @@ namespace Service.Servicefolder
 
             return true;
         }
+        private static string HashPassword(string password)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(bytes);
+        }
+
+        public async Task<(string accessToken, string refreshToken, bool isVerified)>
+    LoginAsync(string email, string password)
+        {
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                throw new UnauthorizedAccessException("Invalid email or password");
+
+            if (user.IsBlocked)
+                throw new UnauthorizedAccessException("Your account has been blocked by the administrator.");
+
+            var passwordHash = HashPassword(password);
+
+            if (user.PasswordHash != passwordHash)
+                throw new UnauthorizedAccessException("Invalid email or password");
+
+            // Generate tokens
+            var accessToken = _jwtHelper.GenerateToken(user);
+            var refreshToken = _jwtHelper.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return (accessToken, refreshToken, user.IsVerified);
+        }
+        public async Task<bool> UpdatePasswordAsync(int userId, string newPassword)
+        {
+            var user = await _uow.Users.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            if (user.IsBlocked)
+                throw new UnauthorizedAccessException("Your account has been blocked.");
+
+            // Hash password
+            user.PasswordHash = HashPassword(newPassword);
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            return true;
+        }
+
 
     }
 }
