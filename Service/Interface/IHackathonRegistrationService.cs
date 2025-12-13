@@ -10,10 +10,10 @@ namespace Service.Interface
 {
     public interface IHackathonRegistrationService
     {
-        Task<string> RegisterTeamAsync(int userId, int hackathonId, string link);
-        Task<string> CancelRegistrationAsync(int userId, int hackathonId, string reason);
+        Task<string> RegisterTeamAsync(int userId, int hackathonId, int teamId, string link);
+        Task<string> CancelRegistrationAsync(int userId, int hackathonId, string reason, int teamId);
 
-        Task<string> RestoreRegistrationAsync(int userId, int hackathonId);
+        Task<string> RestoreRegistrationAsync(int userId, int hackathonId, int teamId);
         Task<string> ApproveTeamAsync(int chapterId, int hackathonId, int teamId);
         Task<string> RejectTeamAsync(int chapterId, int hackathonId, int teamId, string cancelReason);
 

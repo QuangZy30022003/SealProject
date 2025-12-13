@@ -92,11 +92,15 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
 
             // ✅ GỬI NOTIFICATION
-            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            if (invitedUser != null)
             {
-                UserId = invitedUser.UserId,
-                Message = $"You have been invited to join team {team.TeamName}"
-            });
+                await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                {
+                    UserId = invitedUser.UserId,
+                    Message = $"You have been invited to join team {team.TeamName}"
+                });
+            }
+
 
             var inviteLink = $"https://sealfall25.somee.com/api/TeamInvitation/accept-link?code={invitation.InvitationCode}";
             var subject = $"Lời mời tham gia nhóm: {team.TeamName}";
@@ -205,6 +209,13 @@ namespace Service.Servicefolder
             });
             await _uow.SaveAsync();
 
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = team.TeamLeaderId,
+                Message = $"{user.FullName} has joined your team {team.TeamName}."
+            });
+
+
             // 7️ Kết quả trả về
             return new InvitationResult
             {
@@ -246,6 +257,15 @@ namespace Service.Servicefolder
             _uow.TeamInvitations.Update(invitation);
             await _uow.SaveAsync();
 
+            var team = await _uow.Teams.GetByIdAsync(invitation.TeamId);
+
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+            {
+                UserId = invitation.InvitedByUserId,
+                Message = $"An invitation to join team {team.TeamName} was rejected."
+            });
+
+
             return new InvitationResult
             {
                 Status = "Success",
@@ -259,7 +279,7 @@ namespace Service.Servicefolder
             if (invitation == null)
                 throw new Exception("Invitation not found");
 
-            
+
             var dto = _mapper.Map<InvitationStatusDto>(invitation);
 
             return dto;
