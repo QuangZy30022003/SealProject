@@ -11,9 +11,9 @@ namespace Service.Interface
 {
     public interface IScoreService
     {
-        Task<List<ScoreResponseDto>> GetScoresByJudgeAsync(int judgeId, int phaseId);
+     //   Task<List<ScoreResponseDto>> GetScoresByJudgeAsync(int judgeId, int phaseId);
         Task<SubmissionScoresResponseDto> CreateOrUpdateScoresAsync(int judgeId, List<ScoreCreateDto> dtos);
-        Task<List<Submission>> GetSubmissionsForJudgeAsync(int judgeId, int phaseId);
+    //    Task<List<Submission>> GetSubmissionsForJudgeAsync(int judgeId, int phaseId);
         Task UpdateAverageAndRankAsync(int submissionId);
         Task<SubmissionScoresResponseDto> UpdateScoresByCriteriaAsync(int judgeId, List<ScoreCreateDto> scores);
 
@@ -24,5 +24,12 @@ namespace Service.Interface
         Task<FinalScoreResponseDto> FinalScoringAsync(FinalScoreRequestDto request, int userId);
 
         Task<FinalScoreResponseDto> UpdateFinalScoreAsync(int userId, FinalScoreRequestDto request);
+
+        Task<SubmissionScoresResponseDto> ScoreSubmissionAsync(int judgeId, ScoreSubmissionRequestDto request);
+        Task<ScoreDetailDto> UpdateScoreByIdAsync(
+    int judgeId,
+    int scoreId,
+    ScoreUpdateByIdDto request);
+
     }
 }

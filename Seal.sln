@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seal", "Seal\Seal.csproj", "{915A154A-F7CA-4D47-BB4D-F2A0D50F9381}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "Repositories\Repositories.csproj", "{9975AAFB-E387-453D-8DC2-5BF3FF0775A7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "Service\Service.csproj", "{5861151F-22DB-4CE5-9157-A27931528483}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUniTest", "NUniTest\NUniTest.csproj", "{F713E75D-BEC9-4E3E-A08C-696DE529DB2B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{058F1AC2-6E82-4F98-9403-321A5AA41012}"
 EndProject
@@ -31,10 +29,6 @@ Global
 		{5861151F-22DB-4CE5-9157-A27931528483}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5861151F-22DB-4CE5-9157-A27931528483}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5861151F-22DB-4CE5-9157-A27931528483}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F713E75D-BEC9-4E3E-A08C-696DE529DB2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F713E75D-BEC9-4E3E-A08C-696DE529DB2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F713E75D-BEC9-4E3E-A08C-696DE529DB2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F713E75D-BEC9-4E3E-A08C-696DE529DB2B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{058F1AC2-6E82-4F98-9403-321A5AA41012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{058F1AC2-6E82-4F98-9403-321A5AA41012}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{058F1AC2-6E82-4F98-9403-321A5AA41012}.Release|Any CPU.ActiveCfg = Release|Any CPU

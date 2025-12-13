@@ -32,13 +32,6 @@ namespace Service.Servicefolder
             if (!phaseExists)
                 throw new Exception("Phase not found");
 
-            // ✅ Kiểm tra Track (nếu có)
-            if (dto.TrackId.HasValue)
-            {
-                var trackExists = await _uow.Tracks.ExistsAsync(t => t.TrackId == dto.TrackId.Value && t.PhaseId == dto.PhaseId);
-                if (!trackExists)
-                    throw new Exception("Track not found for this phase");
-            }
 
             // ✅ Validate danh sách
             if (dto.Criteria == null || dto.Criteria.Count == 0)
@@ -62,7 +55,6 @@ namespace Service.Servicefolder
                 var criterion = new Criterion
                 {
                     PhaseId = dto.PhaseId,
-                    TrackId = dto.TrackId,
                     Name = item.Name,
                     Weight = item.Weight
                 };
@@ -81,8 +73,7 @@ namespace Service.Servicefolder
         {
             var criteria = await _uow.Criteria.GetAllIncludingAsync(
                 c => !phaseId.HasValue || c.PhaseId == phaseId.Value,
-                c => c.Phase,
-                c => c.Track
+                c => c.Phase
             );
 
             return _mapper.Map<List<CriterionResponseDto>>(criteria);
@@ -93,8 +84,7 @@ namespace Service.Servicefolder
         {
             var criterion = await _uow.Criteria.GetByIdIncludingAsync(
                 c => c.CriteriaId == id,
-                c => c.Phase,
-                c => c.Track
+                c => c.Phase
             );
 
             if (criterion == null) return null;
@@ -108,16 +98,10 @@ namespace Service.Servicefolder
             if (criterion == null) return null;
 
             // Validate Track nếu TrackId != null
-            if (dto.TrackId.HasValue)
-            {
-                var trackExists = await _uow.Tracks.ExistsAsync(t => t.TrackId == dto.TrackId.Value && t.PhaseId == criterion.PhaseId);
-                if (!trackExists)
-                    throw new Exception("Track not found for this phase");
-            }
+        
 
             criterion.Name = dto.Name;
             criterion.Weight = dto.Weight;
-            criterion.TrackId = dto.TrackId;
 
             _uow.Criteria.Update(criterion);
             await _uow.SaveAsync();

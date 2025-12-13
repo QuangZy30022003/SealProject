@@ -11,7 +11,6 @@ namespace Common.DTOs.JudgeAssignmentDto
         public int JudgeId { get; set; }
         public int HackathonId { get; set; }
         public int? PhaseId { get; set; }
-        public int? TrackId { get; set; }
     }
 
     public class JudgeAssignmentResponseDto
@@ -21,8 +20,6 @@ namespace Common.DTOs.JudgeAssignmentDto
         public string JudgeName { get; set; }
         public int HackathonId { get; set; }
         public string HackathonName { get; set; }
-        public int? TrackId { get; set; }
-        public string TrackName { get; set; }
         public DateTime AssignedAt { get; set; }
         public string Status { get; set; }
     }
@@ -32,7 +29,6 @@ namespace Common.DTOs.JudgeAssignmentDto
         public int HackathonId { get; set; }
         public string HackathonName { get; set; }
         public string Status { get; set; }
-        public string? TrackName { get; set; }
         public string? PhaseName { get; set; }
         public DateTime AssignedAt { get; set; }
     }
