@@ -243,12 +243,22 @@ namespace Common.Mappings
             CreateMap<Score, ScoreResponseDto>()
                  .ForMember(dest => dest.SubmissionName, opt => opt.MapFrom(src => src.Submission.Title))
                  .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
-                 .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score1));
+                 .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score1))
+               .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
+
+        
+
+            CreateMap<Score, ScoreDetailDto>()
+    .ForMember(dest => dest.CriteriaName, opt => opt.MapFrom(src => src.Criteria.Name))
+    .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score1));
+
+            CreateMap<Score, ScoreWithAverageDto>()
+                .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score1));
 
             CreateMap<CriterionScoreDto, ScoreItemDto>()
-            .ForMember(dest => dest.CriteriaId, opt => opt.MapFrom(src => src.CriterionId))
-            .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score))
-            .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
+                .ForMember(dest => dest.CriteriaId, opt => opt.MapFrom(src => src.CriterionId))
+                .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score))
+                .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
             //payload
 
             CreateMap<HackathonCreatePayloadDto, Hackathon>();
@@ -299,8 +309,6 @@ namespace Common.Mappings
             CreateMap<JudgeAssignment, JudgeAssignmentResponseDto>()
     .ForMember(dest => dest.JudgeName,
         opt => opt.MapFrom(src => src.Judge != null ? src.Judge.FullName : null))
-    .ForMember(dest => dest.TrackName,
-        opt => opt.MapFrom(src => src.Track != null ? src.Track.Name : null))
     .ForMember(dest => dest.HackathonName,
         opt => opt.MapFrom(src => src.Hackathon != null ? src.Hackathon.Name : null))
     .ForMember(dest => dest.Status,
@@ -312,16 +320,12 @@ namespace Common.Mappings
     .ForMember(dest => dest.JudgeId,
         opt => opt.MapFrom(src => src.JudgeId))
     .ForMember(dest => dest.HackathonId,
-        opt => opt.MapFrom(src => src.HackathonId))
-    .ForMember(dest => dest.TrackId,
-        opt => opt.MapFrom(src => src.TrackId));
+        opt => opt.MapFrom(src => src.HackathonId));
             CreateMap<JudgeAssignment, JudgeAssignmentResponseDto>()
     .ForMember(dest => dest.JudgeName, opt => opt.MapFrom(src => src.Judge.FullName))
-    .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track.Name))
     .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
             CreateMap<JudgeAssignment, HackathonAssignedDto>()
     .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name))
-    .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track != null ? src.Track.Name : null))
     .ForMember(dest => dest.PhaseName, opt => opt.MapFrom(src => src.Phase != null ? src.Phase.PhaseName : null));
 
             //group

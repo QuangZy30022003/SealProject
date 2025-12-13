@@ -20,67 +20,67 @@ namespace Seal.Controller
             _appealScoreService = appealScoreService;
         }
 
-      
+
 
         // ✅ POST: Judge chấm điểm submission
-        [Authorize(Roles = "Judge")]
-        [HttpPost("score")]
-        public async Task<IActionResult> CreateOrUpdateScores([FromBody] SubmissionScoreInputDto dto)
-        {
-            if (dto == null || dto.Scores == null || !dto.Scores.Any())
-                return BadRequest(new { message = "No scores provided." });
+        //[Authorize(Roles = "Judge")]
+        //[HttpPost("score")]
+        //public async Task<IActionResult> CreateOrUpdateScores([FromBody] SubmissionScoreInputDto dto)
+        //{
+        //    if (dto == null || dto.Scores == null || !dto.Scores.Any())
+        //        return BadRequest(new { message = "No scores provided." });
 
-            var judgeId = int.Parse(User.FindFirstValue("UserId"));
+        //    var judgeId = int.Parse(User.FindFirstValue("UserId"));
 
-            // Map scores về ScoreCreateDto
-            var scoreDtos = dto.Scores.Select(s => new ScoreCreateDto
-            {
-                SubmissionId = dto.SubmissionId,
-                CriteriaId = s.CriteriaId,
-                ScoreValue = s.ScoreValue,
-                Comment = s.Comment
-            }).ToList();
+        //    // Map scores về ScoreCreateDto
+        //    var scoreDtos = dto.Scores.Select(s => new ScoreCreateDto
+        //    {
+        //        SubmissionId = dto.SubmissionId,
+        //        CriteriaId = s.CriteriaId,
+        //        ScoreValue = s.ScoreValue,
+        //        Comment = s.Comment
+        //    }).ToList();
 
-            try
-            {
-                var result = await _scoreService.CreateOrUpdateScoresAsync(judgeId, scoreDtos);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //    try
+        //    {
+        //        var result = await _scoreService.CreateOrUpdateScoresAsync(judgeId, scoreDtos);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
 
 
-      
-        [Authorize(Roles = "Judge")]
-        [HttpPut("score")]
-        public async Task<IActionResult> UpdateScores([FromBody] SubmissionScoreInputDto dto)
-        {
-            if (dto == null || dto.Scores == null || !dto.Scores.Any())
-                return BadRequest(new { message = "No scores provided." });
 
-            var judgeId = int.Parse(User.FindFirstValue("UserId"));
-            var scoreDtos = dto.Scores.Select(s => new ScoreCreateDto
-            {
-                SubmissionId = dto.SubmissionId,
-                CriteriaId = s.CriteriaId,
-                ScoreValue = s.ScoreValue,
-                Comment = s.Comment
-            }).ToList();
+        //[Authorize(Roles = "Judge")]
+        //[HttpPut("score")]
+        //public async Task<IActionResult> UpdateScores([FromBody] SubmissionScoreInputDto dto)
+        //{
+        //    if (dto == null || dto.Scores == null || !dto.Scores.Any())
+        //        return BadRequest(new { message = "No scores provided." });
 
-            try
-            {
-                var result = await _scoreService.UpdateScoresByCriteriaAsync(judgeId, scoreDtos);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //    var judgeId = int.Parse(User.FindFirstValue("UserId"));
+        //    var scoreDtos = dto.Scores.Select(s => new ScoreCreateDto
+        //    {
+        //        SubmissionId = dto.SubmissionId,
+        //        CriteriaId = s.CriteriaId,
+        //        ScoreValue = s.ScoreValue,
+        //        Comment = s.Comment
+        //    }).ToList();
+
+        //    try
+        //    {
+        //        var result = await _scoreService.UpdateScoresByCriteriaAsync(judgeId, scoreDtos);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
 
         [HttpGet("group/{groupId}/team-scores")]
@@ -114,33 +114,33 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
-        [HttpPost]
-        [Authorize(Roles = "Judge")]
-        public async Task<IActionResult> FinalScoring(FinalScoreRequestDto request)
-        {
-            var judgeId = int.Parse(User.FindFirstValue("UserId"));
-            var result = await _scoreService.FinalScoringAsync(request, judgeId);
-            return Ok(result);
-        }
+        //[HttpPost]
+        //[Authorize(Roles = "Judge")]
+        //public async Task<IActionResult> FinalScoring(FinalScoreRequestDto request)
+        //{
+        //    var judgeId = int.Parse(User.FindFirstValue("UserId"));
+        //    var result = await _scoreService.FinalScoringAsync(request, judgeId);
+        //    return Ok(result);
+        //}
 
-        [HttpPut("{submissionId}/final-score")]
-        [Authorize(Roles = "Judge")]
-        public async Task<ActionResult<FinalScoreResponseDto>> UpdateFinalScore(int submissionId, [FromBody] FinalScoreRequestDto request)
-        {
-            try
-            {
-                // Lấy userId từ token
-                int userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-                if (userId == 0) return Unauthorized();
+        //[HttpPut("{submissionId}/final-score")]
+        //[Authorize(Roles = "Judge")]
+        //public async Task<ActionResult<FinalScoreResponseDto>> UpdateFinalScore(int submissionId, [FromBody] FinalScoreRequestDto request)
+        //{
+        //    try
+        //    {
+        //        // Lấy userId từ token
+        //        int userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+        //        if (userId == 0) return Unauthorized();
 
-                var result = await _scoreService.UpdateFinalScoreAsync(userId, request);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //        var result = await _scoreService.UpdateFinalScoreAsync(userId, request);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpPost("re-score/{appealId}")]
         [Authorize(Roles = "Judge, Admin")]
@@ -157,5 +157,54 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+
+        [HttpPost("submit")]
+        [Authorize(Roles = "Judge, Admin")]
+        public async Task<IActionResult> SubmitScores([FromBody] ScoreSubmissionRequestDto request)
+        {
+            try
+            {
+                // Lấy judgeId từ token
+                var judgeId = int.Parse(User.FindFirstValue("UserId"));
+
+                var result = await _scoreService.ScoreSubmissionAsync(judgeId, request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        [HttpPut("scores/{scoreId}")]
+        [Authorize(Roles = "Judge,Admin")]
+        public async Task<IActionResult> UpdateScoreById(
+     int scoreId,
+     [FromBody] ScoreUpdateByIdDto request)
+        {
+            try
+            {
+                var judgeIdClaim = User.FindFirst("UserId");
+                if (judgeIdClaim == null)
+                    return Unauthorized();
+
+                int judgeId = int.Parse(judgeIdClaim.Value);
+
+                var result = await _scoreService
+                    .UpdateScoreByIdAsync(judgeId, scoreId, request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
     }
 }

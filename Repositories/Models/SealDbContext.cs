@@ -254,14 +254,11 @@ public partial class SealDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
-            entity.Property(e => e.TrackId).HasColumnName("TrackID");
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
 
             entity.HasOne(d => d.Phase).WithMany(p => p.Criteria)
                 .HasForeignKey(d => d.PhaseId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
-
-            entity.HasOne(d => d.Track).WithMany(p => p.Criteria).HasForeignKey(d => d.TrackId);
         });
 
         modelBuilder.Entity<FinalQualification>(entity =>
@@ -387,7 +384,6 @@ public partial class SealDbContext : DbContext
             entity.Property(e => e.JudgeId).HasColumnName("JudgeID");
             entity.Property(e => e.PhaseId).HasColumnName("PhaseID");
             entity.Property(e => e.Status).HasMaxLength(50);
-            entity.Property(e => e.TrackId).HasColumnName("TrackID");
 
             entity.HasOne(d => d.Hackathon).WithMany(p => p.JudgeAssignments)
                 .HasForeignKey(d => d.HackathonId)
@@ -399,7 +395,6 @@ public partial class SealDbContext : DbContext
 
             entity.HasOne(d => d.Phase).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.PhaseId);
 
-            entity.HasOne(d => d.Track).WithMany(p => p.JudgeAssignments).HasForeignKey(d => d.TrackId);
         });
 
         modelBuilder.Entity<MentorAssignment>(entity =>

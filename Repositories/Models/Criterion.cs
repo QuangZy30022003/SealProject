@@ -11,8 +11,6 @@ public partial class Criterion
 
     public int PhaseId { get; set; }
 
-    public int? TrackId { get; set; }
-
     public string Name { get; set; }
 
     public decimal Weight { get; set; }
@@ -22,6 +20,4 @@ public partial class Criterion
     public virtual ICollection<ScoreHistory> ScoreHistories { get; set; } = new List<ScoreHistory>();
 
     public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
-
-    public virtual Track Track { get; set; }
 }

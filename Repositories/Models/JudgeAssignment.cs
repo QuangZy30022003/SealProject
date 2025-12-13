@@ -15,7 +15,6 @@ public partial class JudgeAssignment
 
     public int? PhaseId { get; set; }
 
-    public int? TrackId { get; set; }
 
     public DateTime AssignedAt { get; set; }
 
@@ -27,5 +26,4 @@ public partial class JudgeAssignment
 
     public virtual HackathonPhase Phase { get; set; }
 
-    public virtual Track Track { get; set; }
 }

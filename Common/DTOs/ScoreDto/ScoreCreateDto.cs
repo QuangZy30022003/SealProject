@@ -101,5 +101,16 @@ namespace Common.DTOs.ScoreDto
         public decimal TotalScore { get; set; }
         public int? Rank { get; set; }
     }
+    public class ScoreSubmissionRequestDto
+    {
+        public int SubmissionId { get; set; }
+        public List<CriterionScoreDto> CriteriaScores { get; set; }
+    }
+    public class ScoreUpdateByIdDto
+    {
+        public decimal ScoreValue { get; set; }
+        public string? Comment { get; set; }
+    }
+
 
 }

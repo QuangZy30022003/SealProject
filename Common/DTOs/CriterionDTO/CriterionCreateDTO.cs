@@ -10,8 +10,6 @@ namespace Common.DTOs.CriterionDTO
     public class CriterionCreateDto
     {
         public int PhaseId { get; set; }
-        public int? TrackId { get; set; }
-
         public List<CriterionItemDto> Criteria { get; set; } = new List<CriterionItemDto>();
     }
 
@@ -24,7 +22,6 @@ namespace Common.DTOs.CriterionDTO
     // CriterionUpdateDto.cs
     public class CriterionUpdateDto
     {
-        public int? TrackId { get; set; }
         public string Name { get; set; }
         public decimal Weight { get; set; }
     }
@@ -34,7 +31,6 @@ namespace Common.DTOs.CriterionDTO
     {
         public int CriteriaId { get; set; }
         public int PhaseId { get; set; }
-        public int? TrackId { get; set; }
         public string Name { get; set; }
         public decimal Weight { get; set; }
     }
