@@ -26,6 +26,10 @@ namespace Service.Interface
         Task<PartnerProfileBasicDto?> GetByUserIdAsync(int userId);
         Task<bool> AdminUpdateUserAsync(int userId, UpdateUserDto dto);
         Task<bool> ChangeUserRoleAsync(int userId, int newRoleId);
+
+        Task<(string accessToken, string refreshToken, bool isVerified)> LoginAsync(string email, string password);
+        Task<bool> UpdatePasswordAsync(int userId, string newPassword);
+
     }
 }
 

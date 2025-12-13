@@ -16,4 +16,9 @@ namespace Repositories.Dto.AuthDto
     {
         public string Token { get; set; } = string.Empty;
     }
+    public class LoginRequestDto
+    {
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
+    }
 }

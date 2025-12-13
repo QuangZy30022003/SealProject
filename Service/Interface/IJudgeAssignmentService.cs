@@ -14,6 +14,7 @@ namespace Service.Interface
         Task<bool> RemoveAssignmentAsync(int assignmentId);
         Task<bool> ReactivateAssignmentAsync(int assignmentId);
         Task<List<HackathonAssignedDto>> GetAssignedHackathonsAsync(int judgeId);
+        Task<List<JudgeAssignmentResponseDto>> GetByPhaseAsync(int phaseId);
 
     }
 }
