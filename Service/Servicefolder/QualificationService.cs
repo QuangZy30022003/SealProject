@@ -24,23 +24,44 @@ namespace Service.Servicefolder
 
         public async Task<List<QualifiedTeamDto>> GenerateQualifiedTeamsAsync(int phaseId)
         {
-            const int quantity = 8; // MẶC ĐỊNH 8
-            // 1. Lấy tất cả group thuộc phase
+            const int quantity = 8;
+
+            // 0. Lấy phase hiện tại
+            var currentPhase = await _uow.HackathonPhases.GetByIdAsync(phaseId);
+            if (currentPhase == null)
+                return new List<QualifiedTeamDto>();
+
+            // 1. Tìm phase chấm điểm (phase trước theo thời gian)
+            var scoringPhase = (await _uow.HackathonPhases.GetAllAsync(
+                filter: p =>
+                    p.HackathonId == currentPhase.HackathonId &&
+                    p.EndDate < currentPhase.StartDate
+            ))
+            .OrderByDescending(p => p.EndDate)
+            .FirstOrDefault();
+
+            if (scoringPhase == null)
+                return new List<QualifiedTeamDto>();
+
+            int scoringPhaseId = scoringPhase.PhaseId;
+
+            // 2. Lấy tất cả group thuộc PHASE CHẤM ĐIỂM
             var groups = await _uow.Groups.GetAllIncludingAsync(
-                g => g.Track.PhaseId == phaseId,
+                g => g.Track.PhaseId == scoringPhaseId,
                 g => g.GroupTeams,
                 g => g.Track
             );
 
-            if (!groups.Any()) return new List<QualifiedTeamDto>();
+            if (!groups.Any())
+                return new List<QualifiedTeamDto>();
 
             var topTeams = new List<GroupTeam>();
 
-            // 2. Lấy mỗi group đội cao điểm nhất
+            // 3. Lấy team cao điểm nhất mỗi group
             foreach (var group in groups)
             {
                 var top = group.GroupTeams
-                    .Where(gt => gt.AverageScore.HasValue)   // bạn nói không dùng AverageScore nữa
+                    .Where(gt => gt.AverageScore.HasValue)
                     .OrderByDescending(gt => gt.AverageScore)
                     .FirstOrDefault();
 
@@ -48,14 +69,16 @@ namespace Service.Servicefolder
                     topTeams.Add(top);
             }
 
-            // 3. Nếu chưa đủ số lượng → lấy thêm từ danh sách toàn bảng
+            // 4. Nếu chưa đủ 8 → lấy thêm từ toàn phase chấm điểm
             if (topTeams.Count < quantity)
             {
                 int need = quantity - topTeams.Count;
 
                 var additional = (await _uow.GroupsTeams.GetAllAsync(
-                    filter: gt => gt.AverageScore != null,
-                    includeProperties: "Team,Group"
+                    filter: gt =>
+                        gt.AverageScore != null &&
+                        gt.Group.Track.PhaseId == scoringPhaseId,
+                    includeProperties: "Team,Group,Group.Track"
                 ))
                 .Where(x => !topTeams.Any(t => t.TeamId == x.TeamId))
                 .OrderByDescending(x => x.AverageScore)
@@ -65,20 +88,26 @@ namespace Service.Servicefolder
                 topTeams.AddRange(additional);
             }
 
-            // Chỉ lấy đúng số lượng yêu cầu
+            // 5. Chốt đúng 8 team
             topTeams = topTeams
                 .OrderByDescending(t => t.AverageScore)
                 .Take(quantity)
                 .ToList();
 
-            // 4. Lưu vào FinalQualification
+            // 6. Lưu FinalQualification cho PHASE HIỆN TẠI
             foreach (var item in topTeams)
             {
+                bool exists = await _uow.FinalQualifications.ExistsAsync(
+                    f => f.TeamId == item.TeamId && f.PhaseId == phaseId
+                );
+
+                if (exists) continue;
+
                 var final = new FinalQualification
                 {
                     TeamId = item.TeamId,
                     GroupId = item.GroupId,
-                    PhaseId = phaseId,
+                    PhaseId = phaseId,              // phase sau
                     TrackId = item.Group.TrackId,
                     QualifiedAt = DateTime.UtcNow
                 };
@@ -88,9 +117,10 @@ namespace Service.Servicefolder
 
             await _uow.SaveAsync();
 
-            // 5. map ra DTO để trả về client
+            // 7. Map ra DTO
             return _mapper.Map<List<QualifiedTeamDto>>(topTeams);
         }
+
         public async Task<List<QualifiedTeamDtos>> GetFinalQualifiedTeamsAsync(int phaseId)
         {
             // 1) Phase người dùng truyền vào

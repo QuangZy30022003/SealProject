@@ -30,6 +30,8 @@ namespace Service.Interface
     int judgeId,
     int scoreId,
     ScoreUpdateByIdDto request);
-
+        Task<TeamOverviewDto> GetTeamOverviewAsync(
+    int teamId,
+    int phaseId);
     }
 }

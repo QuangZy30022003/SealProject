@@ -866,6 +866,57 @@ namespace Service.Servicefolder
             return _mapper.Map<ScoreDetailDto>(score);
         }
 
+        public async Task<TeamOverviewDto> GetTeamOverviewAsync(
+    int teamId,
+    int phaseId)
+        {
+            var team = await _uow.Teams.GetByIdAsync(teamId)
+                ?? throw new ArgumentException("Team not found");
+
+            // 1. GroupTeam (AverageScore, Rank)
+            var groupTeam = (await _uow.GroupsTeams.GetAllIncludingAsync(
+                gt => gt.TeamId == teamId
+                      && gt.Group.Track.PhaseId == phaseId,
+                gt => gt.Group,
+                gt => gt.Group.Track
+            )).FirstOrDefault();
+
+            // 2. Lấy tất cả score của team trong phase
+            var scores = await _uow.Scores.GetAllIncludingAsync(
+                s => s.Submission.TeamId == teamId
+                     && s.Criteria.PhaseId == phaseId,
+                s => s.Criteria,
+                s => s.Submission
+            );
+
+            // 3. Group theo Criterion → tính điểm TB
+            var criteriaScores = scores
+           .GroupBy(s => s.CriteriaId)
+           .Select(g => new CriterionScoreDto
+           {
+               CriterionId = g.Key,
+               Score = Math.Round(g.Average(x => x.Score1), 2),
+
+               // 🔥 lấy comment đầu tiên KHÔNG NULL
+               Comment = g
+                   .Where(x => !string.IsNullOrEmpty(x.Comment))
+                   .Select(x => x.Comment)
+                   .FirstOrDefault()
+           })
+           .ToList();
+
+
+            return new TeamOverviewDto
+            {
+                TeamId = team.TeamId,
+                TeamName = team.TeamName,
+                PhaseId = phaseId,
+                AverageScore = groupTeam?.AverageScore,
+                Rank = groupTeam?.Rank,
+                CriteriaScores = criteriaScores
+            };
+        }
+
 
     }
 }

@@ -112,5 +112,35 @@ namespace Common.DTOs.ScoreDto
         public string? Comment { get; set; }
     }
 
+    public class TeamScoreOverviewDto
+    {
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
+        public int PhaseId { get; set; }
+
+        public decimal? AverageScore { get; set; }
+        public int? Rank { get; set; }
+
+        public List<SubmissionScoreDetailDto> Submissions { get; set; } = new();
+    }
+
+    public class SubmissionScoreDetailDto
+    {
+        public int SubmissionId { get; set; }
+        public string SubmissionTitle { get; set; }
+        public decimal TotalScore { get; set; }
+
+        public List<ScoreResponseDto> Scores { get; set; } = new();
+    }
+    public class TeamOverviewDto
+    {
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
+        public int PhaseId { get; set; }
+        public decimal? AverageScore { get; set; }
+        public int? Rank { get; set; }
+
+        public List<CriterionScoreDto> CriteriaScores { get; set; } = new();
+    }
 
 }

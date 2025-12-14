@@ -204,6 +204,15 @@ namespace Seal.Controller
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [Authorize]
+        [HttpGet("team-overview")]
+        public async Task<IActionResult> GetTeamOverview(
+    [FromQuery] int teamId,
+    [FromQuery] int phaseId)
+        {
+            var result = await _scoreService.GetTeamOverviewAsync(teamId, phaseId);
+            return Ok(result);
+        }
 
 
     }
