@@ -38,9 +38,9 @@ namespace Seal.Controller
             }
         }
 
-        // POST: api/TeamInvitation/accept?code=guid
+        // POST: api/TeamInvitation/accept-link?code=guid
         [Authorize]
-        [HttpPost("accept")]
+        [HttpPost("accept-link")]
         public async Task<IActionResult> AcceptInvitation([FromQuery] Guid code)
         {
             try
