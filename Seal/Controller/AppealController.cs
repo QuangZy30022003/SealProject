@@ -84,7 +84,7 @@ namespace Seal.Controller
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet("phase/{phaseId}")]
         public async Task<IActionResult> GetAppealsByPhase(int phaseId)
         {
