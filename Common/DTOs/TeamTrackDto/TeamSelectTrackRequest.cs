@@ -19,4 +19,15 @@ namespace Common.DTOs.TeamTrackDto
         public int TrackId { get; set; }
         public DateTime SelectedAt { get; set; }
     }
+
+    public class TeamTrackByPhaseResponseDto
+    {
+        public int TeamId { get; set; }
+        public string TeamName { get; set; } = null!;
+
+        public int TrackId { get; set; }
+        public string TrackName { get; set; } = null!;
+
+        public DateTime SelectedAt { get; set; }
+    }
 }

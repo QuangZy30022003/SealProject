@@ -55,5 +55,39 @@ namespace Service.Servicefolder
 
             return _mapper.Map<TeamSelectTrackResponse>(selection);
         }
+
+        public async Task<TeamTrackByPhaseResponseDto?> GetTeamTrackByPhaseAsync(
+         int teamId,
+         int phaseId)
+        {
+            // 1️⃣ Kiểm tra team tồn tại
+            var team = await _uow.Teams.GetByIdAsync(teamId);
+            if (team == null)
+                throw new Exception("Team not found");
+
+            // 2️⃣ Kiểm tra team có submission FINAL trong phase này không
+            var finalSubmission = await _uow.Submissions.FirstOrDefaultAsync(
+                s => s.TeamId == teamId
+                     && s.PhaseId == phaseId
+                     && s.IsFinal);
+
+            if (finalSubmission == null)
+                return null; // hoặc throw tùy nghiệp vụ
+
+            // 3️⃣ Lấy track mà team đã chọn
+            var selection = (await _uow.TeamTrackSelections.GetAllIncludingAsync(
+                t => t.TeamId == teamId,
+                t => t.Team,
+                t => t.Track
+            )).FirstOrDefault();
+
+            if (selection == null)
+                return null;
+
+            // ✅ AutoMapper
+            return _mapper.Map<TeamTrackByPhaseResponseDto>(selection);
+        }
+
+
     }
 }

@@ -305,6 +305,11 @@ namespace Common.Mappings
             //TeamTrackSelection
             CreateMap<TeamTrackSelection, TeamSelectTrackResponse>();
             CreateMap<TeamSelectTrackRequest, TeamTrackSelection>();
+            CreateMap<TeamTrackSelection, TeamTrackByPhaseResponseDto>()
+           .ForMember(dest => dest.TeamName,
+               opt => opt.MapFrom(src => src.Team.TeamName))
+           .ForMember(dest => dest.TrackName,
+               opt => opt.MapFrom(src => src.Track.Name));
             //jugdeAssign
             CreateMap<JudgeAssignment, JudgeAssignmentResponseDto>()
     .ForMember(dest => dest.JudgeName,

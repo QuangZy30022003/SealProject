@@ -89,46 +89,51 @@ namespace Service.Servicefolder
         }
 
         // Set submission final (chỉ team leader)
-        public async Task<SubmissionResponseDto?> SetFinalAsync(SubmissionFinalDto dto, int currentUserId)
+        public async Task<SubmissionResponseDto?> SetFinalAsync(
+    SubmissionFinalDto dto,
+    int currentUserId)
         {
-            var submission = await _uow.Submissions.GetByIdAsync(dto.SubmissionId);
-            if (submission == null)
-                throw new Exception("Submission not found");
+            var submission = await _uow.Submissions.GetByIdAsync(dto.SubmissionId)
+                ?? throw new Exception("Submission not found");
 
-            var team = await _uow.Teams.GetByIdAsync(dto.TeamId);
-            if (team == null)
-                throw new Exception("Team not found");
+            var team = await _uow.Teams.GetByIdAsync(dto.TeamId)
+                ?? throw new Exception("Team not found");
 
+            // 🔐 Chỉ team leader được set final
             if (team.TeamLeaderId != currentUserId)
                 throw new Exception("Not authorized to set final submission");
 
+            // 🔒 Nếu submission đã là final → không cho set lại
+            if (submission.IsFinal)
+                throw new Exception("This submission is already set as final");
+
+            // 🔴 Kiểm tra đã có FINAL trong phase chưa
             var existingFinal = (await _uow.Submissions.GetAllAsync(s =>
-       s.TeamId == dto.TeamId &&
-       s.PhaseId == submission.PhaseId &&
-       s.IsFinal == true))
-       .FirstOrDefault();
+                s.TeamId == dto.TeamId &&
+                s.PhaseId == submission.PhaseId &&
+                s.IsFinal == true
+            )).FirstOrDefault();
 
-            // 🔴 2. Nếu có final cũ → hạ xuống false
             if (existingFinal != null)
-            {
-                existingFinal.IsFinal = false;
-                _uow.Submissions.Update(existingFinal);
-            }
+                throw new Exception("Final submission has already been set for this phase");
 
-            // 🔴 3. Set submission mới là final
+            // ✅ Set final
             submission.IsFinal = true;
             _uow.Submissions.Update(submission);
 
             await _uow.SaveAsync();
+
+            // Load đầy đủ thông tin để trả về
             var fullSubmission = (await _uow.Submissions.GetAllIncludingAsync(
-        s => s.SubmissionId == submission.SubmissionId,
-        s => s.Team,
-        s => s.Team.TeamTrackSelections,
-        s => s.Phase
-    )).First();
+                s => s.SubmissionId == submission.SubmissionId,
+                s => s.Team,
+                s => s.Team.TeamTrackSelections,
+                s => s.Phase
+            )).First();
 
             await LoadTracksAsync(fullSubmission);
-            // ✅ GỬI NOTIFICATION CHO JUDGES
+
+            // 🔔 Notify judges
             var judges = await _uow.JudgeAssignments.GetAllAsync(
                 j => j.PhaseId == submission.PhaseId);
 
@@ -136,11 +141,12 @@ namespace Service.Servicefolder
 
             await _notificationService.CreateNotificationsAsync(
                 judgeIds,
-                $"New submission from {team.TeamName} is ready for scoring"
+                $"Final submission from {team.TeamName} is ready for scoring"
             );
 
-            return _mapper.Map<SubmissionResponseDto>(submission);
+            return _mapper.Map<SubmissionResponseDto>(fullSubmission);
         }
+
 
         public async Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAsync(int teamId)
         {
