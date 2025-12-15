@@ -37,6 +37,14 @@ namespace Seal.Controller
                 return BadRequest(ex.Message);
             }
         }
-
+        [Authorize]
+        [HttpGet("by-phase")]
+        public async Task<IActionResult> GetTeamTrack(
+        [FromQuery] int teamId,
+        [FromQuery] int phaseId)
+        {
+            var result = await _teamTrackService.GetTeamTrackByPhaseAsync(teamId, phaseId);
+            return Ok(result);
+        }
     }
 }

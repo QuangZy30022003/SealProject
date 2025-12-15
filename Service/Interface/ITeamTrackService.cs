@@ -10,5 +10,8 @@ namespace Service.Interface
     public interface ITeamTrackService
     {
         Task<TeamSelectTrackResponse?> SelectTrackAsync(int userIdFromToken, TeamSelectTrackRequest request);
+            Task<TeamTrackByPhaseResponseDto?> GetTeamTrackByPhaseAsync(
+                int teamId,
+                int phaseId);
     }
 }
