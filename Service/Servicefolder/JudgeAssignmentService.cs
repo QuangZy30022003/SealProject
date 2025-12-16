@@ -42,7 +42,7 @@ namespace Service.Servicefolder
                 throw new Exception("User is not a judge");
 
             // 3️⃣ Validate Track, Phase (nếu có)
-   
+
 
             if (dto.PhaseId.HasValue)
             {
@@ -156,10 +156,11 @@ namespace Service.Servicefolder
                 return new List<JudgeAssignmentResponseDto>();
 
             var assignments = await _uow.JudgeAssignments.GetAllIncludingAsync(
-                x => x.PhaseId == phaseId,
-                x => x.Judge,
-                x => x.Hackathon
-            );
+          x => x.PhaseId == phaseId,
+               //&& x.Status == "Active",
+          x => x.Judge,
+          x => x.Hackathon
+      );
 
             return _mapper.Map<List<JudgeAssignmentResponseDto>>(assignments);
         }
