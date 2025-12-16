@@ -1,5 +1,6 @@
 name: Deploy to Somee
 
+
 on:
   push:
     branches: [ main ]
@@ -34,27 +35,46 @@ jobs:
     - name: Publish
       run: dotnet publish Seal/Seal.csproj -c Release -o ./publish
     
-    - name: Remove unnecessary folders (Somee limitation)
-      run: |
-        Remove-Item -Recurse -Force ./publish/runtimes -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force ./publish/wwwroot -ErrorAction SilentlyContinue
-    
     - name: List files to upload
       run: Get-ChildItem -Path ./publish -Recurse | Select-Object FullName
     
-    - name: Stop app on Somee (via FTP marker file)
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./
-        server-dir: www.SealFall25.somee.com/
-        files: |
-          app_offline.htm
-        state-name: .ftp-deploy-sync-state.json
-        dangerous-clean-slate: false
+    - name: Create app_offline.htm to stop app
+      run: |
+        $content = @"
+        <!DOCTYPE html>
+        <html>
+        <head><title>Application Offline</title></head>
+        <body><h1>Application is being updated. Please try again in a few moments.</h1></body>
+        </html>
+        "@
+        Set-Content -Path ./app_offline.htm -Value $content
+    
+    - name: Upload app_offline.htm first via FTP
+      run: |
+        $ftpServer = "${{ secrets.FTP_SERVER }}"
+        $ftpUser = "${{ secrets.FTP_USERNAME }}"
+        $ftpPass = "${{ secrets.FTP_PASSWORD }}"
+        $ftpPath = "www.sealfall25.somee.com/"
+      
+        $ftpUri = "ftp://$ftpServer/$ftpPath/app_offline.htm"
+        $ftpRequest = [System.Net.FtpWebRequest]::Create($ftpUri)
+        $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+        $ftpRequest.Credentials = New-Object System.Net.NetworkCredential($ftpUser, $ftpPass)
+        
+        $fileContent = Get-Content ./app_offline.htm -Raw
+        $ftpRequest.ContentLength = $fileContent.Length
+        
+        $requestStream = $ftpRequest.GetRequestStream()
+        $requestStream.Write([System.Text.Encoding]::UTF8.GetBytes($fileContent), 0, $fileContent.Length)
+        $requestStream.Close()
+        
+        $response = $ftpRequest.GetResponse()
+        Write-Host "Uploaded app_offline.htm: $($response.StatusCode)"
+        $response.Close()
       continue-on-error: true
+    
+    - name: Wait for app to stop
+      run: Start-Sleep -Seconds 5
     
     - name: Upload to Somee via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -63,6 +83,6 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish/
-        server-dir: www.SealFall25.somee.com/
+        server-dir: www.sealfall25.somee.com/
         state-name: .ftp-deploy-sync-state.json
-        dangerous-clean-slate: false
+        dangerous-clean-slate: true
