@@ -11,19 +11,11 @@ namespace Service.Interface
 {
     public interface IScoreService
     {
-     //   Task<List<ScoreResponseDto>> GetScoresByJudgeAsync(int judgeId, int phaseId);
-        Task<SubmissionScoresResponseDto> CreateOrUpdateScoresAsync(int judgeId, List<ScoreCreateDto> dtos);
-    //    Task<List<Submission>> GetSubmissionsForJudgeAsync(int judgeId, int phaseId);
         Task UpdateAverageAndRankAsync(int submissionId);
-        Task<SubmissionScoresResponseDto> UpdateScoresByCriteriaAsync(int judgeId, List<ScoreCreateDto> scores);
 
-  //      Task<List<ScoreWithAverageDto>> GetScoresWithTeamAverageBySubmissionAsync(int submissionId);
 
         Task<List<TeamScoreDto>> GetTeamScoresByGroupAsync(int groupId);
         Task<List<SubmissionScoresGroupedDto>> GetMyScoresGroupedBySubmissionAsync(int judgeId, int phaseId);
-        Task<FinalScoreResponseDto> FinalScoringAsync(FinalScoreRequestDto request, int userId);
-
-        Task<FinalScoreResponseDto> UpdateFinalScoreAsync(int userId, FinalScoreRequestDto request);
 
         Task<SubmissionScoresResponseDto> ScoreSubmissionAsync(int judgeId, ScoreSubmissionRequestDto request);
         Task<ScoreDetailDto> UpdateScoreByIdAsync(
@@ -33,5 +25,6 @@ namespace Service.Interface
         Task<TeamOverviewDto> GetTeamOverviewAsync(
     int teamId,
     int phaseId);
+        Task UpdateFinalRankingAsync(Submission submission, int hackathonId);
     }
 }

@@ -15,11 +15,12 @@ namespace Service.Servicefolder
     {
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
-
-        public PenaltyService(IUOW uow, IMapper mapper)
+        private readonly IScoreService _scoreService;
+        public PenaltyService(IUOW uow, IMapper mapper, IScoreService scoreService)
         {
             _uow = uow;
             _mapper = mapper;
+            _scoreService = scoreService;
         }
 
         public async Task<PenaltiesBonuseResponseDto> CreateAsync(CreatePenaltiesBonuseDto dto, int userId)
@@ -68,6 +69,35 @@ namespace Service.Servicefolder
             await _uow.PenaltiesBonuses.AddAsync(entity);
             await _uow.SaveAsync();
 
+            var allPhases = await _uow.HackathonPhases
+                .GetAllAsync(p => p.HackathonId == phase.HackathonId);
+
+            var finalPhase = allPhases
+                .OrderByDescending(p => p.EndDate)
+                .First();
+
+            bool isFinal = phase.PhaseId == finalPhase.PhaseId;
+
+            var submission = await _uow.Submissions.FirstOrDefaultAsync(s =>
+                s.TeamId == dto.TeamId &&
+                s.PhaseId == dto.PhaseId &&
+                s.IsFinal == true
+            );
+
+            if (submission != null)
+            {
+                if (!isFinal)
+                {
+                    await _scoreService.UpdateAverageAndRankAsync(
+                        submission.SubmissionId);
+                }
+                else
+                {
+                    await _scoreService.UpdateFinalRankingAsync(
+                        submission,
+                        phase.HackathonId);
+                }
+            }
             return _mapper.Map<PenaltiesBonuseResponseDto>(entity);
         }
 

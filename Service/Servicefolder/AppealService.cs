@@ -17,12 +17,14 @@ namespace Service.Servicefolder
         private readonly IUOW _uow;
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
+        private readonly IScoreService _scoreService;
 
-        public AppealService(IUOW uow, IMapper mapper, INotificationService notificationService)
+        public AppealService(IUOW uow, IMapper mapper, INotificationService notificationService, IScoreService scoreService)
         {
             _uow = uow;
             _mapper = mapper;
             _notificationService = notificationService;
+            _scoreService = scoreService;
         }
 
         public async Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto, int currentUserId)
@@ -242,22 +244,65 @@ namespace Service.Servicefolder
             // 3️ If approved → apply business logic
             if (dto.Status == AppealStatus.Approved)
             {
+                //if (appeal.AppealType == AppealType.Penalty && appeal.AdjustmentId.HasValue)
+                //{
+                //    // revert penalty (do not delete)
+                //    var penalty = await _uow.PenaltiesBonuses.GetByIdAsync(appeal.AdjustmentId.Value);
+                //    if (penalty != null && !penalty.IsDeleted)
+                //    {
+                //        // Optionally: create penalty history record here if you have such repo
+                //        // await _uow.PenaltyHistories.AddAsync(new PenaltyHistory { ... });
+
+                //        penalty.Points = 0;
+                //        penalty.Reason = (penalty.Reason ?? "") + " (Reverted by approved appeal)";
+                //        penalty.UpdatedAt = DateTime.UtcNow;
+
+                //        _uow.PenaltiesBonuses.Update(penalty);
+                //    }
+                //}
+
                 if (appeal.AppealType == AppealType.Penalty && appeal.AdjustmentId.HasValue)
                 {
-                    // revert penalty (do not delete)
                     var penalty = await _uow.PenaltiesBonuses.GetByIdAsync(appeal.AdjustmentId.Value);
                     if (penalty != null && !penalty.IsDeleted)
                     {
-                        // Optionally: create penalty history record here if you have such repo
-                        // await _uow.PenaltyHistories.AddAsync(new PenaltyHistory { ... });
-
                         penalty.Points = 0;
                         penalty.Reason = (penalty.Reason ?? "") + " (Reverted by approved appeal)";
                         penalty.UpdatedAt = DateTime.UtcNow;
-
                         _uow.PenaltiesBonuses.Update(penalty);
+
+                        // 🔥 RE-CALCULATE SCORE
+                        var phase = await _uow.HackathonPhases.GetByIdAsync(penalty.PhaseId);
+                        if (phase == null)
+                            throw new InvalidOperationException("Phase not found.");
+
+                        var allPhases = await _uow.HackathonPhases
+                            .GetAllAsync(p => p.HackathonId == phase.HackathonId);
+
+                        var finalPhase = allPhases
+                            .OrderByDescending(p => p.EndDate)
+                            .First();
+
+                    
+
+                        bool isFinal = phase.PhaseId == finalPhase.PhaseId;
+
+                        var submission = await _uow.Submissions.FirstOrDefaultAsync(s =>
+                            s.TeamId == penalty.TeamId &&
+                            s.PhaseId == penalty.PhaseId &&
+                             s.IsFinal == true
+                        );
+
+                        if (submission != null)
+                        {
+                            if (!isFinal)
+                                await _scoreService.UpdateAverageAndRankAsync(submission.SubmissionId);
+                            else
+                                await _scoreService.UpdateFinalRankingAsync(submission, phase.HackathonId);
+                        }
                     }
                 }
+
 
                 if (appeal.AppealType == AppealType.Score)
                 {

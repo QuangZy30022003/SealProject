@@ -23,4 +23,16 @@ namespace Common.DTOs.QualifiedFinealTeamDto
 
         public string TrackName { get; set; }
     }
+
+    public class TeamScoreAdjustedDto
+    {
+        public int TeamId { get; set; }
+        public int GroupId { get; set; }
+        public int TrackId { get; set; }
+
+        public decimal OriginalScore { get; set; }
+        public decimal PenaltyPoints { get; set; }
+        public decimal AdjustedScore { get; set; }
+    }
+
 }

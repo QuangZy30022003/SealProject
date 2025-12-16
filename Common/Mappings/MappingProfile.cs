@@ -357,9 +357,17 @@ namespace Common.Mappings
                      opt => opt.MapFrom(src => src.TeamId))
           .ForMember(dest => dest.GroupId,
                      opt => opt.MapFrom(src => src.GroupId));
-        
-        //Ranking
-        CreateMap<Ranking, RankingDto>()
+
+            CreateMap<GroupTeam, TeamScoreAdjustedDto>()
+    .ForMember(d => d.TeamId, o => o.MapFrom(s => s.TeamId))
+    .ForMember(d => d.GroupId, o => o.MapFrom(s => s.GroupId))
+    .ForMember(d => d.TrackId, o => o.MapFrom(s => s.Group.TrackId))
+    .ForMember(d => d.OriginalScore, o => o.MapFrom(s => s.AverageScore ?? 0))
+    .ForMember(d => d.PenaltyPoints, o => o.Ignore())
+    .ForMember(d => d.AdjustedScore, o => o.Ignore());
+
+            //Ranking
+            CreateMap<Ranking, RankingDto>()
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team.TeamName))
                 .ForMember(dest => dest.HackathonName, opt => opt.MapFrom(src => src.Hackathon.Name));
 
