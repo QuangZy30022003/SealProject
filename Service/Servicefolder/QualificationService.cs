@@ -54,7 +54,18 @@ namespace Service.Servicefolder
 
             if (!groups.Any())
                 return new List<QualifiedTeamDto>();
+            var penalties = await _uow.PenaltiesBonuses.GetAllAsync(
+      p => p.PhaseId == scoringPhaseId && !p.IsDeleted
+  );
 
+            decimal GetAdjustedScore(GroupTeam gt)
+            {
+                var penalty = penalties
+                    .Where(p => p.TeamId == gt.TeamId)
+                    .Sum(p => p.Points);
+
+                return (gt.AverageScore ?? 0) + penalty;
+            }
             var topTeams = new List<GroupTeam>();
 
             // 3. Lấy team cao điểm nhất mỗi group
@@ -118,7 +129,14 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
 
             // 7. Map ra DTO
-            return _mapper.Map<List<QualifiedTeamDto>>(topTeams);
+            var result = _mapper.Map<List<QualifiedTeamDto>>(topTeams);
+            foreach (var dto in result)
+            {
+                var gt = topTeams.First(x => x.TeamId == dto.TeamId);
+                dto.AverageScore = GetAdjustedScore(gt);
+            }
+
+            return result;
         }
 
         public async Task<List<QualifiedTeamDtos>> GetFinalQualifiedTeamsAsync(int phaseId)
