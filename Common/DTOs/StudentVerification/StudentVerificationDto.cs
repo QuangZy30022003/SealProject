@@ -24,6 +24,7 @@ namespace Common.DTOs.StudentVerification
     }
     public class StudentVerificationAdminDto
     {
+        public int VerificationId { get; set; }
         public int UserId { get; set; }
         public string UniversityName { get; set; }
         public string StudentCode { get; set; } = string.Empty;

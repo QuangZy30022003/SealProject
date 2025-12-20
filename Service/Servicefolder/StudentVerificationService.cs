@@ -59,60 +59,65 @@
             }
 
 
-            public async Task<bool> ApproveVerificationAsync(int verificationId)
+        public async Task<bool> ApproveVerificationByUserIdAsync(int userId)
+        {
+            var verification = await _uow.StudentVerifications
+                .FirstOrDefaultAsync(v => v.UserId == userId);
+
+            if (verification == null)
+                return false;
+
+            // Chỉ cho duyệt Pending hoặc Rejected
+            if (verification.Status != "Pending" && verification.Status != "Rejected")
+                throw new InvalidOperationException(
+                    "Chỉ có thể duyệt các yêu cầu đang ở trạng thái Pending hoặc Rejected."
+                );
+
+            verification.Status = "Approved";
+            verification.UpdatedAt = DateTime.Now;
+
+            _uow.StudentVerifications.Update(verification);
+            await _uow.SaveAsync();
+
+            // Gửi notification
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
             {
-                var verification = await _uow.StudentVerifications.GetByIdAsync(verificationId);
-                if (verification == null)
-                    return false;
+                UserId = verification.UserId,
+                Message = "Your student verification has been approved! You can now create teams."
+            });
 
-                // ✅ Chỉ cho phép duyệt nếu đang Pending hoặc Rejected
-                if (verification.Status != "Pending" && verification.Status != "Rejected")
-                    throw new InvalidOperationException("Chỉ có thể duyệt các yêu cầu đang ở trạng thái Pending hoặc Rejected.");
+            return true;
+        }
 
-                verification.Status = "Approved";
-                verification.UpdatedAt = DateTime.Now;
 
-                _uow.StudentVerifications.Update(verification);
-                await _uow.SaveAsync();
+        public async Task<bool> RejectVerificationByUserIdAsync(int userId)
+        {
+            var verification = await _uow.StudentVerifications
+                .FirstOrDefaultAsync(v => v.UserId == userId);
 
-                // ✅ GỬI NOTIFICATION
-                await _notificationService.CreateNotificationAsync(new CreateNotificationDto
-                {
-                    UserId = verification.UserId,
-                    Message = "Your student verification has been approved! You can now create teams."
-                });
+            if (verification == null)
+                return false;
 
-                return true;
-            }
+            if (verification.Status == "Approved")
+                throw new InvalidOperationException(
+                    "Không thể từ chối yêu cầu đã được duyệt."
+                );
 
-            public async Task<bool> RejectVerificationAsync(int verificationId)
+            verification.Status = "Rejected";
+            verification.UpdatedAt = DateTime.Now;
+
+            _uow.StudentVerifications.Update(verification);
+            await _uow.SaveAsync();
+
+            await _notificationService.CreateNotificationAsync(new CreateNotificationDto
             {
-                var verification = await _uow.StudentVerifications.GetByIdAsync(verificationId);
-                if (verification == null)
-                    return false;
+                UserId = verification.UserId,
+                Message = "Your student verification has been rejected. Please resubmit with correct documents."
+            });
 
-                // ✅ Không được từ chối nếu đã Approved
-                if (verification.Status == "Approved")
-                    throw new InvalidOperationException("Không thể từ chối yêu cầu đã được duyệt.");
+            return true;
+        }
 
-                verification.Status = "Rejected";
-                verification.UpdatedAt = DateTime.Now;
-
-                // Nếu có cột lưu lý do
-                // verification.RejectionReason = reason;
-
-                _uow.StudentVerifications.Update(verification);
-                await _uow.SaveAsync();
-
-                // ✅ GỬI NOTIFICATION
-                await _notificationService.CreateNotificationAsync(new CreateNotificationDto
-                {
-                    UserId = verification.UserId,
-                    Message = "Your student verification has been rejected. Please resubmit with correct documents."
-                });
-
-                return true;
-            }
         public async Task<List<StudentVerificationAdminDto>> GetPendingOrRejectedVerificationsAsync()
         {
             // Lấy tất cả yêu cầu có status Pending hoặc Rejected
