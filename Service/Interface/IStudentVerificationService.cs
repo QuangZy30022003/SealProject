@@ -11,9 +11,8 @@ namespace Service.Interface
     {
         Task SubmitAsync(int userId, string userEmail, StudentVerificationDto dto);
 
-        Task<bool> RejectVerificationAsync(int verificationId);
-
-        Task<bool> ApproveVerificationAsync(int verificationId);
+        Task<bool> RejectVerificationByUserIdAsync(int userId);
+        Task<bool> ApproveVerificationByUserIdAsync(int userId);
         Task<List<StudentVerificationAdminDto>> GetPendingOrRejectedVerificationsAsync();
     }
 }

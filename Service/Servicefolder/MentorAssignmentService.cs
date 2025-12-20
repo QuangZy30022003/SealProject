@@ -94,38 +94,41 @@ namespace Service.Servicefolder
             if (registration == null)
                 throw new Exception("Team has not registered for this hackathon!");
 
-            //if (!string.Equals(registration.Status, "Approved", StringComparison.OrdinalIgnoreCase))
-            //    throw new Exception("Team must be approved in this hackathon before requesting a mentor.");
-
             // 🔥 Check WaitingMentor
             if (!string.Equals(registration.Status, "WaitingMentor", StringComparison.OrdinalIgnoreCase))
                 throw new Exception("Team cannot register mentor because the registration status is not 'WaitingMentor'.");
 
-            // 4. Validate previous assignments
-            var existing = await _uow.MentorAssignments.GetAllAsync(
-                filter: a => a.TeamId == dto.TeamId && a.HackathonId == dto.HackathonId && a.MentorId == dto.MentorId
-            );
+            // 🔥 3. CHECK EXISTING ASSIGNMENT (ANY mentor)
+            var existing = await _uow.MentorAssignments
+        .GetAllAsync(a => a.TeamId == dto.TeamId && a.HackathonId == dto.HackathonId);
 
-            var latest = existing.OrderByDescending(a => a.AssignmentId).FirstOrDefault();
+            var latest = existing
+                .OrderByDescending(a => a.AssignedAt)
+                .FirstOrDefault();
 
             if (latest != null)
             {
-                if (latest.Status == "Pending")
+                // ❌ Đã approved thì không cho đăng ký nữa
+                if (latest.Status == "Approved")
+                    throw new Exception("This team already has an approved mentor.");
+
+                // ⏳ Đang chờ mentor phản hồi
+                if (latest.Status == "WaitingMentor")
                 {
-                    if (latest.AssignedAt.AddDays(3) < DateTime.UtcNow)
+                    // 🔄 HẾT 1 NGÀY → AUTO REJECT
+                    if (latest.AssignedAt.AddDays(1) <= DateTime.UtcNow)
                     {
                         latest.Status = "Rejected";
+                        latest.AssignedAt = DateTime.UtcNow;
+
                         _uow.MentorAssignments.Update(latest);
                         await _uow.SaveAsync();
                     }
                     else
                     {
-                        throw new Exception("This assignment is still pending, cannot register again!");
+                        // ⛔ Chưa đủ 1 ngày → chặn
+                        throw new Exception("A mentor request is still pending. Please wait before registering again.");
                     }
-                }
-                else if (latest.Status == "Approved")
-                {
-                    throw new Exception("This assignment is already approved, cannot register again!");
                 }
             }
 
@@ -141,16 +144,8 @@ namespace Service.Servicefolder
 
             await _uow.MentorAssignments.AddAsync(assignment);
             await _uow.SaveAsync();
-
-            // 6. Send email
-            string subject = "📩 Mentor Assignment Notification";
-            string body = $@"
-            <p>Dear <b>{mentor.FullName}</b>,</p>
-            <p>You have been requested as a mentor for team <b>{team.TeamName}</b> in Hackathon <b>{hackathon.HackathonId}</b>.</p>
-            <p>Status: <b>{assignment.Status}</b></p>
-            <p>Best regards,<br/>Seal System</p>";
-
-            await _emailService.SendEmailAsync(mentor.Email, subject, body);
+             
+          
 
             return _mapper.Map<MentorAssignmentResponseDto>(assignment);
         }

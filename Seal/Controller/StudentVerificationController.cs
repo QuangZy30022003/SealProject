@@ -41,7 +41,7 @@ namespace Seal.Controller
         {
             try
             {
-                var result = await _service.ApproveVerificationAsync(id);
+                var result = await _service.ApproveVerificationByUserIdAsync(id);
                 if (!result)
                     return NotFound("Không tìm thấy xác thực sinh viên.");
                 return Ok("Phê duyệt xác thực thành công.");
@@ -58,7 +58,7 @@ namespace Seal.Controller
         {
             try
             {
-                var result = await _service.RejectVerificationAsync(id);
+                var result = await _service.RejectVerificationByUserIdAsync(id);
                 if (!result)
                     return NotFound("Không tìm thấy xác thực sinh viên.");
                 return Ok("Từ chối xác thực thành công.");
