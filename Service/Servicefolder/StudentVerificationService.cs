@@ -61,8 +61,11 @@
 
         public async Task<bool> ApproveVerificationByUserIdAsync(int userId)
         {
-            var verification = await _uow.StudentVerifications
-                .FirstOrDefaultAsync(v => v.UserId == userId);
+            var verification = await _uow.StudentVerifications.FirstOrDefaultAsync(
+      v => v.UserId == userId &&
+           (v.Status == "Pending" || v.Status == "Rejected")
+  );
+
 
             if (verification == null)
                 return false;
