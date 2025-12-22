@@ -259,6 +259,9 @@ namespace Common.Mappings
                 .ForMember(dest => dest.CriteriaId, opt => opt.MapFrom(src => src.CriterionId))
                 .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.Score))
                 .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
+
+
+
             //payload
 
             CreateMap<HackathonCreatePayloadDto, Hackathon>();
