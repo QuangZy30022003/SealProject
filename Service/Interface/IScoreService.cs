@@ -22,9 +22,12 @@ namespace Service.Interface
     int judgeId,
     int scoreId,
     ScoreUpdateByIdDto request);
-        Task<TeamOverviewDto> GetTeamOverviewAsync(
-    int teamId,
-    int phaseId);
+        //    Task<TeamOverviewDto> GetTeamOverviewAsync(
+        //int teamId,
+        //int phaseId);
+        Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
+       int teamId,
+       int phaseId);
         Task UpdateFinalRankingAsync(Submission submission, int hackathonId);
     }
 }

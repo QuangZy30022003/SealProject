@@ -389,14 +389,65 @@ namespace Service.Servicefolder
             return _mapper.Map<ScoreDetailDto>(score);
         }
 
-        public async Task<TeamOverviewDto> GetTeamOverviewAsync(
+        //    public async Task<TeamOverviewDto> GetTeamOverviewAsync(
+        //int teamId,
+        //int phaseId)
+        //    {
+        //        var team = await _uow.Teams.GetByIdAsync(teamId)
+        //            ?? throw new ArgumentException("Team not found");
+
+        //        // 1. GroupTeam (AverageScore, Rank)
+        //        var groupTeam = (await _uow.GroupsTeams.GetAllIncludingAsync(
+        //            gt => gt.TeamId == teamId
+        //                  && gt.Group.Track.PhaseId == phaseId,
+        //            gt => gt.Group,
+        //            gt => gt.Group.Track
+        //        )).FirstOrDefault();
+
+        //        // 2. Lấy tất cả score của team trong phase
+        //        var scores = await _uow.Scores.GetAllIncludingAsync(
+        //            s => s.Submission.TeamId == teamId
+        //                 && s.Criteria.PhaseId == phaseId,
+        //            s => s.Criteria,
+        //            s => s.Submission
+        //        );
+
+        //        // 3. Group theo Criterion → tính điểm TB
+        //        var criteriaScores = scores
+        //       .GroupBy(s => s.CriteriaId)
+        //       .Select(g => new CriterionScoreDto
+        //       {
+        //           CriterionId = g.Key,
+        //           Score = Math.Round(g.Average(x => x.Score1), 2),
+
+        //           // 🔥 lấy comment đầu tiên KHÔNG NULL
+        //           Comment = g
+        //               .Where(x => !string.IsNullOrEmpty(x.Comment))
+        //               .Select(x => x.Comment)
+        //               .FirstOrDefault()
+        //       })
+        //       .ToList();
+
+
+        //        return new TeamOverviewDto
+        //        {
+        //            TeamId = team.TeamId,
+        //            TeamName = team.TeamName,
+        //            PhaseId = phaseId,
+        //            AverageScore = groupTeam?.AverageScore,
+        //            Rank = groupTeam?.Rank,
+        //            CriteriaScores = criteriaScores
+        //        };
+        //    }
+
+        public async Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
     int teamId,
     int phaseId)
         {
             var team = await _uow.Teams.GetByIdAsync(teamId)
                 ?? throw new ArgumentException("Team not found");
 
-            // 1. GroupTeam (AverageScore, Rank)
+            // GroupTeam (AverageScore, Rank)
             var groupTeam = (await _uow.GroupsTeams.GetAllIncludingAsync(
                 gt => gt.TeamId == teamId
                       && gt.Group.Track.PhaseId == phaseId,
@@ -404,42 +455,53 @@ namespace Service.Servicefolder
                 gt => gt.Group.Track
             )).FirstOrDefault();
 
-            // 2. Lấy tất cả score của team trong phase
+            // Lấy tất cả score của team trong phase
             var scores = await _uow.Scores.GetAllIncludingAsync(
                 s => s.Submission.TeamId == teamId
                      && s.Criteria.PhaseId == phaseId,
                 s => s.Criteria,
-                s => s.Submission
+                s => s.Submission,
+                s => s.Judge   // 🔥 QUAN TRỌNG
             );
 
-            // 3. Group theo Criterion → tính điểm TB
-            var criteriaScores = scores
-           .GroupBy(s => s.CriteriaId)
-           .Select(g => new CriterionScoreDto
-           {
-               CriterionId = g.Key,
-               Score = Math.Round(g.Average(x => x.Score1), 2),
+            // =============================
+            // Group: Judge → Submission → Criteria
+            // =============================
+            var judges = scores
+                .GroupBy(s => s.JudgeId)
+                .Select(jg => new JudgeScoreOverviewDto
+                {
+                    JudgeId = jg.Key,
+                    JudgeName = jg.First().Judge.FullName,
 
-               // 🔥 lấy comment đầu tiên KHÔNG NULL
-               Comment = g
-                   .Where(x => !string.IsNullOrEmpty(x.Comment))
-                   .Select(x => x.Comment)
-                   .FirstOrDefault()
-           })
-           .ToList();
+                    Submissions = jg
+                        .GroupBy(x => x.SubmissionId)
+                        .Select(sg => new JudgeSubmissionScoreDto
+                        {
+                            SubmissionId = sg.Key,
+                            SubmissionTitle = sg.First().Submission.Title,
 
+                            CriteriaScores = sg.Select(c => new JudgeCriterionScoreDto
+                            {
+                                CriterionId = c.CriteriaId,
+                                Score = c.Score1,
+                                Comment = c.Comment
+                            }).ToList()
+                        })
+                        .ToList()
+                })
+                .ToList();
 
-            return new TeamOverviewDto
+            return new TeamOverviewWithJudgesDto
             {
                 TeamId = team.TeamId,
                 TeamName = team.TeamName,
                 PhaseId = phaseId,
                 AverageScore = groupTeam?.AverageScore,
                 Rank = groupTeam?.Rank,
-                CriteriaScores = criteriaScores
+                Judges = judges
             };
         }
-
 
     }
 }
