@@ -296,5 +296,56 @@ namespace Seal.Controller
             }
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email))
+                return BadRequest(new { message = "Email is required" });
+
+            try
+            {
+                var success = await _authService.ForgotPasswordAsync(dto.Email);
+
+                return Ok(new
+                {
+                    message = "We have sent password reset instructions to your email. Please check your inbox."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while processing your request" });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Token))
+                return BadRequest(new { message = "Reset token is required" });
+
+            if (string.IsNullOrEmpty(dto.NewPassword))
+                return BadRequest(new { message = "New password is required" });
+
+            if (dto.NewPassword != dto.ConfirmPassword)
+                return BadRequest(new { message = "Password confirmation does not match" });
+
+            if (dto.NewPassword.Length < 6)
+                return BadRequest(new { message = "Password must be at least 6 characters long" });
+
+            try
+            {
+                var success = await _authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+
+                if (!success)
+                    return BadRequest(new { message = "Invalid or expired reset token" });
+
+                return Ok(new { message = "Password reset successfully. You can now log in with your new password." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while resetting your password" });
+            }
+        }
+
     }
 }
