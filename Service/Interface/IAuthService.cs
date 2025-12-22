@@ -30,6 +30,10 @@ namespace Service.Interface
         Task<(string accessToken, string refreshToken, bool isVerified)> LoginAsync(string email, string password);
         Task<bool> UpdatePasswordAsync(int userId, string newPassword);
 
+        // Forget Password
+        Task<bool> ForgotPasswordAsync(string email);
+        Task<bool> ResetPasswordAsync(string token, string newPassword);
+
     }
 }
 

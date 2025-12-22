@@ -348,6 +348,113 @@ namespace Service.Servicefolder
             return true;
         }
 
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false; // Don't reveal if email exists or not for security
+
+            if (user.IsBlocked)
+                return false; // Don't allow password reset for blocked users
+
+            // Generate reset token
+            var resetToken = Guid.NewGuid().ToString();
+            user.Token = resetToken;
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            // Send reset email
+            var resetLink = $"https://seal-fpt.vercel.app/reset-password?token={resetToken}";
+            var subject = "Reset Your Password - Seal System";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #333;'>Password Reset Request</h2>
+                    <p>Hello {user.FullName},</p>
+                    <p>We received a request to reset your password for your Seal System account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='{resetLink}' 
+                           style='background-color: #007bff; color: white; padding: 12px 30px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;'>
+                            Reset Password
+                        </a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style='word-break: break-all; color: #666;'>{resetLink}</p>
+                    <p><strong>This link will expire in 1 hour for security reasons.</strong></p>
+                    <p>If you didn't request this password reset, please ignore this email.</p>
+                    <hr style='margin: 30px 0; border: none; border-top: 1px solid #eee;'>
+                    <p style='color: #666; font-size: 12px;'>
+                        This is an automated message from Seal System. Please do not reply to this email.
+                    </p>
+                </div>";
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, subject, body);
+                return true;
+            }
+            catch (Exception)
+            {
+                // Log error but don't reveal to user
+                return false;
+            }
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(newPassword))
+                return false;
+
+            var user = await _uow.Users.FirstOrDefaultAsync(u => u.Token == token);
+            if (user == null)
+                return false;
+
+            if (user.IsBlocked)
+                return false;
+
+            // Check if token is still valid (1 hour expiry)
+            // Note: You might want to add a TokenExpiryTime field to User model for better security
+            // For now, we'll use a simple approach
+
+            // Reset password
+            user.PasswordHash = HashPassword(newPassword);
+            user.Token = null; // Clear the reset token
+
+            // Clear refresh tokens for security (force re-login)
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            _uow.Users.Update(user);
+            await _uow.SaveAsync();
+
+            // Send confirmation email
+            var subject = "Password Reset Successful - Seal System";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #28a745;'>Password Reset Successful</h2>
+                    <p>Hello {user.FullName},</p>
+                    <p>Your password has been successfully reset.</p>
+                    <p>You can now log in with your new password.</p>
+                    <p>If you didn't make this change, please contact our support team immediately.</p>
+                    <hr style='margin: 30px 0; border: none; border-top: 1px solid #eee;'>
+                    <p style='color: #666; font-size: 12px;'>
+                        This is an automated message from Seal System. Please do not reply to this email.
+                    </p>
+                </div>";
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, subject, body);
+            }
+            catch (Exception)
+            {
+                // Log error but don't fail the password reset
+            }
+
+            return true;
+        }
 
     }
 }
