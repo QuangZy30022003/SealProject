@@ -178,6 +178,8 @@ namespace Common.Mappings
             .ForMember(dest => dest.FrontCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.BackCardImage, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"));
+    //        CreateMap<StudentVerification, StudentVerificationAdminDto>()
+    //.ForMember(d => d.VerificationId, opt => opt.MapFrom(s => s.VerificationId));
 
             CreateMap<StudentVerification, StudentVerificationAdminDto>()
            .ForMember(dest => dest.FrontCardImage, opt => opt.MapFrom(src => src.FrontCardImage))

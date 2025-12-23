@@ -77,6 +77,34 @@ namespace Seal.Controller
             var verifications = await _service.GetPendingOrRejectedVerificationsAsync();
             return Ok(verifications);
         }
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyVerification()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
+
+            if (userIdClaim == null)
+                return Unauthorized("Invalid token");
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var verification = await _service.GetMyVerificationAsync(userId);
+
+            if (verification == null)
+            {
+                return Ok(new
+                {
+                    hasSubmitted = false,
+                    status = "NotSubmitted"
+                });
+            }
+
+            return Ok(new
+            {
+                hasSubmitted = true,
+                data = verification
+            });
+        }
 
     }
 }

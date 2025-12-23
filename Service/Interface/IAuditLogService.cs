@@ -11,5 +11,7 @@ namespace Service.Interface
     {
         Task LogApiAsync(int userId, string action, string endpoint, object requestBody = null, object responseBody = null);
         Task<List<AuditLogDto>> GetAuditLogsAsync(int? userId = null);
+        Task<List<AuditLogDto>> GetAllAuditLogsAsync();
+
     }
 }

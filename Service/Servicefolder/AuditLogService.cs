@@ -68,6 +68,10 @@ namespace Service.Servicefolder
 
             return logsDto;
         }
+        public async Task<List<AuditLogDto>> GetAllAuditLogsAsync()
+        {
+            return await GetAuditLogsAsync(null);
+        }
 
     }
 
