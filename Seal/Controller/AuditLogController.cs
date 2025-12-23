@@ -25,6 +25,14 @@ namespace Seal.Controller
             var logsDto = await _auditLogService.GetAuditLogsAsync(userId);
             return Ok(logsDto);
         }
+
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllAuditLogs()
+        {
+            var logs = await _auditLogService.GetAllAuditLogsAsync();
+            return Ok(logs);
+        }
     }
 
-    }
+}

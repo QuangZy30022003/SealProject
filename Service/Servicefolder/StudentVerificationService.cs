@@ -80,6 +80,8 @@
             verification.UpdatedAt = DateTime.Now;
 
             _uow.StudentVerifications.Update(verification);
+
+
             await _uow.SaveAsync();
 
             // Gửi notification
@@ -133,5 +135,17 @@
 
             return dtoList;
         }
+
+        public async Task<StudentVerificationAdminDto?> GetMyVerificationAsync(int userId)
+        {
+            var verification = await _uow.StudentVerifications
+                .FirstOrDefaultAsync(v => v.UserId == userId);
+
+            if (verification == null)
+                return null;
+
+            return _mapper.Map<StudentVerificationAdminDto>(verification);
+        }
+
     }
 }

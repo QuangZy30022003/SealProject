@@ -36,4 +36,5 @@ namespace Common.DTOs.StudentVerification
         public string? BackCardImage { get; set; }
     }
 
+
 }
