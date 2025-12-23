@@ -65,14 +65,14 @@ namespace Service.Servicefolder
             if (team == null)
                 throw new Exception("Team not found");
 
-            // 2️⃣ Kiểm tra team có submission FINAL trong phase này không
-            var finalSubmission = await _uow.Submissions.FirstOrDefaultAsync(
-                s => s.TeamId == teamId
-                     && s.PhaseId == phaseId
-                     && s.IsFinal);
+            //// 2️⃣ Kiểm tra team có submission FINAL trong phase này không
+            //var finalSubmission = await _uow.Submissions.FirstOrDefaultAsync(
+            //    s => s.TeamId == teamId
+            //         && s.PhaseId == phaseId
+            //         && s.IsFinal);
 
-            if (finalSubmission == null)
-                return null; // hoặc throw tùy nghiệp vụ
+            //if (finalSubmission == null)
+            //    return null; 
 
             // 3️⃣ Lấy track mà team đã chọn
             var selection = (await _uow.TeamTrackSelections.GetAllIncludingAsync(
