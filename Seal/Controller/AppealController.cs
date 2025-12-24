@@ -98,5 +98,14 @@ namespace Seal.Controller
                 return BadRequest(ApiResponse<object>.Fail(ex.Message));
             }
         }
+
+        [Authorize]
+        [HttpGet("team/{teamId}/phase/{phaseId}")]
+        public async Task<IActionResult> GetAppealsByTeamAndPhase(int teamId, int phaseId)
+        {
+            var result = await _appealService.GetAppealsByTeamAndPhaseAsync(teamId, phaseId);
+            return Ok(result);
+        }
+
     }
 }

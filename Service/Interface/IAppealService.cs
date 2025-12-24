@@ -16,5 +16,7 @@ namespace Service.Interface
         Task<AppealResponseDto?> GetAppealByIdAsync(int appealId);
         Task<AppealResponseDto?> ReviewAppealAsync(int appealId, ReviewAppealDto dto, int reviewerUserId);
         Task<IEnumerable<AppealResponseDto>> GetAppealsByPhaseAsync(int phaseId);
+        Task<IEnumerable<AppealResponseDto>> GetAppealsByTeamAndPhaseAsync(int teamId, int phaseId);
+
     }
 }

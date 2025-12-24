@@ -27,6 +27,21 @@ namespace Service.Servicefolder
             _scoreService = scoreService;
         }
 
+        public async Task<IEnumerable<AppealResponseDto>> GetAppealsByTeamAndPhaseAsync(int teamId, int phaseId)
+        {
+            var appeals = await _uow.Appeals.GetAllAsync(
+                a =>
+                    a.TeamId == teamId &&
+                    (
+                        (a.Submission != null && a.Submission.PhaseId == phaseId) ||
+                        (a.Adjustment != null && a.Adjustment.PhaseId == phaseId)
+                    ),
+                includeProperties: "Team,Adjustment,Submission,Judge,ReviewedBy"
+            );
+
+            return _mapper.Map<IEnumerable<AppealResponseDto>>(appeals);
+        }
+
         public async Task<AppealResponseDto> CreateAppealAsync(CreateAppealDto dto, int currentUserId)
         {
             // 1️ Check user is a team member
