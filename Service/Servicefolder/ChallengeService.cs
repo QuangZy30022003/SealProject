@@ -89,12 +89,30 @@ namespace Service.Servicefolder
 
         public async Task<bool> ChangeStatusAsync(int id, ChallengeStatusDto statusDto)
         {
-            var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
-            if (entity == null) return false;
+            //var entity = await _uow.ChallengeRepository.GetByIdAsync(id);
+            //if (entity == null) return false;
 
-            entity.Status = statusDto.Status;
-            _uow.ChallengeRepository.Update(entity);
+            //entity.Status = statusDto.Status;
+            //_uow.ChallengeRepository.Update(entity);
+            //await _uow.SaveAsync();
+            //return true;
+            var challenge = await _uow.Challenges.GetByIdAsync(id);
+            if (challenge == null)
+                throw new Exception("Challenge not found");
+
+            // ✅ đã gán Track chưa
+            var isAssignedToTrack = challenge.TrackId.HasValue;
+
+            // 🔒 CHỈ khóa khi Complete + đã gán Track
+            if (challenge.Status == "Complete" && isAssignedToTrack)
+                throw new InvalidOperationException(
+                    "Complete challenge that has been assigned to a track cannot change status"
+                );
+
+            challenge.Status = statusDto.Status;
+            _uow.Challenges.Update(challenge);
             await _uow.SaveAsync();
+
             return true;
         }
 
