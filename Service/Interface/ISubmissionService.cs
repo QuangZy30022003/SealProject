@@ -17,6 +17,11 @@ namespace Service.Interface
 
         Task<SubmissionResponseDto> GetSubmissionByIdAsync(int submissionId);
         Task<List<SubmissionResponseDto>> GetAllSubmissionsAsync();
+        Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAndPhaseAsync(
+    int teamId,
+    int phaseId
+);
+
     }
 
 }

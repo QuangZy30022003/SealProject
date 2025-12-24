@@ -33,9 +33,8 @@ namespace Service.Servicefolder
 
             // 1. Tìm phase chấm điểm (phase trước theo thời gian)
             var scoringPhase = (await _uow.HackathonPhases.GetAllAsync(
-                filter: p =>
-                    p.HackathonId == currentPhase.HackathonId &&
-                    p.EndDate < currentPhase.StartDate
+                p => p.HackathonId == currentPhase.HackathonId
+                     && p.PhaseId != currentPhase.PhaseId
             ))
             .OrderByDescending(p => p.EndDate)
             .FirstOrDefault();
