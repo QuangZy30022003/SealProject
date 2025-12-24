@@ -31,6 +31,13 @@ namespace Service.Servicefolder
                 throw new InvalidOperationException("Chapter name already exists");
             }
 
+            // 2. Check user đã tạo chapter chưa
+            var existsLeader = await _uow.Chapters
+                .ExistsAsync(c => c.ChapterLeaderId == userId);
+
+            if (existsLeader)
+                throw new InvalidOperationException("Each user can only create one chapter");
+
             var entity = _mapper.Map<Chapter>(dto);
 
             entity.ChapterLeaderId = userId;
