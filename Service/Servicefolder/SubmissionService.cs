@@ -36,7 +36,45 @@ namespace Service.Servicefolder
             var phase = await _uow.HackathonPhases.GetByIdAsync(dto.PhaseId);
             if (phase == null)
                 throw new Exception("Phase not found");
+            // 2. Lấy FINAL PHASE theo EndDate lớn nhất
+            var finalPhase = (await _uow.HackathonPhases.GetAllAsync(
+                p => p.HackathonId == phase.HackathonId
+            ))
+            .OrderByDescending(p => p.EndDate)
+            .First();
 
+            bool isFinalPhase = phase.PhaseId == finalPhase.PhaseId;
+
+            // ============================
+            // 🔐 PHASE THƯỜNG → PHẢI CÓ TRONG GroupTeams
+            // ============================
+            if (!isFinalPhase)
+            {
+                bool inGroupTeam = await _uow.GroupsTeams.ExistsAsync(
+                    gt => gt.TeamId == dto.TeamId
+                );
+
+                if (!inGroupTeam)
+                    throw new Exception(
+                        "Team has not been assigned to any group yet"
+                    );
+            }
+
+            // ============================
+            // 🔐 FINAL PHASE → PHẢI CÓ TRONG FinalQualifications
+            // ============================
+            if (isFinalPhase)
+            {
+                bool isQualified = await _uow.FinalQualifications.ExistsAsync(
+                    fq => fq.TeamId == dto.TeamId
+                          && fq.PhaseId == phase.PhaseId
+                );
+
+                if (!isQualified)
+                    throw new Exception(
+                        "Only qualified teams can submit in final phase"
+                    );
+            }
             var submission = new Submission
             {
                 TeamId = dto.TeamId,
@@ -323,6 +361,56 @@ namespace Service.Servicefolder
             {
                 sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
             }
+        }
+        public async Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAndPhaseAsync(
+    int teamId,
+    int phaseId)
+        {
+            // Check team tồn tại
+            bool teamExists = await _uow.Teams.ExistsAsync(t => t.TeamId == teamId);
+            if (!teamExists)
+                throw new Exception("Team not found");
+
+            // Check phase tồn tại
+            bool phaseExists = await _uow.HackathonPhases.ExistsAsync(p => p.PhaseId == phaseId);
+            if (!phaseExists)
+                throw new Exception("Phase not found");
+
+            // Load submissions theo team + phase
+            var submissions = await _uow.Submissions.GetAllIncludingAsync(
+                s => s.TeamId == teamId && s.PhaseId == phaseId,
+                s => s.Team,
+                s => s.Team.TeamTrackSelections,
+                s => s.Phase
+            );
+
+            if (!submissions.Any())
+                return new List<SubmissionResponseDto>();
+
+            // -------- LOAD TRACK --------
+            var trackIds = submissions
+                .SelectMany(s => s.Team.TeamTrackSelections.Select(ts => ts.TrackId))
+                .Distinct()
+                .ToList();
+
+            var tracks = await _uow.Tracks.GetAllAsync(
+                t => trackIds.Contains(t.TrackId)
+            );
+
+            foreach (var submission in submissions)
+            {
+                foreach (var sel in submission.Team.TeamTrackSelections)
+                {
+                    sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
+                }
+            }
+
+            // Sort mới → cũ (Id lớn trước)
+            submissions = submissions
+                .OrderByDescending(s => s.SubmissionId)
+                .ToList();
+
+            return _mapper.Map<List<SubmissionResponseDto>>(submissions);
         }
 
     }

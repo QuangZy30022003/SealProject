@@ -27,6 +27,11 @@ namespace Service.Servicefolder
             var entities = await _uow.Hackathons.GetAllIncludingAsync(null,
                   h => h.Season);
 
+            var ordered = entities
+    .OrderByDescending(h => h.HackathonId)
+    .ToList();
+
+
             return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
         }
 
