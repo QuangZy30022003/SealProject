@@ -25,7 +25,11 @@ namespace Service.Servicefolder
         public async Task<IEnumerable<SeasonResponse>> GetAllSeasonsAsync()
         {
             var seasons = await _uow.Seasons.GetAllAsync();
-            return _mapper.Map<IEnumerable<SeasonResponse>>(seasons);
+            var orderedSeasons = seasons
+      .OrderByDescending(s => s.SeasonId)
+      .ToList();
+
+            return _mapper.Map<IEnumerable<SeasonResponse>>(orderedSeasons);
         }
 
         public async Task<SeasonResponse?> GetByIdAsync(int id)

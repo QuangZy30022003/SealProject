@@ -32,7 +32,7 @@ namespace Service.Servicefolder
     .ToList();
 
 
-            return _mapper.Map<IEnumerable<HackathonResponseDto>>(entities);
+            return _mapper.Map<IEnumerable<HackathonResponseDto>>(ordered);
         }
 
         public async Task<HackathonDetailResponseDto?> GetByIdAsync(int id)
