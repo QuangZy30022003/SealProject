@@ -58,18 +58,18 @@ namespace Seal.Controller
         }
 
 
-        [HttpPost("google-login-Test-BE")]
-        public async Task<IActionResult> GoogleLoginBE([FromBody] string email)
-        {
-            var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
+        //[HttpPost("google-login-Test-BE")]
+        //public async Task<IActionResult> GoogleLoginBE([FromBody] string email)
+        //{
+        //    var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
 
-            return Ok(new
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                IsVerified = isVerified
-            });
-        }
+        //    return Ok(new
+        //    {
+        //        AccessToken = accessToken,
+        //        RefreshToken = refreshToken,
+        //        IsVerified = isVerified
+        //    });
+        //}
 
 
         [HttpPost("logout")]
@@ -193,7 +193,7 @@ namespace Seal.Controller
             }
         }
 
-        //[Authorize(Roles = "Administrator,Moderator")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("users/{id}/block")]
         public async Task<IActionResult> BlockUser(int id, [FromQuery] bool isBlocked)
         {
