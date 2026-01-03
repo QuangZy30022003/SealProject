@@ -23,7 +23,7 @@ namespace Service.Servicefolder
             _mapper = mapper;
         }
 
-        
+
         public async Task UpdateAverageAndRankAsync(int submissionId)
         {
             // Lấy submission
@@ -52,8 +52,7 @@ namespace Service.Servicefolder
                         .GroupBy(s => s.JudgeId)
                         .Select(g =>
                         {
-                            var sumScore = g.Sum(s => s.Score1);
-                            Console.WriteLine($"JudgeID {g.Key} - Total score: {sumScore}");
+                            var sumScore = g.Sum(s =>(s.Score1 / 100m) * s.Criteria.Weight);
                             return sumScore;
                         })
                         .ToList();
@@ -98,7 +97,7 @@ namespace Service.Servicefolder
             await _uow.SaveAsync();
         }
 
-      
+
 
         public async Task<List<TeamScoreDto>> GetTeamScoresByGroupAsync(int groupId)
         {
@@ -152,137 +151,138 @@ namespace Service.Servicefolder
         }
 
 
-     
 
-            public async Task<SubmissionScoresResponseDto> ScoreSubmissionAsync(int judgeId, ScoreSubmissionRequestDto request)
+
+        public async Task<SubmissionScoresResponseDto> ScoreSubmissionAsync(int judgeId, ScoreSubmissionRequestDto request)
+        {
+
+            if (request.CriteriaScores == null || !request.CriteriaScores.Any())
+                throw new Exception("No scores provided.");
+
+            // ---------------------------
+            // 1. Validate submission
+            // ---------------------------
+            var submission = await _uow.Submissions.GetByIdAsync(request.SubmissionId);
+            if (submission == null)
+                throw new Exception("Submission not found");
+
+
+            var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId);
+            if (phase == null)
+                throw new Exception("Phase not found");
+
+            int hackathonId = phase.HackathonId;
+
+            // Find Final Phase
+            var allPhases = await _uow.HackathonPhases
+                .GetAllAsync(x => x.HackathonId == hackathonId);
+
+            var finalPhase = allPhases.OrderByDescending(x => x.EndDate).First();
+
+            bool isFinal = (submission.PhaseId == finalPhase.PhaseId);
+
+            // ---------------------------
+            // 2. Validate judge assignment (PHASE ONLY)
+            // ---------------------------
+            Console.WriteLine($"Validating JudgeAssignment (Phase only)...");
+
+            var assignments = await _uow.JudgeAssignments.GetAllAsync(a =>
+                a.JudgeId == judgeId &&
+                a.HackathonId == hackathonId &&
+                (a.PhaseId == null || a.PhaseId == submission.PhaseId)
+            );
+
+
+            if (!assignments.Any())
+                throw new Exception("Judge is not assigned to this phase");
+
+            // ---------------------------
+            // 3. Validate Criteria
+            // ---------------------------
+            Console.WriteLine("Validating criteria...");
+
+            foreach (var item in request.CriteriaScores)
             {
-
-                if (request.CriteriaScores == null || !request.CriteriaScores.Any())
-                    throw new Exception("No scores provided.");
-
-                // ---------------------------
-                // 1. Validate submission
-                // ---------------------------
-                var submission = await _uow.Submissions.GetByIdAsync(request.SubmissionId);
-                if (submission == null)
-                    throw new Exception("Submission not found");
-
-
-                var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId);
-                if (phase == null)
-                    throw new Exception("Phase not found");
-
-                int hackathonId = phase.HackathonId;
-
-                // Find Final Phase
-                var allPhases = await _uow.HackathonPhases
-                    .GetAllAsync(x => x.HackathonId == hackathonId);
-
-                var finalPhase = allPhases.OrderByDescending(x => x.EndDate).First();
-
-                bool isFinal = (submission.PhaseId == finalPhase.PhaseId);
-
-                // ---------------------------
-                // 2. Validate judge assignment (PHASE ONLY)
-                // ---------------------------
-                Console.WriteLine($"Validating JudgeAssignment (Phase only)...");
-
-                var assignments = await _uow.JudgeAssignments.GetAllAsync(a =>
-                    a.JudgeId == judgeId &&
-                    a.HackathonId == hackathonId &&
-                    (a.PhaseId == null || a.PhaseId == submission.PhaseId)
+                var criterion = await _uow.Criteria.FirstOrDefaultAsync(c =>
+                    c.CriteriaId == item.CriterionId &&
+                    c.PhaseId == submission.PhaseId
                 );
 
+                if (criterion == null)
+                    throw new Exception($"Invalid criterion {item.CriterionId}");
 
-                if (!assignments.Any())
-                    throw new Exception("Judge is not assigned to this phase");
+                if (item.Score < 0 || item.Score > 10)
+                    throw new Exception("Score must be between 0 and 10");
 
-                // ---------------------------
-                // 3. Validate Criteria
-                // ---------------------------
-                Console.WriteLine("Validating criteria...");
+            }
 
-                foreach (var item in request.CriteriaScores)
-                {
-                    var criterion = await _uow.Criteria.FirstOrDefaultAsync(c =>
-                        c.CriteriaId == item.CriterionId &&
-                        c.PhaseId == submission.PhaseId
-                    );
-
-                    if (criterion == null)
-                        throw new Exception($"Invalid criterion {item.CriterionId}");
-
-                    if (item.Score > criterion.Weight || item.Score < 0)
-                        throw new Exception($"Score for criterion {item.CriterionId} must be between 0 and {criterion.Weight}.");
-                }
-
-                // ---------------------------
-                // 3.5 Check already scored
-                var existingScores = await _uow.Scores.GetAllAsync(x =>
+            // ---------------------------
+            // 3.5 Check already scored
+            var existingScores = await _uow.Scores.GetAllAsync(x =>
                     x.SubmissionId == request.SubmissionId &&
                     x.JudgeId == judgeId);
 
-                if (existingScores.Any())
-                    throw new Exception("You have already scored this submission. Please use update API.");
+            if (existingScores.Any())
+                throw new Exception("You have already scored this submission. Please use update API.");
 
-                // ---------------------------
-                // 5. Insert new scores
-                // ---------------------------
-                Console.WriteLine("Inserting new scores...");
+            // ---------------------------
+            // 5. Insert new scores
+            // ---------------------------
+            Console.WriteLine("Inserting new scores...");
 
-                foreach (var item in request.CriteriaScores)
-                {
-                    var score = new Score
-                    {
-                        SubmissionId = submission.SubmissionId,
-                        JudgeId = judgeId,
-                        CriteriaId = item.CriterionId,
-                        Score1 = item.Score,
-                        Comment = item.Comment,
-                        ScoredAt = DateTime.UtcNow
-                    };
-
-                    Console.WriteLine($"Adding Score: Criteria={item.CriterionId}, Score={item.Score}");
-
-                    await _uow.Scores.AddAsync(score);
-                }
-
-                await _uow.SaveAsync();
-
-                // ---------------------------
-                // 6. Ranking logic
-                // ---------------------------
-                if (!isFinal)
-                {
-                    Console.WriteLine("Updating average + rank (normal round)...");
-                    await UpdateAverageAndRankAsync(submission.SubmissionId);
-                }
-                else
-                {
-                    Console.WriteLine("Updating FINAL ranking...");
-                    await UpdateFinalRankingAsync(submission, hackathonId);
-                }
-
-                // ---------------------------
-                // 7. Build response
-                // ---------------------------
-                var result = new SubmissionScoresResponseDto
+            foreach (var item in request.CriteriaScores)
+            {
+                var score = new Score
                 {
                     SubmissionId = submission.SubmissionId,
-                    Scores = request.CriteriaScores
-                        .Select(x => new ScoreItemDto
-                        {
-                            CriteriaId = x.CriterionId,
-                            ScoreValue = x.Score,
-                            Comment = x.Comment
-                        })
-                        .ToList()
+                    JudgeId = judgeId,
+                    CriteriaId = item.CriterionId,
+                    Score1 = item.Score,
+                    Comment = item.Comment,
+                    ScoredAt = DateTime.UtcNow
                 };
 
-                Console.WriteLine("[END] ScoreSubmission Completed");
+                Console.WriteLine($"Adding Score: Criteria={item.CriterionId}, Score={item.Score}");
 
-                return result;
+                await _uow.Scores.AddAsync(score);
             }
+
+            await _uow.SaveAsync();
+
+            // ---------------------------
+            // 6. Ranking logic
+            // ---------------------------
+            if (!isFinal)
+            {
+                Console.WriteLine("Updating average + rank (normal round)...");
+                await UpdateAverageAndRankAsync(submission.SubmissionId);
+            }
+            else
+            {
+                Console.WriteLine("Updating FINAL ranking...");
+                await UpdateFinalRankingAsync(submission, hackathonId);
+            }
+
+            // ---------------------------
+            // 7. Build response
+            // ---------------------------
+            var result = new SubmissionScoresResponseDto
+            {
+                SubmissionId = submission.SubmissionId,
+                Scores = request.CriteriaScores
+                    .Select(x => new ScoreItemDto
+                    {
+                        CriteriaId = x.CriterionId,
+                        ScoreValue = x.Score,
+                        Comment = x.Comment
+                    })
+                    .ToList()
+            };
+
+            Console.WriteLine("[END] ScoreSubmission Completed");
+
+            return result;
+        }
 
         public async Task UpdateFinalRankingAsync(Submission submission, int hackathonId)
         {
@@ -290,9 +290,8 @@ namespace Service.Servicefolder
 
             decimal totalScore = allScores
                 .GroupBy(s => s.JudgeId)
-                .Select(g => g.Sum(s => s.Score1))
+               .Select(g =>g.Sum(s => (s.Score1 / 100m) * s.Criteria.Weight))
                 .Average();
-
             var penalties = await _uow.PenaltiesBonuses.GetAllAsync(p =>
       p.TeamId == submission.TeamId &&
       p.PhaseId == submission.PhaseId &&
@@ -366,8 +365,9 @@ namespace Service.Servicefolder
             if (criterion == null)
                 throw new Exception("Criterion not found");
 
-            if (request.ScoreValue < 0 || request.ScoreValue > criterion.Weight)
-                throw new Exception($"Score must be between 0 and {criterion.Weight}");
+            if (request.ScoreValue < 0 || request.ScoreValue > 10)
+                throw new Exception("Score must be between 0 and 10");
+
 
             // 4. Update
             score.Score1 = request.ScoreValue;
@@ -388,57 +388,6 @@ namespace Service.Servicefolder
             // 6. Response
             return _mapper.Map<ScoreDetailDto>(score);
         }
-
-        //    public async Task<TeamOverviewDto> GetTeamOverviewAsync(
-        //int teamId,
-        //int phaseId)
-        //    {
-        //        var team = await _uow.Teams.GetByIdAsync(teamId)
-        //            ?? throw new ArgumentException("Team not found");
-
-        //        // 1. GroupTeam (AverageScore, Rank)
-        //        var groupTeam = (await _uow.GroupsTeams.GetAllIncludingAsync(
-        //            gt => gt.TeamId == teamId
-        //                  && gt.Group.Track.PhaseId == phaseId,
-        //            gt => gt.Group,
-        //            gt => gt.Group.Track
-        //        )).FirstOrDefault();
-
-        //        // 2. Lấy tất cả score của team trong phase
-        //        var scores = await _uow.Scores.GetAllIncludingAsync(
-        //            s => s.Submission.TeamId == teamId
-        //                 && s.Criteria.PhaseId == phaseId,
-        //            s => s.Criteria,
-        //            s => s.Submission
-        //        );
-
-        //        // 3. Group theo Criterion → tính điểm TB
-        //        var criteriaScores = scores
-        //       .GroupBy(s => s.CriteriaId)
-        //       .Select(g => new CriterionScoreDto
-        //       {
-        //           CriterionId = g.Key,
-        //           Score = Math.Round(g.Average(x => x.Score1), 2),
-
-        //           // 🔥 lấy comment đầu tiên KHÔNG NULL
-        //           Comment = g
-        //               .Where(x => !string.IsNullOrEmpty(x.Comment))
-        //               .Select(x => x.Comment)
-        //               .FirstOrDefault()
-        //       })
-        //       .ToList();
-
-
-        //        return new TeamOverviewDto
-        //        {
-        //            TeamId = team.TeamId,
-        //            TeamName = team.TeamName,
-        //            PhaseId = phaseId,
-        //            AverageScore = groupTeam?.AverageScore,
-        //            Rank = groupTeam?.Rank,
-        //            CriteriaScores = criteriaScores
-        //        };
-        //    }
 
         public async Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
     int teamId,

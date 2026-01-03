@@ -43,9 +43,18 @@ namespace Service.Servicefolder
                 if (string.IsNullOrWhiteSpace(item.Name))
                     throw new Exception("Criterion name cannot be empty");
 
-                if (item.Weight <= 0)
-                    throw new Exception("Weight must be greater than 0");
+                if (item.Weight <= 0 || item.Weight > 100)
+                    throw new Exception("Weight must be between 1 and 100");
             }
+            // ✅ Tổng weight hiện có của phase
+            var existingTotalWeight = (await _uow.Criteria
+             .GetAllAsync(c => c.PhaseId == dto.PhaseId))
+             .Sum(c => c.Weight);
+
+            var newTotalWeight = dto.Criteria.Sum(c => c.Weight);
+
+            if (existingTotalWeight + newTotalWeight > 100)
+                throw new Exception("Total weight of criteria in this phase cannot exceed 100%");
 
             // ✅ Tạo danh sách Criterion
             var createdCriteria = new List<Criterion>();
@@ -97,8 +106,21 @@ namespace Service.Servicefolder
             var criterion = await _uow.Criteria.GetByIdAsync(id);
             if (criterion == null) return null;
 
-            // Validate Track nếu TrackId != null
-        
+            // ✅ Validate dữ liệu
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                throw new Exception("Criterion name cannot be empty");
+
+            if (dto.Weight <= 0 || dto.Weight > 100)
+                throw new Exception("Weight must be between 1 and 100");
+
+            // ✅ Tổng weight hiện có của phase (TRỪ chính criterion đang update)
+            var existingTotalWeight = (await _uow.Criteria
+                .GetAllAsync(c => c.PhaseId == criterion.PhaseId && c.CriteriaId != id))
+                .Sum(c => c.Weight);
+
+            // ✅ Tổng sau update
+            if (existingTotalWeight + dto.Weight > 100)
+                throw new Exception("Total weight of criteria in this phase cannot exceed 100%");
 
             criterion.Name = dto.Name;
             criterion.Weight = dto.Weight;

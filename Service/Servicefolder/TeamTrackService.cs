@@ -31,6 +31,27 @@ namespace Service.Servicefolder
             var track = await _uow.Tracks.GetByIdAsync(request.TrackId);
             if (track == null)
                 throw new Exception("Track not found.");
+            var phase = await _uow.HackathonPhases.GetByIdAsync(track.PhaseId);
+            if (phase == null)
+                throw new Exception("Phase not found.");
+
+            // 4. Lấy hackathon từ phase
+            var hackathon = await _uow.Hackathons.GetByIdAsync(phase.HackathonId);
+            if (hackathon == null)
+                throw new Exception("Hackathon not found.");
+
+            // 5. Check thời gian hackathon
+            if (!hackathon.StartDate.HasValue || !hackathon.EndDate.HasValue)
+                throw new Exception("Hackathon time is not configured.");
+
+            // DateOnly -> DateOnly (so theo ngày)
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            // nếu DB lưu giờ VN thì vẫn OK vì DateOnly chỉ lấy ngày
+
+            if (today < hackathon.StartDate.Value || today > hackathon.EndDate.Value)
+                throw new Exception(
+                    $"Track selection is only allowed during hackathon time " +
+                    $"({hackathon.StartDate:dd/MM/yyyy} - {hackathon.EndDate:dd/MM/yyyy}).");
             // Kiểm tra user có phải leader
             if (team.TeamLeaderId != userIdFromToken)
                 throw new Exception("Only team leader can select track.");
