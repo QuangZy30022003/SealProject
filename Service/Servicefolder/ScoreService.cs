@@ -42,7 +42,11 @@ namespace Service.Servicefolder
             var scoredSubmissions = new List<Submission>();
             foreach (var sub in teamSubmissions)
             {
-                var allScores = await _uow.Scores.GetAllAsync(s => s.SubmissionId == sub.SubmissionId);
+                var allScores = await _uow.Scores.GetAllIncludingAsync(
+     s => s.SubmissionId == sub.SubmissionId,
+     s => s.Criteria
+ );
+
                 if (allScores.Any())
                 {
                     scoredSubmissions.Add(sub);
@@ -286,7 +290,11 @@ namespace Service.Servicefolder
 
         public async Task UpdateFinalRankingAsync(Submission submission, int hackathonId)
         {
-            var allScores = await _uow.Scores.GetAllAsync(x => x.SubmissionId == submission.SubmissionId);
+            var allScores = await _uow.Scores.GetAllIncludingAsync(
+    x => x.SubmissionId == submission.SubmissionId,
+    x => x.Criteria
+);
+
 
             decimal totalScore = allScores
                 .GroupBy(s => s.JudgeId)
