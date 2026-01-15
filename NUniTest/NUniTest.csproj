@@ -7,6 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Testing Frameworks -->
+    <PackageReference Include="dotenv.net" Version="4.0.0" />
+    <PackageReference Include="NUnit" Version="4.4.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    
+    <!-- Mocking & Assertions -->
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    
+    <!-- Integration Testing -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.19" />
+    
+    <!-- Code Coverage -->
+    <PackageReference Include="Coverlet.Collector" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    
+    <!-- Existing Packages -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
@@ -28,8 +49,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Service\" />
-    <Folder Include="Repos\" />
+    <Folder Include="Controllers\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
