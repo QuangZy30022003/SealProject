@@ -23,14 +23,33 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     
-    - name: Inject Google OAuth credentials into appsettings.json
+    - name: Inject secrets into appsettings.json
       run: |
         $appsettingsPath = "Seal/appsettings.json"
         $json = Get-Content $appsettingsPath | ConvertFrom-Json
+        
+        # Database
+        $json.ConnectionStrings.DefaultConnection = "${{ secrets.DB_CONNECTION_STRING }}"
+        
+        # JWT
+        $json.JwtSettings.Key = "${{ secrets.JWT_KEY }}"
+        
+        # Email
+        $json.Email.Username = "${{ secrets.EMAIL_USERNAME }}"
+        $json.Email.Password = "${{ secrets.EMAIL_PASSWORD }}"
+        $json.Email.From = "${{ secrets.EMAIL_FROM }}"
+        
+        # Cloudinary
+        $json.Cloudinary.CloudName = "${{ secrets.CLOUDINARY_CLOUD_NAME }}"
+        $json.Cloudinary.ApiKey = "${{ secrets.CLOUDINARY_API_KEY }}"
+        $json.Cloudinary.ApiSecret = "${{ secrets.CLOUDINARY_API_SECRET }}"
+        
+        # Google OAuth
         $json.Authentication.Google.ClientId = "${{ secrets.GOOGLE_CLIENT_ID }}"
         $json.Authentication.Google.ClientSecret = "${{ secrets.GOOGLE_CLIENT_SECRET }}"
+        
         $json | ConvertTo-Json -Depth 10 | Set-Content $appsettingsPath
-        Write-Host "Injected Google OAuth credentials into appsettings.json"
+        Write-Host "Injected all secrets into appsettings.json"
     
     - name: Publish
       run: dotnet publish Seal/Seal.csproj -c Release -o ./publish

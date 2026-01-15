@@ -73,7 +73,7 @@ namespace Service.Servicefolder
             }
 
             // Sinh Access Token
-            var accessToken = _jwtHelper.GenerateToken(user);
+            var accessToken = await _jwtHelper.GenerateToken(user);
 
             // Sinh Refresh Token (random string)
             var refreshToken = Guid.NewGuid().ToString();
@@ -112,7 +112,7 @@ namespace Service.Servicefolder
                 throw new UnauthorizedAccessException("Invalid refresh token");
 
             // Create new access token
-            var newAccessToken = _jwtHelper.GenerateToken(user);
+            var newAccessToken = await _jwtHelper.GenerateToken(user);
 
             // tạo refresh token mới mỗi lần refresh 
             var newRefreshToken = _jwtHelper.GenerateRefreshToken();
@@ -237,7 +237,7 @@ namespace Service.Servicefolder
             }
 
             // 6️⃣ Tạo access + refresh token
-            var accessToken = _jwtHelper.GenerateToken(user);
+            var accessToken = await _jwtHelper.GenerateToken(user);
             var refreshToken = _jwtHelper.GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
@@ -319,7 +319,7 @@ namespace Service.Servicefolder
                 throw new UnauthorizedAccessException("Invalid email or password");
 
             // Generate tokens
-            var accessToken = _jwtHelper.GenerateToken(user);
+            var accessToken = await _jwtHelper.GenerateToken(user);
             var refreshToken = _jwtHelper.GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;

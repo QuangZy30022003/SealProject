@@ -72,6 +72,7 @@ namespace Seal.Controller
         //}
 
 
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -147,23 +148,18 @@ namespace Seal.Controller
         }
 
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("users/{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            //var currentUserId = int.Parse(User.Claims.First(c => c.Type == "UserId").Value);
-            //var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-
-            //if (currentUserId != id && role != "Administrator")
-            //    return Forbid();
-
             var user = await _authService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
             return Ok(user);
         }
-        //[Authorize]
+
+        [Authorize(Roles = "Admin,SystemAdministrator")]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
