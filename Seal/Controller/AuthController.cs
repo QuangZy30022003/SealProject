@@ -58,20 +58,6 @@ namespace Seal.Controller
         }
 
 
-        //[HttpPost("google-login-Test-BE")]
-        //public async Task<IActionResult> GoogleLoginBE([FromBody] string email)
-        //{
-        //    var (accessToken, refreshToken, isVerified) = await _authService.LoginWithGoogleAsync(email);
-
-        //    return Ok(new
-        //    {
-        //        AccessToken = accessToken,
-        //        RefreshToken = refreshToken,
-        //        IsVerified = isVerified
-        //    });
-        //}
-
-
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -104,23 +90,6 @@ namespace Seal.Controller
             }
         }
 
-        //[Authorize]
-        //[HttpGet("me")]
-        //public async Task<IActionResult> GetCurrentUser()
-        //{
-        //    var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId");
-        //    if (userIdClaim == null)
-        //        return Unauthorized(new { message = "Invalid token" });
-
-        //    var userId = int.Parse(userIdClaim.Value);
-
-        //    var user = await _authService.GetUserByIdAsync(userId);
-
-        //    if (user == null)
-        //        return NotFound(new { message = "User not found" });
-
-        //    return Ok(user);
-        //}
 
         [Authorize]
         [HttpGet("me")]
@@ -141,7 +110,7 @@ namespace Seal.Controller
             if (user.RoleName == "Partner")
             {
                 var profile = await _authService.GetByUserIdAsync(userId);
-                user.PartnerProfile = profile; // mapping DTO trả về PartnerProfileBasicDto
+                user.PartnerProfile = profile; 
             }
 
             return Ok(user);
@@ -159,7 +128,7 @@ namespace Seal.Controller
             return Ok(user);
         }
 
-        [Authorize(Roles = "Admin,SystemAdministrator")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -168,7 +137,7 @@ namespace Seal.Controller
         }
 
         [Authorize]
-        [HttpPut("update-info/{id}")]
+        [HttpPut("update-info")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateUserDto dto)
         {
             try
