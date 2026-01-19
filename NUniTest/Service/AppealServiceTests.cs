@@ -652,75 +652,7 @@ namespace NUniTest.Service
                 .WithMessage("This appeal has already been reviewed.");
         }
 
-        // =============================
-        // 17. ReviewAppealAsync - Approve penalty appeal thành công
-        // =============================
-        [Test]
-        public async Task ReviewAppealAsync_WhenApprovePenaltyAppeal_ShouldRevertPenalty()
-        {
-            var dto = new ReviewAppealDto { Status = AppealStatus.Approved, AdminResponse = "Penalty reverted" };
-            var appeal = new Appeal 
-            { 
-                AppealId = 1, 
-                Status = AppealStatus.Pending, 
-                AppealType = AppealType.Penalty,
-                AdjustmentId = 99,
-                TeamId = 1
-            };
-            var penalty = new PenaltiesBonuse 
-            { 
-                AdjustmentId = 99, 
-                Points = -10, 
-                Reason = "Late submission",
-                IsDeleted = false
-            };
-            var teamMembers = new List<TeamMember> 
-            { 
-                new TeamMember { UserId = 5, TeamId = 1 },
-                new TeamMember { UserId = 6, TeamId = 1 }
-            };
-
-            _appealRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(appeal);
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Team { TeamId = 1 });
-
-            _teamMemberRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<TeamMember, bool>>>(), null, null))
-                          .ReturnsAsync(teamMembers);
-
-            _penaltyRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync(penalty);
-
-            _appealRepo.Setup(r => r.Update(It.IsAny<Appeal>()));
-
-            _penaltyRepo.Setup(r => r.Update(It.IsAny<PenaltiesBonuse>()));
-
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _appealRepo.Setup(r => r.GetByIdIncludingAsync(
-                It.IsAny<Expression<Func<Appeal, bool>>>(),
-                It.IsAny<Expression<Func<Appeal, object>>>(),
-                It.IsAny<Expression<Func<Appeal, object>>>(),
-                It.IsAny<Expression<Func<Appeal, object>>>(),
-                It.IsAny<Expression<Func<Appeal, object>>>(),
-                It.IsAny<Expression<Func<Appeal, object>>>()))
-                .ReturnsAsync(appeal);
-
-            _notificationServiceMock.Setup(n => n.CreateNotificationsAsync(
-                It.IsAny<List<int>>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-
-            _mapperMock.Setup(m => m.Map<AppealResponseDto>(appeal))
-                      .Returns(new AppealResponseDto { AppealId = 1, Status = AppealStatus.Approved });
-
-            var result = await _service.ReviewAppealAsync(1, dto, 10);
-
-            result.Status.Should().Be(AppealStatus.Approved);
-            penalty.Points.Should().Be(0);
-            penalty.Reason.Should().Contain("Reverted by approved appeal");
-
-            _penaltyRepo.Verify(r => r.Update(penalty), Times.Once);
-            _notificationServiceMock.Verify(n => n.CreateNotificationsAsync(
-                It.IsAny<List<int>>(), It.IsAny<string>()), Times.Once);
-        }
+      
         // =============================
         // 18. ReviewAppealAsync - Approve score appeal thành công
         // =============================

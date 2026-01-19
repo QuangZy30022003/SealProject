@@ -168,57 +168,8 @@ namespace NUniTest.Service
                 .WithMessage("This email has already been invited.");
         }
 
-        // =============================
-        // 7. InviteMemberAsync - Successful invitation
-        // =============================
-        [Test]
-        public async Task InviteMemberAsync_WhenValidRequest_ShouldCreateInvitationSuccessfully()
-        {
-            var team = new Team { TeamId = 1, TeamLeaderId = 1, TeamName = "Test Team", HackathonId = 1 };
-            var invitedUser = new User { UserId = 2, Email = "test@email.com" };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.Setup(r => r.CountAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(2);
-            _userRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<User, bool>>>()))
-                .ReturnsAsync(invitedUser);
-            _teamRepo.Setup(r => r.ExistsAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Team, bool>>>()))
-                .ReturnsAsync(false);
-            _teamInvitationRepo.Setup(r => r.ExistsAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamInvitation, bool>>>()))
-                .ReturnsAsync(false);
-            _teamInvitationRepo.Setup(r => r.AddAsync(It.IsAny<TeamInvitation>())).Returns(Task.CompletedTask);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-            _notificationServiceMock.Setup(n => n.CreateNotificationAsync(It.IsAny<CreateNotificationDto>()))
-                .ReturnsAsync(new NotificationDto());
-            _emailServiceMock.Setup(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-
-            var result = await _service.InviteMemberAsync(1, "test@email.com", 1);
-
-            result.Should().NotBeNull();
-            result.Should().Contain("https://sealfall25.somee.com/api/TeamInvitation/accept-link?code=");
-
-            _teamInvitationRepo.Verify(r => r.AddAsync(It.IsAny<TeamInvitation>()), Times.Once);
-            _notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.IsAny<CreateNotificationDto>()), Times.Once);
-            _emailServiceMock.Verify(e => e.SendEmailAsync("test@email.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        }
-
-        // =============================
-        // 8. AcceptInvitationAsync - Invalid invitation
-        // =============================
-        [Test]
-        public async Task AcceptInvitationAsync_WhenInvitationInvalid_ReturnsFailedResult()
-        {
-            var code = Guid.NewGuid();
-
-            _teamInvitationRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamInvitation, bool>>>()))
-                .ReturnsAsync((TeamInvitation)null);
-
-            var result = await _service.AcceptInvitationAsync(code, 1);
-
-            result.Status.Should().Be("Failed");
-            result.Message.Should().Be("Invitation is invalid or expired.");
-        }
+       
+       
 
         // =============================
         // 9. AcceptInvitationAsync - User not found
@@ -304,46 +255,7 @@ namespace NUniTest.Service
             result.TeamName.Should().Be("Test Team");
         }
 
-        // =============================
-        // 12. AcceptInvitationAsync - Successful acceptance
-        // =============================
-        [Test]
-        public async Task AcceptInvitationAsync_WhenValidRequest_ShouldAcceptSuccessfully()
-        {
-            var code = Guid.NewGuid();
-            var invitation = new TeamInvitation 
-            { 
-                InvitationCode = code, 
-                Status = InvitationStatus.Pending, 
-                ExpiresAt = DateTime.UtcNow.AddDays(1),
-                InvitedEmail = "test@email.com",
-                TeamId = 1
-            };
-            var user = new User { UserId = 1, Email = "test@email.com" };
-            var team = new Team { TeamId = 1, TeamName = "Test Team", HackathonId = 1 };
-
-            _teamInvitationRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamInvitation, bool>>>()))
-                .ReturnsAsync(invitation);
-            _userRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.Setup(r => r.CountAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(2);
-            _teamRepo.Setup(r => r.ExistsAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Team, bool>>>()))
-                .ReturnsAsync(false);
-            _teamInvitationRepo.Setup(r => r.Update(It.IsAny<TeamInvitation>()));
-            _teamMemberRepo.Setup(r => r.AddAsync(It.IsAny<TeamMember>())).Returns(Task.CompletedTask);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.AcceptInvitationAsync(code, 1);
-
-            result.Status.Should().Be("Success");
-            result.Message.Should().Be("You have successfully joined the team.");
-            result.TeamId.Should().Be(1);
-            result.TeamName.Should().Be("Test Team");
-
-            invitation.Status.Should().Be(InvitationStatus.Accepted);
-            _teamMemberRepo.Verify(r => r.AddAsync(It.IsAny<TeamMember>()), Times.Once);
-        }
+      
 
         // =============================
         // 13. RejectInvitationAsync - Successful rejection

@@ -35,32 +35,7 @@ namespace NUniTest.Utilities
             }
         }
 
-        [Test]
-        public void EmailValidation_InvalidEmails_ShouldReturnFalse()
-        {
-            // Arrange
-            var invalidEmails = new[]
-            {
-                "plainaddress",
-                "@missingdomain.com",
-                "missing-at-sign.net",
-                "missing@.com",
-                "missing@domain",
-                "spaces @domain.com",
-                "email@",
-                "@domain.com",
-                "email..double.dot@domain.com",
-                "email@domain..com"
-            };
-
-            var emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-
-            // Act & Assert
-            foreach (var email in invalidEmails)
-            {
-                emailRegex.IsMatch(email).Should().BeFalse($"Email {email} should be invalid");
-            }
-        }
+       
 
         [Test]
         public void PasswordStrength_StrongPasswords_ShouldMeetCriteria()

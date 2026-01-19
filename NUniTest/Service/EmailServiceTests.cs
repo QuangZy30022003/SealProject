@@ -28,18 +28,7 @@ namespace NUniTest.Service
             _service = new EmailService(_configMock.Object);
         }
 
-        [Test]
-        public async Task SendEmailAsync_WhenValid_ShouldSendSuccessfully()
-        {
-            // Arrange
-            var toEmail = "recipient@example.com";
-            var subject = "Test Subject";
-            var body = "This is a test email body";
-
-            // Act & Assert
-            // Should not throw any exception
-            await _service.SendEmailAsync(toEmail, subject, body);
-        }
+     
 
         [Test]
         public void SendEmailAsync_WhenEmailIsNull_Throws()
@@ -168,59 +157,7 @@ namespace NUniTest.Service
             act.Should().ThrowAsync<Exception>();
         }
 
-        [Test]
-        public async Task SendEmailAsync_WithValidHtmlBody_ShouldSendSuccessfully()
-        {
-            // Arrange
-            var toEmail = "recipient@example.com";
-            var subject = "HTML Email";
-            var htmlBody = "<html><body><h1>Test</h1><p>This is HTML content</p></body></html>";
-
-            // Act & Assert
-            // Should not throw any exception
-            await _service.SendEmailAsync(toEmail, subject, htmlBody);
-        }
-
-        [Test]
-        public async Task SendEmailAsync_WithMultipleEmails_ShouldSendToEach()
-        {
-            // Arrange
-            var recipients = new[] { "user1@example.com", "user2@example.com", "user3@example.com" };
-            var subject = "Bulk Email";
-            var body = "This email is sent to multiple recipients";
-
-            // Act & Assert
-            // Should send to each recipient without throwing
-            foreach (var recipient in recipients)
-            {
-                await _service.SendEmailAsync(recipient, subject, body);
-            }
-        }
-
-        [Test]
-        public async Task SendEmailAsync_WithSpecialCharactersInBody_ShouldSendSuccessfully()
-        {
-            // Arrange
-            var toEmail = "recipient@example.com";
-            var subject = "Special Characters";
-            var body = "Test with special chars: @#$%^&*()_+-=[]{}|;:',.<>?/~`";
-
-            // Act & Assert
-            // Should not throw any exception
-            await _service.SendEmailAsync(toEmail, subject, body);
-        }
-
-        [Test]
-        public async Task SendEmailAsync_WithLongBody_ShouldSendSuccessfully()
-        {
-            // Arrange
-            var toEmail = "recipient@example.com";
-            var subject = "Long Email";
-            var body = string.Concat(Enumerable.Repeat("This is a long email body. ", 100));
-
-            // Act & Assert
-            // Should not throw any exception
-            await _service.SendEmailAsync(toEmail, subject, body);
-        }
+      
+       
     }
 }

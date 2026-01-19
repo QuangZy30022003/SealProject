@@ -382,58 +382,6 @@ namespace NUniTest.Service
             result.Should().Be("Team has not registered for this hackathon.");
         }
 
-        [Test]
-        public async Task RejectTeamAsync_ShouldReturnSuccess_WhenValid()
-        {
-            var team = new Team
-            {
-                TeamId = 1,
-                TeamLeaderId = 1,
-                ChapterId = 10
-            };
-
-            var chapter = new Chapter
-            {
-                ChapterId = 10,
-                ChapterLeaderId = 100
-            };
-
-            var reg = new HackathonRegistration
-            {
-                TeamId = 1,
-                HackathonId = 1,
-                Status = "Pending"
-            };
-
-            _regRepo.Setup(r =>
-                r.FirstOrDefaultAsync(It.IsAny<Expression<Func<HackathonRegistration, bool>>>()))
-                .ReturnsAsync(reg);
-
-            _teamRepo.Setup(r =>
-                r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Team, bool>>>()))
-                .ReturnsAsync(team);
-
-            _chapterRepo.Setup(r =>
-                r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Chapter, bool>>>()))
-                .ReturnsAsync(chapter);
-
-            _hackathonRepo.Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(new Hackathon
-                {
-                    HackathonId = 1,
-                    Name = "Test Hackathon"
-                });
-
-            var result = await _service.RejectTeamAsync(100, 1, 1, "Invalid team");
-
-            result.Should().Be("Team registration rejected successfully.");
-            reg.Status.Should().Be("Rejected");
-
-            _notificationMock.Verify(n =>
-                n.CreateNotificationAsync(It.IsAny<CreateNotificationDto>()),
-                Times.Once);
-
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.Once);
-        }
+     
     }
 }

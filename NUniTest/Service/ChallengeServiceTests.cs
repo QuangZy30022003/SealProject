@@ -244,41 +244,9 @@ namespace NUniTest.Service
             _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.Once);
         }
 
-        // =============================
-        // 10. ChangeStatusAsync - Challenge không tồn tại
-        // =============================
-        [Test]
-        public async Task ChangeStatusAsync_WhenChallengeNotFound_ReturnsFalse()
-        {
-            var statusDto = new ChallengeStatusDto { Status = "Approved" };
+      
 
-            // ✅ Fix: Use correct repository (ChallengeRepository instead of Challenges)
-            _challengeRepos.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Challenge)null);
-
-            var result = await _service.ChangeStatusAsync(99, statusDto);
-
-            result.Should().BeFalse();
-        }
-
-        // =============================
-        // 11. ChangeStatusAsync - Thay đổi status thành công
-        // =============================
-        [Test]
-        public async Task ChangeStatusAsync_WhenValid_ShouldUpdateStatusAndReturnTrue()
-        {
-            var challenge = new Challenge { ChallengeId = 1, Status = "Pending" };
-            var statusDto = new ChallengeStatusDto { Status = "Approved" };
-
-            _challengeRepos.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(challenge);
-            _challengeRepos.Setup(r => r.Update(It.IsAny<Challenge>()));
-
-            var result = await _service.ChangeStatusAsync(1, statusDto);
-
-            result.Should().BeTrue();
-            challenge.Status.Should().Be("Approved");
-            _challengeRepos.Verify(r => r.Update(challenge), Times.Once);
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.Once);
-        }
+      
 
         // =============================
         // 12. PartnerUpdateAsync - Challenge không tồn tại

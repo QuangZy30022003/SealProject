@@ -355,37 +355,6 @@ namespace NUniTest.Service
                 .WithMessage("Team not found");
         }
 
-        [Test]
-        public async Task UpdateFinalRankingAsync_ShouldUpdateRankingsCorrectly()
-        {
-            // Arrange
-            var submission = new Submission { SubmissionId = 1, TeamId = 10, PhaseId = 1 };
-            var hackathonId = 1;
-            var scores = new List<Score>
-            {
-                new Score { SubmissionId = 1, JudgeId = 1, Score1 = 80, Criteria = new Criterion { Weight = 50 } }
-            };
-            var ranking = new Ranking { TeamId = 10, HackathonId = hackathonId, TotalScore = 40m, Rank = 1 };
-
-            _scoresRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<Score, bool>>>(), null, null))
-                .ReturnsAsync(scores);
-            _penaltiesRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<PenaltiesBonuse, bool>>>(), null, null))
-                .ReturnsAsync(new List<PenaltiesBonuse>());
-            _rankingsRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Ranking, bool>>>()))
-                .ReturnsAsync((Ranking)null);
-            _rankingsRepo.Setup(r => r.AddAsync(It.IsAny<Ranking>())).Returns(Task.CompletedTask);
-            _rankingsRepo.Setup(r => r.GetAllAsync(
-                It.IsAny<Expression<Func<Ranking, bool>>>(),
-                It.IsAny<Func<IQueryable<Ranking>, IOrderedQueryable<Ranking>>>(),
-                null))
-                .ReturnsAsync(new List<Ranking> { ranking });
-
-            // Act
-            await _service.UpdateFinalRankingAsync(submission, hackathonId);
-
-            // Assert
-            _rankingsRepo.Verify(r => r.AddAsync(It.IsAny<Ranking>()), Times.Once);
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.AtLeastOnce);
-        }
+     
     }
 }

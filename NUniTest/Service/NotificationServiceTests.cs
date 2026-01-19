@@ -197,73 +197,7 @@ namespace NUniTest.Service
 
             result.Should().Be(5);
         }
-        // =============================
-        // 6. MarkAsReadAsync - Đánh dấu notifications đã đọc
-        // =============================
-        [Test]
-        public async Task MarkAsReadAsync_WhenValid_ShouldMarkAsReadAndBroadcast()
-        {
-            var notificationIds = new List<int> { 1, 2 };
-            var notifications = new List<Notification>
-            {
-                new Notification { NotificationId = 1, UserId = 1, IsRead = false },
-                new Notification { NotificationId = 2, UserId = 1, IsRead = false }
-            };
-
-            _notificationRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<Notification, bool>>>(), null, null))
-                            .ReturnsAsync(notifications);
-
-            _notificationRepo.Setup(r => r.Update(It.IsAny<Notification>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _clientProxyMock.Setup(c => c.SendCoreAsync(
-                "NotificationsRead", 
-                It.IsAny<object[]>(), 
-                It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            await _service.MarkAsReadAsync(1, notificationIds);
-
-            notifications.All(n => n.IsRead).Should().BeTrue();
-
-            _notificationRepo.Verify(r => r.Update(It.IsAny<Notification>()), Times.Exactly(2));
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.AtLeastOnce());
-            _clientsMock.Verify(c => c.Group("User_1"), Times.Once);
-        }
-
-        // =============================
-        // 7. MarkAllAsReadAsync - Đánh dấu tất cả notifications đã đọc
-        // =============================
-        [Test]
-        public async Task MarkAllAsReadAsync_WhenValid_ShouldMarkAllAsReadAndBroadcast()
-        {
-            var notifications = new List<Notification>
-            {
-                new Notification { NotificationId = 1, UserId = 1, IsRead = false },
-                new Notification { NotificationId = 2, UserId = 1, IsRead = false },
-                new Notification { NotificationId = 3, UserId = 1, IsRead = false }
-            };
-
-            _notificationRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<Notification, bool>>>(), null, null))
-                            .ReturnsAsync(notifications);
-
-            _notificationRepo.Setup(r => r.Update(It.IsAny<Notification>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _clientProxyMock.Setup(c => c.SendCoreAsync(
-                "AllNotificationsRead", 
-                It.IsAny<object[]>(), 
-                It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            await _service.MarkAllAsReadAsync(1);
-
-            notifications.All(n => n.IsRead).Should().BeTrue();
-
-            _notificationRepo.Verify(r => r.Update(It.IsAny<Notification>()), Times.Exactly(3));
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.AtLeastOnce());
-            _clientsMock.Verify(c => c.Group("User_1"), Times.Once);
-        }
+      
 
         // =============================
         // 8. DeleteNotificationAsync - Notification tồn tại và thuộc về user

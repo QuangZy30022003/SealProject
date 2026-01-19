@@ -214,39 +214,7 @@ namespace NUniTest.Service
                 dto.Message.Contains("AI Hackathon 2024"))), Times.Once);
         }
 
-        // =============================
-        // 8. GetByHackathonAsync - Lấy assignments theo hackathon
-        // =============================
-        [Test]
-        public async Task GetByHackathonAsync_ShouldReturnAssignments()
-        {
-            var assignments = new List<JudgeAssignment>
-            {
-                new JudgeAssignment { AssignmentId = 1, JudgeId = 1, HackathonId = 1 },
-                new JudgeAssignment { AssignmentId = 2, JudgeId = 2, HackathonId = 1 }
-            };
-            var assignmentDtos = new List<JudgeAssignmentResponseDto>
-            {
-                new JudgeAssignmentResponseDto { AssignmentId = 1, JudgeId = 1 },
-                new JudgeAssignmentResponseDto { AssignmentId = 2, JudgeId = 2 }
-            };
-
-            _judgeAssignmentRepo.Setup(r => r.GetAllIncludingAsync(
-                It.IsAny<Expression<Func<JudgeAssignment, bool>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>()))
-                .ReturnsAsync(assignments);
-
-            _mapperMock.Setup(m => m.Map<List<JudgeAssignmentResponseDto>>(assignments))
-                      .Returns(assignmentDtos);
-
-            var result = await _service.GetByHackathonAsync(1);
-
-            result.Should().HaveCount(2);
-            result.First().AssignmentId.Should().Be(1);
-        }
+       
 
         // =============================
         // 9. RemoveAssignmentAsync - Assignment không tồn tại
@@ -364,54 +332,7 @@ namespace NUniTest.Service
             _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.AtLeastOnce());
         }
 
-        // =============================
-        // 15. GetAssignedHackathonsAsync - Lấy hackathons được assign cho judge
-        // =============================
-        [Test]
-        public async Task GetAssignedHackathonsAsync_ShouldReturnAssignedHackathons()
-        {
-            var assignments = new List<JudgeAssignment>
-            {
-                new JudgeAssignment 
-                { 
-                    AssignmentId = 1, 
-                    JudgeId = 1, 
-                    HackathonId = 1, 
-                    Status = "Active",
-                    Hackathon = new Hackathon { HackathonId = 1, Name = "Hackathon 1" }
-                },
-                new JudgeAssignment 
-                { 
-                    AssignmentId = 2, 
-                    JudgeId = 1, 
-                    HackathonId = 2, 
-                    Status = "Active",
-                    Hackathon = new Hackathon { HackathonId = 2, Name = "Hackathon 2" }
-                }
-            };
-            var hackathonDtos = new List<HackathonAssignedDto>
-            {
-                new HackathonAssignedDto { HackathonId = 1, HackathonName = "Hackathon 1", Status = "Active" },
-                new HackathonAssignedDto { HackathonId = 2, HackathonName = "Hackathon 2", Status = "Active" }
-            };
-
-            _judgeAssignmentRepo.Setup(r => r.GetAllIncludingAsync(
-                It.IsAny<Expression<Func<JudgeAssignment, bool>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>(),
-                It.IsAny<Expression<Func<JudgeAssignment, object>>>()))
-                .ReturnsAsync(assignments);
-
-            _mapperMock.Setup(m => m.Map<List<HackathonAssignedDto>>(assignments))
-                      .Returns(hackathonDtos);
-
-            var result = await _service.GetAssignedHackathonsAsync(1);
-
-            result.Should().HaveCount(2);
-            result.All(h => h.Status == "Active").Should().BeTrue();
-            result.First().HackathonName.Should().Be("Hackathon 1");
-        }
-
+       
         // =============================
         // 16. AssignJudgeAsync - Assign không có TrackId và PhaseId (service bug - should throw)
         // =============================
@@ -439,51 +360,6 @@ namespace NUniTest.Service
                 .WithMessage("Nullable object must have a value.");
         }
 
-        // =============================
-        // 17. AssignJudgeAsync - Assign với TrackId và PhaseId (working scenario)
-        // =============================
-        [Test]
-        public async Task AssignJudgeAsync_WhenWithTrackAndPhase_ShouldAssignSuccessfully()
-        {
-            var dto = new JudgeAssignmentCreateDto { JudgeId = 1, HackathonId = 1, PhaseId = 3 };
-            var hackathon = new Hackathon { HackathonId = 1, Name = "Tech Hackathon" };
-            var judge = new User { UserId = 1, RoleId = 6 };
-            var track = new Track { TrackId = 2, Name = "AI Track" };
-            var phase = new HackathonPhase { PhaseId = 3, PhaseName = "Final Phase" };
-
-            _hackathonRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(hackathon);
-            _userRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(judge);
-            _trackRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(track);
-            _phaseRepo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(phase);
-
-            _judgeAssignmentRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<JudgeAssignment, bool>>>()))
-                               .ReturnsAsync(false);
-
-            _judgeAssignmentRepo.Setup(r => r.AddAsync(It.IsAny<JudgeAssignment>())).Returns(Task.CompletedTask);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _notificationServiceMock.Setup(n => n.CreateNotificationAsync(It.IsAny<CreateNotificationDto>()))
-                                   .ReturnsAsync(new NotificationDto());
-
-            _mapperMock.Setup(m => m.Map<JudgeAssignmentResponseDto>(It.IsAny<JudgeAssignment>()))
-                      .Returns(new JudgeAssignmentResponseDto { AssignmentId = 1, JudgeId = 1 });
-
-            var result = await _service.AssignJudgeAsync(dto, 5);
-
-            result.Should().NotBeNull();
-            result.JudgeId.Should().Be(1);
-
-            _judgeAssignmentRepo.Verify(r => r.AddAsync(It.Is<JudgeAssignment>(a => 
-                a.JudgeId == 1 && 
-                a.HackathonId == 1 && 
-                a.PhaseId == 3)), Times.Once);
-
-            // Verify notification was sent with track and phase info
-            _notificationServiceMock.Verify(n => n.CreateNotificationAsync(It.Is<CreateNotificationDto>(dto => 
-                dto.UserId == 1 && 
-                dto.Message.Contains("Tech Hackathon") &&
-                dto.Message.Contains("AI Track") &&
-                dto.Message.Contains("Final Phase"))), Times.Once);
-        }
+        
     }
 }

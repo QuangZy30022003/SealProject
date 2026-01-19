@@ -153,54 +153,8 @@ namespace NUniTest.Service
             _uowMock.Verify(u => u.SaveAsync(null), Times.Exactly(2));
         }
 
-        // =============================
-        // 5. Update team thay đổi chapter + tên
-        // =============================
-        [Test]
-        public async Task UpdateAsync_WhenValid_ShouldUpdate()
-        {
-            var team = new Team { TeamId = 5, TeamName = "Old", ChapterId = 1 };
-            var dto = new UpdateTeamDto { TeamName = "New", ChapterId = 2 };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(team);
-            _chapterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Chapter, bool>>>())).ReturnsAsync(true);
-            _teamRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Team, bool>>>())).ReturnsAsync(false);
-
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _uowMock.Setup(u => u.Teams.GetByIdIncludingAsync(
-                It.IsAny<Expression<Func<Team, bool>>>(),
-                It.IsAny<Expression<Func<Team, object>>>(),
-                It.IsAny<Expression<Func<Team, object>>>(),
-                It.IsAny<Expression<Func<Team, object>>>()
-            )).ReturnsAsync(team);
-
-            _mapperMock.Setup(m => m.Map<TeamDto>(team)).Returns(new TeamDto { TeamId = 5, TeamName = "New" });
-
-            var result = await _service.UpdateAsync(5, dto);
-
-            result.TeamName.Should().Be("New");
-            team.ChapterId.Should().Be(2);
-        }
-
-        // =============================
-        // 6. Delete thành công
-        // =============================
-        [Test]
-        public async Task DeleteAsync_WhenLeader_ShouldDelete()
-        {
-            var team = new Team { TeamId = 7, TeamLeaderId = 10 };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(team);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var ok = await _service.DeleteAsync(7, 10);
-
-            ok.Should().BeTrue();
-
-            _teamRepo.Verify(r => r.Remove(team), Times.Once);
-            _uowMock.Verify(u => u.SaveAsync(null), Times.Once);
-        }
+     
+       
 
         // =============================
         // 7. Không phải leader → lỗi

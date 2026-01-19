@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Common.DTOs.AuthDto;
 using Common.Helper;
 using Microsoft.AspNetCore.Authentication.Google;

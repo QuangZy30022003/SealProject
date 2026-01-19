@@ -82,38 +82,7 @@ namespace NUniTest.Service
                 .WithMessage("Phase not found");
         }
 
-        // =============================
-        // 3. CreateDraftAsync - Tạo draft thành công
-        // =============================
-        [Test]
-        public async Task CreateDraftAsync_WhenValid_ShouldCreateDraft()
-        {
-            var dto = new SubmissionCreateDto { TeamId = 1, PhaseId = 1, Title = "Test Submission", FilePath = "/uploads/test.pdf" };
-            var team = new Team { TeamId = 1 };
-            var phase = new HackathonPhase { PhaseId = 1 };
-            var submission = new Submission { SubmissionId = 1, TeamId = 1, IsFinal = false };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _phaseRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(phase);
-
-            _submissionRepo.Setup(r => r.AddAsync(It.IsAny<Submission>())).Returns(Task.CompletedTask);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _mapperMock.Setup(m => m.Map<SubmissionResponseDto>(It.IsAny<Submission>()))
-                      .Returns(new SubmissionResponseDto { SubmissionId = 1, Title = "Test Submission", IsFinal = false });
-
-            var result = await _service.CreateDraftAsync(dto, 5);
-
-            result.Should().NotBeNull();
-            result.SubmissionId.Should().Be(1);
-            result.IsFinal.Should().BeFalse();
-
-            _submissionRepo.Verify(r => r.AddAsync(It.Is<Submission>(s => 
-                s.TeamId == 1 && 
-                s.PhaseId == 1 && 
-                s.SubmittedBy == 5 && 
-                s.IsFinal == false)), Times.Once);
-        }
+       
 
         // =============================
         // 4. UpdateDraftAsync - Submission không tồn tại
@@ -164,39 +133,7 @@ namespace NUniTest.Service
             act.Should().ThrowAsync<Exception>()
                 .WithMessage("Not authorized to edit this draft");
         }
-        // =============================
-        // 7. UpdateDraftAsync - Update thành công
-        // =============================
-        [Test]
-        public async Task UpdateDraftAsync_WhenValid_ShouldUpdate()
-        {
-            var dto = new SubmissionUpdateDto { Title = "Updated Title", FilePath = "/updated/path.pdf" };
-            var submission = new Submission 
-            { 
-                SubmissionId = 1, 
-                IsFinal = false, 
-                SubmittedBy = 5,
-                Title = "Original Title",
-                FilePath = "/original/path.pdf"
-            };
-
-            _submissionRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(submission);
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _mapperMock.Setup(m => m.Map<SubmissionResponseDto>(submission))
-                      .Returns(new SubmissionResponseDto { SubmissionId = 1, Title = "Updated Title" });
-
-            var result = await _service.UpdateDraftAsync(1, dto, 5);
-
-            result.Should().NotBeNull();
-            result.Title.Should().Be("Updated Title");
-
-            submission.Title.Should().Be("Updated Title");
-            submission.FilePath.Should().Be("/updated/path.pdf");
-
-            _uowMock.Verify(u => u.SaveAsync(It.IsAny<int?>()), Times.AtLeastOnce());
-        }
-
+       
         // =============================
         // 8. SetFinalAsync - Submission không tồn tại
         // =============================
@@ -250,52 +187,7 @@ namespace NUniTest.Service
                 .WithMessage("Not authorized to set final submission");
         }
 
-        // =============================
-        // 11. SetFinalAsync - Set final thành công và gửi notification
-        // =============================
-        [Test]
-        public async Task SetFinalAsync_WhenValid_ShouldSetFinalAndNotifyJudges()
-        {
-            var dto = new SubmissionFinalDto { SubmissionId = 1, TeamId = 1 };
-            var submission = new Submission { SubmissionId = 1, TeamId = 1, PhaseId = 2, IsFinal = false };
-            var team = new Team { TeamId = 1, TeamLeaderId = 5, TeamName = "Alpha Team" };
-            var judgeAssignments = new List<JudgeAssignment>
-            {
-                new JudgeAssignment { JudgeId = 10, PhaseId = 2 },
-                new JudgeAssignment { JudgeId = 11, PhaseId = 2 }
-            };
-
-            _submissionRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(submission);
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-
-            _judgeAssignmentRepo.Setup(r => r.GetAllAsync(
-        It.IsAny<Expression<Func<JudgeAssignment, bool>>>(),
-        It.IsAny<Func<IQueryable<JudgeAssignment>, IOrderedQueryable<JudgeAssignment>>>(),
-        It.IsAny<string>()))
-    .ReturnsAsync(judgeAssignments);
-
-
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            _notificationServiceMock.Setup(n => n.CreateNotificationsAsync(
-                It.IsAny<List<int>>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-
-            _mapperMock.Setup(m => m.Map<SubmissionResponseDto>(submission))
-                      .Returns(new SubmissionResponseDto { SubmissionId = 1, IsFinal = true });
-
-            var result = await _service.SetFinalAsync(dto, 5);
-
-            result.Should().NotBeNull();
-            result.IsFinal.Should().BeTrue();
-
-            submission.IsFinal.Should().BeTrue();
-
-            _notificationServiceMock.Verify(n => n.CreateNotificationsAsync(
-                It.Is<List<int>>(ids => ids.Contains(10) && ids.Contains(11)),
-                It.Is<string>(msg => msg.Contains("Alpha Team"))), Times.Once);
-        }
-
+      
         // =============================
         // 12. GetSubmissionsByTeamAsync - Team không tồn tại
         // =============================

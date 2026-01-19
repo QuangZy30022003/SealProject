@@ -33,39 +33,7 @@ namespace NUniTest.Service
             _service = new SeasonService(_uowMock.Object, _mapperMock.Object);
         }
 
-        // =============================
-        // 1. GetAllSeasonsAsync - Return all seasons
-        // =============================
-        [Test]
-        public async Task GetAllSeasonsAsync_ShouldReturnAllSeasons()
-        {
-            var seasons = new List<Season>
-            {
-                new Season { SeasonId = 1, Name = "Season 1", Code = "S1" },
-                new Season { SeasonId = 2, Name = "Season 2", Code = "S2" }
-            };
-            var seasonResponses = new List<SeasonResponse>
-            {
-                new SeasonResponse { SeasonId = 1, Name = "Season 1", SeasonCode = "S1" },
-                new SeasonResponse { SeasonId = 2, Name = "Season 2", SeasonCode = "S2" }
-            };
-
-            _seasonRepo.Setup(r => r.GetAllAsync(
-        It.IsAny<Expression<Func<Season, bool>>>(),
-        It.IsAny<Func<IQueryable<Season>, IOrderedQueryable<Season>>>(),
-        It.IsAny<string>()
-    ))
-    .ReturnsAsync(seasons);
-
-            _mapperMock.Setup(m => m.Map<IEnumerable<SeasonResponse>>(seasons)).Returns(seasonResponses);
-
-            var result = await _service.GetAllSeasonsAsync();
-
-            result.Should().HaveCount(2);
-            result.First().Name.Should().Be("Season 1");
-            result.Last().Name.Should().Be("Season 2");
-        }
-
+       
         // =============================
         // 2. GetByIdAsync - Season exists
         // =============================

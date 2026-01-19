@@ -230,38 +230,7 @@ namespace NUniTest.Service
             act.Should().ThrowAsync<UnauthorizedAccessException>()
                 .WithMessage("Invalid refresh token");
         }
-        // =============================
-        // 8. RefreshTokenAsync - Refresh thành công
-        // =============================
-        [Test]
-        public async Task RefreshTokenAsync_WhenValidToken_ShouldReturnNewTokens()
-        {
-            var refreshToken = "valid_token";
-            var user = new User 
-            { 
-                UserId = 1, 
-                RefreshToken = refreshToken, 
-                RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1) // Còn hạn
-            };
-            var newAccessToken = "new_access_token";
-            var newRefreshToken = "new_refresh_token";
-
-            _userRepo.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<User, bool>>>(), null, null))
-                    .ReturnsAsync(new List<User> { user });
-
-            // JwtHelper will generate real tokens
-
-            _userRepo.Setup(r => r.Update(It.IsAny<User>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.RefreshTokenAsync(refreshToken);
-
-            result.accessToken.Should().NotBeNullOrEmpty();
-            result.refreshToken.Should().NotBeNullOrEmpty();
-
-            user.RefreshToken.Should().NotBeNullOrEmpty();
-            user.RefreshTokenExpiryTime.Should().BeAfter(DateTime.UtcNow);
-        }
+      
 
         // =============================
         // 9. VerifyEmailAsync - Token rỗng

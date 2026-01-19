@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Common.DTOs.ScoreDto;
 using Common.DTOs.Submission;
 using Repositories.Models;
@@ -24,74 +24,73 @@ namespace Service.Servicefolder
         }
 
 
-        // ======================================================
-        // NORMAL ROUND: UPDATE AVERAGE + RANK
-        // ======================================================
         public async Task UpdateAverageAndRankAsync(int submissionId)
         {
+            // Lấy submission
             var submission = await _uow.Submissions.GetByIdAsync(submissionId);
             if (submission == null) return;
 
-            var groupTeam = await _uow.GroupsTeams
-                .FirstOrDefaultAsync(gt => gt.TeamId == submission.TeamId);
+            // Lấy GroupTeam của submission
+            var groupTeam = await _uow.GroupsTeams.FirstOrDefaultAsync(gt => gt.TeamId == submission.TeamId);
             if (groupTeam == null) return;
 
-            // 1️ Lấy tất cả submissions của team trong phase
-            var teamSubmissions = await _uow.Submissions.GetAllAsync(
-                s => s.TeamId == groupTeam.TeamId &&
-                     s.PhaseId == submission.PhaseId);
-
-            if (!teamSubmissions.Any()) return;
-
-            var submissionIds = teamSubmissions
-                .Select(s => s.SubmissionId)
-                .ToList();
-
-            // 2️ LẤY TOÀN BỘ SCORE CHỈ 1 QUERY (FIX N+1)
-            var allScores = await _uow.Scores.GetAllIncludingAsync(
-                s => submissionIds.Contains(s.SubmissionId),
-                s => s.Criteria
-            );
-
-            // 3️ GROUP SCORE THEO SUBMISSION
-            var scoresBySubmission = allScores
-                .GroupBy(s => s.SubmissionId)
-                .ToDictionary(g => g.Key, g => g.AsEnumerable());
+            // Lấy tất cả submission của team trong phase
+            var teamSubmissions = await _uow.Submissions
+                .GetAllAsync(s => s.TeamId == groupTeam.TeamId && s.PhaseId == submission.PhaseId);
 
             decimal totalAverageScore = 0;
-            int scoredCount = 0;
-
+            var scoredSubmissions = new List<Submission>();
             foreach (var sub in teamSubmissions)
             {
-                if (!scoresBySubmission.TryGetValue(sub.SubmissionId, out var scores))
-                    continue;
+                var allScores = await _uow.Scores.GetAllIncludingAsync(
+     s => s.SubmissionId == sub.SubmissionId,
+     s => s.Criteria
+ );
 
-                totalAverageScore += CalculateSubmissionScore(scores);
-                scoredCount++;
+                if (allScores.Any())
+                {
+                    scoredSubmissions.Add(sub);
+
+                    // Nhóm theo JudgeId
+                    var scoresByJudge = allScores
+                        .GroupBy(s => s.JudgeId)
+                        .Select(g =>
+                        {
+                            var sumScore = g.Sum(s =>(s.Score1 / 100m) * s.Criteria.Weight);
+                            return sumScore;
+                        })
+                        .ToList();
+
+                    // Trung bình submission nếu nhiều judge
+                    decimal submissionAverage = scoresByJudge.Any() ? scoresByJudge.Average() : 0;
+
+                    totalAverageScore += submissionAverage;
+                }
             }
 
-            decimal averageScore = scoredCount > 0
-                ? totalAverageScore / scoredCount
-                : 0;
+            // Trung bình tất cả submission đã chấm
+            //     groupTeam.AverageScore = scoredSubmissions.Any() ? totalAverageScore / scoredSubmissions.Count : 0;
+            decimal averageScore = scoredSubmissions.Any()
+         ? totalAverageScore / scoredSubmissions.Count
+         : 0;
 
-            // 4️ Penalty / Bonus
+            // 🔥 5. CỘNG / TRỪ PENALTY - BONUS
             var penalties = await _uow.PenaltiesBonuses.GetAllAsync(p =>
                 p.TeamId == groupTeam.TeamId &&
                 p.PhaseId == submission.PhaseId &&
                 !p.IsDeleted);
 
-            groupTeam.AverageScore = averageScore + penalties.Sum(p => p.Points);
+            decimal penaltyTotal = penalties.Sum(p => p.Points);
+
+            groupTeam.AverageScore = averageScore + penaltyTotal;
+
 
             _uow.GroupsTeams.Update(groupTeam);
             await _uow.SaveAsync();
 
-            // 5️ Ranking trong group
-            var teamsInGroup = await _uow.GroupsTeams
-                .GetAllAsync(gt => gt.GroupId == groupTeam.GroupId);
-
-            var rankedTeams = teamsInGroup
-                .OrderByDescending(gt => gt.AverageScore)
-                .ToList();
+            // Cập nhật Rank: lấy tất cả team trong group
+            var teamsInGroup = await _uow.GroupsTeams.GetAllAsync(gt => gt.GroupId == groupTeam.GroupId);
+            var rankedTeams = teamsInGroup.OrderByDescending(gt => gt.AverageScore).ToList();
 
             for (int i = 0; i < rankedTeams.Count; i++)
             {
@@ -101,7 +100,6 @@ namespace Service.Servicefolder
 
             await _uow.SaveAsync();
         }
-
 
 
 
@@ -142,7 +140,7 @@ namespace Service.Servicefolder
                 .GroupBy(s => s.SubmissionId)
                 .Select(g =>
                 {
-                    var total = CalculateSubmissionScore(g);
+                    var total = g.Sum(s => s.Score1); // tổng điểm thay vì trung bình
                     return new SubmissionScoresGroupedDto
                     {
                         SubmissionId = g.Key,
@@ -290,32 +288,30 @@ namespace Service.Servicefolder
             return result;
         }
 
-        // ======================================================
-        // FINAL ROUND RANKING
-        // ======================================================
-        public async Task UpdateFinalRankingAsync(
-            Submission submission,
-            int hackathonId)
+        public async Task UpdateFinalRankingAsync(Submission submission, int hackathonId)
         {
             var allScores = await _uow.Scores.GetAllIncludingAsync(
-                s => s.SubmissionId == submission.SubmissionId,
-                s => s.Criteria
-            );
+    x => x.SubmissionId == submission.SubmissionId,
+    x => x.Criteria
+);
 
-            if (!allScores.Any()) return;
 
-            decimal totalScore = CalculateSubmissionScore(allScores);
-
+            decimal totalScore = allScores
+                .GroupBy(s => s.JudgeId)
+               .Select(g =>g.Sum(s => (s.Score1 / 100m) * s.Criteria.Weight))
+                .Average();
             var penalties = await _uow.PenaltiesBonuses.GetAllAsync(p =>
-                p.TeamId == submission.TeamId &&
-                p.PhaseId == submission.PhaseId &&
-                !p.IsDeleted);
+      p.TeamId == submission.TeamId &&
+      p.PhaseId == submission.PhaseId &&
+      !p.IsDeleted);
 
-            totalScore += penalties.Sum(p => p.Points);
+            decimal penaltyTotal = penalties.Sum(p => p.Points);
 
-            var ranking = await _uow.Rankings.FirstOrDefaultAsync(r =>
-                r.TeamId == submission.TeamId &&
-                r.HackathonId == hackathonId);
+            totalScore += penaltyTotal;
+
+            var ranking = await _uow.Rankings.FirstOrDefaultAsync(x =>
+                x.TeamId == submission.TeamId &&
+                x.HackathonId == hackathonId);
 
             if (ranking == null)
             {
@@ -337,9 +333,10 @@ namespace Service.Servicefolder
 
             await _uow.SaveAsync();
 
+            // Re-rank all
             var allRankings = (await _uow.Rankings.GetAllAsync(
-                r => r.HackathonId == hackathonId,
-                orderBy: q => q.OrderByDescending(x => x.TotalScore)
+                x => x.HackathonId == hackathonId,
+                orderBy: q => q.OrderByDescending(r => r.TotalScore)
             )).ToList();
 
             int rank = 1;
@@ -354,9 +351,9 @@ namespace Service.Servicefolder
 
 
         public async Task<ScoreDetailDto> UpdateScoreByIdAsync(
-            int judgeId,
-            int scoreId,
-            ScoreUpdateByIdDto request)
+    int judgeId,
+    int scoreId,
+    ScoreUpdateByIdDto request)
         {
             // 1. Lấy score
             var score = await _uow.Scores.FirstOrDefaultAsync(s =>
@@ -401,8 +398,8 @@ namespace Service.Servicefolder
         }
 
         public async Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
-            int teamId,
-            int phaseId)
+    int teamId,
+    int phaseId)
         {
             var team = await _uow.Teams.GetByIdAsync(teamId)
                 ?? throw new ArgumentException("Team not found");
@@ -462,28 +459,6 @@ namespace Service.Servicefolder
                 Judges = judges
             };
         }
-
-        // ======================================================
-        // CORE SCORING LOGIC (DUY NHẤT 1 CÔNG THỨC)
-        // ======================================================
-
-        private decimal CalculateSubmissionScore(IEnumerable<Score> scores)
-        {
-            if (scores == null || !scores.Any())
-                return 0;
-
-            return scores
-                .GroupBy(s => s.JudgeId)
-                .Select(judgeGroup =>
-                    judgeGroup.Sum(s =>
-                        (s.Score1) *
-                        ((s.Criteria?.Weight ?? 0) / 100m)
-                    )
-                )
-                .Average();
-        }
-
-
 
     }
 }

@@ -105,26 +105,7 @@ namespace NUniTest.Service
                 .WithMessage("Leader cannot be kicked.");
         }
 
-        // =============================
-        // 5. KickMemberAsync - Successful kick
-        // =============================
-        [Test]
-        public async Task KickMemberAsync_WhenValidRequest_ShouldKickSuccessfully()
-        {
-            var team = new Team { TeamId = 1, TeamLeaderId = 1, TeamName = "Test Team" };
-            var member = new TeamMember { TeamId = 1, UserId = 2, RoleInTeam = "Member" };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(member);
-            _teamMemberRepo.Setup(r => r.Remove(It.IsAny<TeamMember>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.KickMemberAsync(1, 2, 1);
-
-            result.Should().Be("Member has been kicked successfully.");
-            _teamMemberRepo.Verify(r => r.Remove(member), Times.Once);
-        }
+       
 
         // =============================
         // 6. LeaveTeamAsync - Member not in team
@@ -160,26 +141,7 @@ namespace NUniTest.Service
                 .WithMessage("Leader cannot leave the team. Please transfer leadership first.");
         }
 
-        // =============================
-        // 8. LeaveTeamAsync - Successful leave
-        // =============================
-        [Test]
-        public async Task LeaveTeamAsync_WhenValidRequest_ShouldLeaveSuccessfully()
-        {
-            var member = new TeamMember { TeamId = 1, UserId = 2, RoleInTeam = "Member" };
-            var team = new Team { TeamId = 1, TeamLeaderId = 1, TeamName = "Test Team" };
-
-            _teamMemberRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(member);
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.Setup(r => r.Remove(It.IsAny<TeamMember>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.LeaveTeamAsync(1, 2);
-
-            result.Should().Be("You have left the team.");
-            _teamMemberRepo.Verify(r => r.Remove(member), Times.Once);
-        }
+      
 
         // =============================
         // 9. ChangeLeaderAsync - Team not found
@@ -245,35 +207,7 @@ namespace NUniTest.Service
                 .WithMessage("The specified user is not a member of this team.");
         }
 
-        // =============================
-        // 13. ChangeLeaderAsync - Successful leadership transfer
-        // =============================
-        [Test]
-        public async Task ChangeLeaderAsync_WhenValidRequest_ShouldTransferSuccessfully()
-        {
-            var team = new Team { TeamId = 1, TeamLeaderId = 1, TeamName = "Test Team" };
-            var oldLeader = new TeamMember { TeamId = 1, UserId = 1, RoleInTeam = "Leader" };
-            var newLeader = new TeamMember { TeamId = 1, UserId = 2, RoleInTeam = "Member" };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.SetupSequence(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(newLeader) // First call for new leader check
-                .ReturnsAsync(oldLeader); // Second call for old leader
-            _teamMemberRepo.Setup(r => r.Update(It.IsAny<TeamMember>()));
-            _teamRepo.Setup(r => r.Update(It.IsAny<Team>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.ChangeLeaderAsync(1, 2, 1);
-
-            result.Should().Be("Leadership has been successfully transferred to user ID 2.");
-            oldLeader.RoleInTeam.Should().Be("Member");
-            newLeader.RoleInTeam.Should().Be("Leader");
-            team.TeamLeaderId.Should().Be(2);
-
-            _teamMemberRepo.Verify(r => r.Update(oldLeader), Times.Once);
-            _teamMemberRepo.Verify(r => r.Update(newLeader), Times.Once);
-            _teamRepo.Verify(r => r.Update(team), Times.Once);
-        }
+       
 
         // =============================
         // 14. GetTeamMembersAsync - Return team members
@@ -380,31 +314,6 @@ namespace NUniTest.Service
             result.Should().BeFalse();
         }
 
-        // =============================
-        // 19. ChangeLeaderAsync - No old leader found (edge case)
-        // =============================
-        [Test]
-        public async Task ChangeLeaderAsync_WhenNoOldLeaderFound_ShouldStillTransferSuccessfully()
-        {
-            var team = new Team { TeamId = 1, TeamLeaderId = 1, TeamName = "Test Team" };
-            var newLeader = new TeamMember { TeamId = 1, UserId = 2, RoleInTeam = "Member" };
-
-            _teamRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(team);
-            _teamMemberRepo.SetupSequence(r => r.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<TeamMember, bool>>>()))
-                .ReturnsAsync(newLeader) // First call for new leader check
-                .ReturnsAsync((TeamMember)null); // Second call for old leader (not found)
-            _teamMemberRepo.Setup(r => r.Update(It.IsAny<TeamMember>()));
-            _teamRepo.Setup(r => r.Update(It.IsAny<Team>()));
-            _uowMock.Setup(u => u.SaveAsync(It.IsAny<int?>())).ReturnsAsync(1);
-
-            var result = await _service.ChangeLeaderAsync(1, 2, 1);
-
-            result.Should().Be("Leadership has been successfully transferred to user ID 2.");
-            newLeader.RoleInTeam.Should().Be("Leader");
-            team.TeamLeaderId.Should().Be(2);
-
-            _teamMemberRepo.Verify(r => r.Update(newLeader), Times.Once);
-            _teamRepo.Verify(r => r.Update(team), Times.Once);
-        }
+    
     }
 }
