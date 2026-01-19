@@ -58,9 +58,6 @@ namespace Seal.Controller
         }
 
 
- 
-
-
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -94,7 +91,6 @@ namespace Seal.Controller
         }
 
 
-
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
@@ -114,7 +110,7 @@ namespace Seal.Controller
             if (user.RoleName == "Partner")
             {
                 var profile = await _authService.GetByUserIdAsync(userId);
-                user.PartnerProfile = profile; // mapping DTO trả về PartnerProfileBasicDto
+                user.PartnerProfile = profile;
             }
 
             return Ok(user);
@@ -132,7 +128,7 @@ namespace Seal.Controller
             return Ok(user);
         }
 
-        [Authorize(Roles = "Admin,SystemAdministrator")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -141,7 +137,7 @@ namespace Seal.Controller
         }
 
         [Authorize]
-        [HttpPut("update-info/{id}")]
+        [HttpPut("update-info")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateUserDto dto)
         {
             try
