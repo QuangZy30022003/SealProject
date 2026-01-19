@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Models;
 using Repositories;
 using Service;
@@ -11,6 +11,7 @@ using Common.Mappings;
 using Microsoft.Extensions.DependencyInjection;
 using Common;
 using Service.Hubs;
+using Seal.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,27 +71,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(authHeader))
-            {
-                // Nếu header KHÔNG bắt đầu bằng "Bearer " thì coi toàn bộ là token
-                if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    context.Token = authHeader.Substring("Bearer ".Length).Trim();
-                }
-                else
-                {
-                    context.Token = authHeader; // token thuần
-                }
-            }
-            return Task.CompletedTask;
-        }
-    };
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            // SignalR gửi token qua query string hoặc header
+            // 1. Check SignalR query string
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
 
@@ -100,7 +81,7 @@ builder.Services.AddAuthentication(options =>
             }
             else
             {
-                // Fallback cho header Authorization
+                // 2. Fallback to Authorization header
                 var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
                 if (!string.IsNullOrEmpty(authHeader))
                 {
@@ -144,7 +125,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -171,7 +151,6 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 },
-          
             },
             new List<string>()
         }
@@ -183,6 +162,9 @@ builder.Services
              .AddService();
 var app = builder.Build();
 app.UseStaticFiles();
+
+// Add Global Exception Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Chỉ bật Swagger ở Development
 if (app.Environment.IsDevelopment())

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Common.DTOs.ScoreDto;
 using Common.DTOs.Submission;
 using Repositories.Models;

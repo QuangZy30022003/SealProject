@@ -1,4 +1,4 @@
-﻿using Common;
+using Common;
 using Common.DTOs.AuthDto;
 using Common.Helper;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -110,7 +110,7 @@ namespace Seal.Controller
             if (user.RoleName == "Partner")
             {
                 var profile = await _authService.GetByUserIdAsync(userId);
-                user.PartnerProfile = profile;
+                user.PartnerProfile = profile; 
             }
 
             return Ok(user);
