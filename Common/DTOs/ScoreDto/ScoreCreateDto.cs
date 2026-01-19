@@ -173,5 +173,37 @@ namespace Common.DTOs.ScoreDto
 
         public List<JudgeScoreOverviewDto> Judges { get; set; } = new();
     }
+    public class JudgeCriterionScoreWithWeightDto
+    {
+        public int CriterionId { get; set; }
+        public decimal Score { get; set; }
+        public decimal Weight { get; set; }   // 👈 THÊM
+        public string? Comment { get; set; }
+    }
+    public class JudgeSubmissionScoreWithWeightDto
+    {
+        public int SubmissionId { get; set; }
+        public string SubmissionTitle { get; set; }
+
+        public List<JudgeCriterionScoreWithWeightDto> CriteriaScores { get; set; } = new();
+    }
+    public class JudgeScoreOverviewWithWeightDto
+    {
+        public int JudgeId { get; set; }
+        public string JudgeName { get; set; }
+
+        public List<JudgeSubmissionScoreWithWeightDto> Submissions { get; set; } = new();
+    }
+    public class TeamOverviewWithJudgesAndWeightDto
+    {
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
+        public int PhaseId { get; set; }
+
+        public decimal? AverageScore { get; set; }
+        public int? Rank { get; set; }
+
+        public List<JudgeScoreOverviewWithWeightDto> Judges { get; set; } = new();
+    }
 
 }

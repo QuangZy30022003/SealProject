@@ -397,9 +397,9 @@ namespace Service.Servicefolder
             return _mapper.Map<ScoreDetailDto>(score);
         }
 
-        public async Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
-    int teamId,
-    int phaseId)
+        public async Task<TeamOverviewWithJudgesAndWeightDto> GetTeamOverviewAsync(
+       int teamId,
+       int phaseId)
         {
             var team = await _uow.Teams.GetByIdAsync(teamId)
                 ?? throw new ArgumentException("Team not found");
@@ -426,22 +426,23 @@ namespace Service.Servicefolder
             // =============================
             var judges = scores
                 .GroupBy(s => s.JudgeId)
-                .Select(jg => new JudgeScoreOverviewDto
+                .Select(jg => new JudgeScoreOverviewWithWeightDto
                 {
                     JudgeId = jg.Key,
                     JudgeName = jg.First().Judge.FullName,
 
                     Submissions = jg
                         .GroupBy(x => x.SubmissionId)
-                        .Select(sg => new JudgeSubmissionScoreDto
+                        .Select(sg => new JudgeSubmissionScoreWithWeightDto
                         {
                             SubmissionId = sg.Key,
                             SubmissionTitle = sg.First().Submission.Title,
 
-                            CriteriaScores = sg.Select(c => new JudgeCriterionScoreDto
+                            CriteriaScores = sg.Select(c => new JudgeCriterionScoreWithWeightDto
                             {
                                 CriterionId = c.CriteriaId,
                                 Score = c.Score1,
+                                Weight = c.Criteria.Weight,
                                 Comment = c.Comment
                             }).ToList()
                         })
@@ -449,7 +450,7 @@ namespace Service.Servicefolder
                 })
                 .ToList();
 
-            return new TeamOverviewWithJudgesDto
+            return new TeamOverviewWithJudgesAndWeightDto
             {
                 TeamId = team.TeamId,
                 TeamName = team.TeamName,
