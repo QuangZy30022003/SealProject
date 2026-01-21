@@ -213,7 +213,24 @@ namespace Seal.Controller
             var result = await _scoreService.GetTeamOverviewAsync(teamId, phaseId);
             return Ok(result);
         }
+        [HttpPut("submit")]
+        [Authorize(Roles = "Judge,Admin")]
+        public async Task<IActionResult> UpdateSubmissionScores(
+            [FromBody] ScoreSubmissionRequestDto request)
+        {
+            try
+            {
+                var judgeId = int.Parse(User.FindFirstValue("UserId"));
 
+                var result = await _scoreService.UpdateSubmissionScoresAsync(judgeId, request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }
