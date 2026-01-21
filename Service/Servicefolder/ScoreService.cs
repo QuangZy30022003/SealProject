@@ -460,6 +460,63 @@ namespace Service.Servicefolder
                 Judges = judges
             };
         }
+        public async Task<SubmissionScoresResponseDto> UpdateSubmissionScoresAsync(
+    int judgeId,
+    ScoreSubmissionRequestDto request)
+        {
+            if (request.CriteriaScores == null || !request.CriteriaScores.Any())
+                throw new Exception("No scores provided.");
+
+            // 1. Validate submission
+            var submission = await _uow.Submissions.GetByIdAsync(request.SubmissionId)
+                ?? throw new Exception("Submission not found");
+
+            // 2. Lấy toàn bộ score hiện có của judge cho submission
+            var existingScores = await _uow.Scores.GetAllIncludingAsync(
+                s => s.SubmissionId == request.SubmissionId
+                  && s.JudgeId == judgeId,
+                s => s.Criteria
+            );
+
+            if (!existingScores.Any())
+                throw new Exception("No existing scores found. Please submit scores first.");
+
+            // 3. Validate criteria & update
+            foreach (var item in request.CriteriaScores)
+            {
+                var score = existingScores
+                    .FirstOrDefault(s => s.CriteriaId == item.CriterionId);
+
+                if (score == null)
+                    throw new Exception($"Score for criterion {item.CriterionId} not found");
+
+                if (item.Score < 0 || item.Score > 10)
+                    throw new Exception("Score must be between 0 and 10");
+
+                score.Score1 = item.Score;
+                score.Comment = item.Comment;
+                score.ScoredAt = DateTime.UtcNow;
+
+                _uow.Scores.Update(score);
+            }
+
+            await _uow.SaveAsync();
+
+            // 4. Update ranking
+            await UpdateAverageAndRankAsync(submission.SubmissionId);
+
+            // 5. Response giống POST
+            return new SubmissionScoresResponseDto
+            {
+                SubmissionId = submission.SubmissionId,
+                Scores = request.CriteriaScores.Select(x => new ScoreItemDto
+                {
+                    CriteriaId = x.CriterionId,
+                    ScoreValue = x.Score,
+                    Comment = x.Comment
+                }).ToList()
+            };
+        }
 
     }
 }

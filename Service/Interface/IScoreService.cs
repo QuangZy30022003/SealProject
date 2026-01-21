@@ -25,13 +25,18 @@ namespace Service.Interface
         //    Task<TeamOverviewDto> GetTeamOverviewAsync(
         //int teamId,
         //int phaseId);
-       // Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
-       //int teamId,
-       //int phaseId);
+        // Task<TeamOverviewWithJudgesDto> GetTeamOverviewAsync(
+        //int teamId,
+        //int phaseId);
         Task<TeamOverviewWithJudgesAndWeightDto> GetTeamOverviewAsync(
     int teamId,
     int phaseId);
 
         Task UpdateFinalRankingAsync(Submission submission, int hackathonId);
+
+        Task<SubmissionScoresResponseDto> UpdateSubmissionScoresAsync(
+    int judgeId,
+    ScoreSubmissionRequestDto request);
+
     }
 }
