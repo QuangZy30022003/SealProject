@@ -36,6 +36,14 @@ namespace Service.Servicefolder
             var phase = await _uow.HackathonPhases.GetByIdAsync(dto.PhaseId);
             if (phase == null)
                 throw new Exception("Phase not found");
+
+            var now = DateTime.UtcNow;
+
+            if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
+                throw new Exception("Phase time is not configured");
+
+            if (now < phase.StartDate.Value || now > phase.EndDate.Value)
+                throw new Exception("Submission is not allowed outside the phase time");
             // 2. Lấy FINAL PHASE theo EndDate lớn nhất
             var finalPhase = (await _uow.HackathonPhases.GetAllAsync(
                 p => p.HackathonId == phase.HackathonId
@@ -144,6 +152,17 @@ namespace Service.Servicefolder
             // 🔒 Nếu submission đã là final → không cho set lại
             if (submission.IsFinal)
                 throw new Exception("This submission is already set as final");
+
+            var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId)
+       ?? throw new Exception("Phase not found");
+
+            var now = DateTime.UtcNow;
+
+            if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
+                throw new Exception("Phase time is not configured");
+
+            if (now < phase.StartDate.Value || now > phase.EndDate.Value)
+                throw new Exception("You cannot set final submission outside the phase time");
 
             // 🔴 Kiểm tra đã có FINAL trong phase chưa
             var existingFinal = (await _uow.Submissions.GetAllAsync(s =>
