@@ -337,17 +337,22 @@ namespace Service.Servicefolder
             return await _uow.Submissions
                 .Query()
                 .AsNoTracking()
+                .Include(s => s.Team)
+                    .ThenInclude(t => t.TeamTrackSelections)
+                        .ThenInclude(ts => ts.Track)
+                .Include(s => s.Phase)
                 .Select(s => new SubmissionResponseDto
                 {
                     SubmissionId = s.SubmissionId,
                     TeamName = s.Team.TeamName,
                     PhaseName = s.Phase.PhaseName,
-                    TrackName = s.Team.TeamTrackSelections
-                        .Select(ts => ts.Track.Name)
-                        .FirstOrDefault(),
+                    Title = s.Title,
                     FilePath = s.FilePath,
                     SubmittedAt = s.SubmittedAt,
-                    IsFinal = s.IsFinal
+                    IsFinal = s.IsFinal,
+                    TrackName = s.Team.TeamTrackSelections
+                        .Select(ts => ts.Track.Name)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
         }
@@ -420,6 +425,21 @@ namespace Service.Servicefolder
                 .ToList();
 
             return _mapper.Map<List<SubmissionResponseDto>>(submissions);
+        }
+
+        public async Task<List<DashboardSubmissionDto>> GetDashboardSubmissionsAsync()
+        {
+            return await _uow.Submissions
+                .Query()
+                .AsNoTracking()
+                .Select(s => new DashboardSubmissionDto
+                {
+                    SubmissionId = s.SubmissionId,
+                    TeamId = s.TeamId,
+                    PhaseId = s.PhaseId,
+                    IsFinal = s.IsFinal
+                })
+                .ToListAsync();
         }
 
     }

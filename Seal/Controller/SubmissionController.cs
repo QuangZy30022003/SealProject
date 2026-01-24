@@ -153,5 +153,13 @@ namespace Seal.Controller
             }
         }
 
+        [Authorize]
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboardData()
+        {
+            var result = await _submissionService.GetDashboardSubmissionsAsync();
+            return Ok(result);
+        }
+
     }
 }
