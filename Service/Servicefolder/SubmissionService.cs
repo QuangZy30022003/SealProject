@@ -37,13 +37,27 @@ namespace Service.Servicefolder
             if (phase == null)
                 throw new Exception("Phase not found");
 
-            var now = DateTime.UtcNow;
-
             if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
                 throw new Exception("Phase time is not configured");
 
-            if (now < phase.StartDate.Value || now > phase.EndDate.Value)
+            TimeZoneInfo vnTimeZone;
+            try
+            {
+                vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch
+            {
+                vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+            }
+
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(phase.StartDate.Value, vnTimeZone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(phase.EndDate.Value, vnTimeZone);
+
+            var nowUtc = DateTime.UtcNow;
+
+            if (nowUtc < startUtc || nowUtc > endUtc)
                 throw new Exception("Submission is not allowed outside the phase time");
+
             // 2. Lấy FINAL PHASE theo EndDate lớn nhất
             var finalPhase = (await _uow.HackathonPhases.GetAllAsync(
                 p => p.HackathonId == phase.HackathonId
@@ -156,12 +170,15 @@ namespace Service.Servicefolder
             var phase = await _uow.HackathonPhases.GetByIdAsync(submission.PhaseId)
        ?? throw new Exception("Phase not found");
 
-            var now = DateTime.UtcNow;
 
-            if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
-                throw new Exception("Phase time is not configured");
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
-            if (now < phase.StartDate.Value || now > phase.EndDate.Value)
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(phase.StartDate.Value, vnTimeZone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(phase.EndDate.Value, vnTimeZone);
+
+            var nowUtc = DateTime.UtcNow;
+
+            if (nowUtc < startUtc || nowUtc > endUtc)
                 throw new Exception("You cannot set final submission outside the phase time");
 
             // 🔴 Kiểm tra đã có FINAL trong phase chưa
