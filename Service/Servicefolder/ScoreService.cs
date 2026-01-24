@@ -398,13 +398,18 @@ namespace Service.Servicefolder
         }
 
         public async Task<TeamOverviewWithJudgesAndWeightDto> GetTeamOverviewAsync(
-       int teamId,
-       int phaseId)
+    int teamId,
+    int phaseId)
         {
             var team = await _uow.Teams.GetByIdAsync(teamId)
                 ?? throw new ArgumentException("Team not found");
 
-            // GroupTeam (AverageScore, Rank)
+            // =============================
+            // Phase result (GroupTeam OR Ranking)
+            // =============================
+            decimal? averageScore = null;
+            int? rank = null;
+
             var groupTeam = (await _uow.GroupsTeams.GetAllIncludingAsync(
                 gt => gt.TeamId == teamId
                       && gt.Group.Track.PhaseId == phaseId,
@@ -412,13 +417,32 @@ namespace Service.Servicefolder
                 gt => gt.Group.Track
             )).FirstOrDefault();
 
-            // Lấy tất cả score của team trong phase
+            if (groupTeam != null)
+            {
+                // Phase có chia group
+                averageScore = groupTeam.AverageScore;
+                rank = groupTeam.Rank;
+            }
+            else
+            {
+                // Phase cuối → dùng Ranking (KHÔNG theo PhaseId)
+                var ranking = await _uow.Rankings.FirstOrDefaultAsync(
+                    r => r.TeamId == teamId
+                         && r.HackathonId == team.HackathonId);
+
+                averageScore = ranking != null ? (decimal?)ranking.TotalScore : null;
+                rank = ranking?.Rank;
+            }
+
+            // =============================
+            // Get all scores of team in phase
+            // =============================
             var scores = await _uow.Scores.GetAllIncludingAsync(
                 s => s.Submission.TeamId == teamId
                      && s.Criteria.PhaseId == phaseId,
                 s => s.Criteria,
                 s => s.Submission,
-                s => s.Judge   // 🔥 QUAN TRỌNG
+                s => s.Judge
             );
 
             // =============================
@@ -455,11 +479,13 @@ namespace Service.Servicefolder
                 TeamId = team.TeamId,
                 TeamName = team.TeamName,
                 PhaseId = phaseId,
-                AverageScore = groupTeam?.AverageScore,
-                Rank = groupTeam?.Rank,
+                AverageScore = averageScore,
+                Rank = rank,
                 Judges = judges
             };
         }
+
+
         public async Task<SubmissionScoresResponseDto> UpdateSubmissionScoresAsync(
     int judgeId,
     ScoreSubmissionRequestDto request)
