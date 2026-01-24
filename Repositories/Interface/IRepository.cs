@@ -9,6 +9,7 @@ namespace Repositories.Interface
 {
     public interface IRepository<T> where T : class
     {
+        IQueryable<T> Query();
         Task<IEnumerable<T>> GetAllAsync(
              Expression<Func<T, bool>>? filter = null,
              Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,

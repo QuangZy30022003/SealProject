@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.DTOs.Submission;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Models;
 using Repositories.UnitOfWork;
 using Service.Interface;
@@ -333,34 +334,22 @@ namespace Service.Servicefolder
 
         public async Task<List<SubmissionResponseDto>> GetAllSubmissionsAsync()
         {
-            var submissions = await _uow.Submissions.GetAllIncludingAsync(
-                s => true,
-                s => s.Team,
-                s => s.Team.TeamTrackSelections,
-                s => s.Phase
-            );
-
-            if (submissions == null || !submissions.Any())
-                return new List<SubmissionResponseDto>();
-
-            // Lấy toàn bộ TrackId
-            var trackIds = submissions
-                .SelectMany(s => s.Team.TeamTrackSelections.Select(ts => ts.TrackId))
-                .Distinct()
-                .ToList();
-
-            // Load track duy nhất 1 lần
-            var tracks = await _uow.Tracks.GetAllAsync(t => trackIds.Contains(t.TrackId));
-
-            foreach (var submission in submissions)
-            {
-                foreach (var sel in submission.Team.TeamTrackSelections)
+            return await _uow.Submissions
+                .Query()
+                .AsNoTracking()
+                .Select(s => new SubmissionResponseDto
                 {
-                    sel.Track = tracks.FirstOrDefault(t => t.TrackId == sel.TrackId);
-                }
-            }
-
-            return _mapper.Map<List<SubmissionResponseDto>>(submissions);
+                    SubmissionId = s.SubmissionId,
+                    TeamName = s.Team.TeamName,
+                    PhaseName = s.Phase.PhaseName,
+                    TrackName = s.Team.TeamTrackSelections
+                        .Select(ts => ts.Track.Name)
+                        .FirstOrDefault(),
+                    FilePath = s.FilePath,
+                    SubmittedAt = s.SubmittedAt,
+                    IsFinal = s.IsFinal
+                })
+                .ToListAsync();
         }
 
 
