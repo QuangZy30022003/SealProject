@@ -18,26 +18,26 @@ namespace Seal.Controller
         {
             _submissionService = submissionService;
         }
-        //[Authorize]
-        //[HttpPost("draft")]
-        //public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
-        //{
-        //    try
-        //    {
-        //        // Lấy UserId trực tiếp từ token JWT
-        //        var userIdClaim = User.FindFirst("UserId")?.Value;
-        //        if (userIdClaim == null) return Unauthorized("Invalid token");
+        [Authorize]
+        [HttpPost("draft")]
+        public async Task<IActionResult> CreateDraft([FromBody] SubmissionCreateDto dto)
+        {
+            try
+            {
+                // Lấy UserId trực tiếp từ token JWT
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (userIdClaim == null) return Unauthorized("Invalid token");
 
-        //        int userIdFromToken = int.Parse(userIdClaim);
+                int userIdFromToken = int.Parse(userIdClaim);
 
-        //        var result = await _submissionService.CreateDraftAsync(dto, userIdFromToken);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+                var result = await _submissionService.CreateDraftAsync(dto, userIdFromToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [Authorize]
         [HttpPut("draft/{submissionId}")]
         public async Task<IActionResult> UpdateDraft(int submissionId, [FromBody] SubmissionUpdateDto dto)
