@@ -41,4 +41,12 @@ namespace Common.DTOs.Submission
         public string TrackName { get; set; }
     }
 
+    public class DashboardSubmissionDto
+    {
+        public int SubmissionId { get; set; }
+        public int TeamId { get; set; }
+        public int PhaseId { get; set; }
+        public bool IsFinal { get; set; }
+    }
+
 }

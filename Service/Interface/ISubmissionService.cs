@@ -14,7 +14,7 @@ namespace Service.Interface
         Task<SubmissionResponseDto?> UpdateDraftAsync(int submissionId, SubmissionUpdateDto dto, int currentUserId);
         Task<SubmissionResponseDto> CreateDraftAsync(SubmissionCreateDto dto, int currentUserId);
         Task<List<SubmissionResponseDto>> GetFinalSubmissionsByPhaseAsync(int phaseId, int userId, string role);
-
+        Task<List<DashboardSubmissionDto>> GetDashboardSubmissionsAsync();
         Task<SubmissionResponseDto> GetSubmissionByIdAsync(int submissionId);
         Task<List<SubmissionResponseDto>> GetAllSubmissionsAsync();
         Task<List<SubmissionResponseDto>> GetSubmissionsByTeamAndPhaseAsync(
