@@ -20,6 +20,11 @@ namespace Repositories.Repos
             _dbSet = context.Set<T>();
         }
 
+        public IQueryable<T> Query()
+        {
+            return _dbSet;
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
