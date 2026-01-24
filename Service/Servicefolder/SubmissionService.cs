@@ -40,23 +40,11 @@ namespace Service.Servicefolder
             if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
                 throw new Exception("Phase time is not configured");
 
-            TimeZoneInfo vnTimeZone;
-            try
-            {
-                vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            }
-            catch
-            {
-                vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-            }
-
-            var startUtc = TimeZoneInfo.ConvertTimeToUtc(phase.StartDate.Value, vnTimeZone);
-            var endUtc = TimeZoneInfo.ConvertTimeToUtc(phase.EndDate.Value, vnTimeZone);
-
             var nowUtc = DateTime.UtcNow;
 
-            if (nowUtc < startUtc || nowUtc > endUtc)
+            if (nowUtc < phase.StartDate.Value || nowUtc > phase.EndDate.Value)
                 throw new Exception("Submission is not allowed outside the phase time");
+
 
             // 2. Lấy FINAL PHASE theo EndDate lớn nhất
             var finalPhase = (await _uow.HackathonPhases.GetAllAsync(
@@ -103,7 +91,7 @@ namespace Service.Servicefolder
                 PhaseId = dto.PhaseId,
                 Title = dto.Title,
                 FilePath = dto.FilePath,
-                SubmittedAt = DateTime.UtcNow,
+                SubmittedAt = DateTime.UtcNow.AddHours(7),
                 SubmittedBy = currentUserId,
                 IsFinal = false
             };
@@ -171,15 +159,11 @@ namespace Service.Servicefolder
        ?? throw new Exception("Phase not found");
 
 
-            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-
-            var startUtc = TimeZoneInfo.ConvertTimeToUtc(phase.StartDate.Value, vnTimeZone);
-            var endUtc = TimeZoneInfo.ConvertTimeToUtc(phase.EndDate.Value, vnTimeZone);
-
             var nowUtc = DateTime.UtcNow;
 
-            if (nowUtc < startUtc || nowUtc > endUtc)
+            if (nowUtc < phase.StartDate.Value || nowUtc > phase.EndDate.Value)
                 throw new Exception("You cannot set final submission outside the phase time");
+
 
             // 🔴 Kiểm tra đã có FINAL trong phase chưa
             var existingFinal = (await _uow.Submissions.GetAllAsync(s =>
