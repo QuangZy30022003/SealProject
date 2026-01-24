@@ -40,10 +40,10 @@ namespace Service.Servicefolder
             if (!phase.StartDate.HasValue || !phase.EndDate.HasValue)
                 throw new Exception("Phase time is not configured");
 
-            var nowUtc = DateTime.UtcNow;
+            //var nowUtc = DateTime.UtcNow;
 
-            if (nowUtc < phase.StartDate.Value || nowUtc > phase.EndDate.Value)
-                throw new Exception("Submission is not allowed outside the phase time");
+            //if (nowUtc < phase.StartDate.Value || nowUtc > phase.EndDate.Value)
+            //    throw new Exception("Submission is not allowed outside the phase time");
 
 
             // 2. Lấy FINAL PHASE theo EndDate lớn nhất
